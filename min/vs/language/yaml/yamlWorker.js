@@ -1,7 +1,1640 @@
-/*!-----------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * monaco-yaml version: 2.5.1(e3bd06a5cacc2b8f5df0e30fb27efdbb793b6930)
- * Released under the MIT license
- * https://github.com/kpdecker/monaco-yaml/blob/master/LICENSE.md
- *-----------------------------------------------------------------------------*/
-function __export(e){for(var t in e)exports.hasOwnProperty(t)||(exports[t]=e[t])}!function(e){if("object"==typeof module&&"object"==typeof module.exports){var t=e(require,exports);void 0!==t&&(module.exports=t)}else"function"==typeof define&&define.amd&&define("vscode-languageserver-types/main",["require","exports"],e)}(function(e,t){"use strict";var n,r,i,o,a,s,u,c,d,f,g,l,m;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.create=function(e,t){return{line:e,character:t}},e.is=function(e){var t=e;return _.objectLiteral(t)&&_.number(t.line)&&_.number(t.character)}}(n=t.Position||(t.Position={})),function(e){e.create=function(e,t,r,i){if(_.number(e)&&_.number(t)&&_.number(r)&&_.number(i))return{start:n.create(e,t),end:n.create(r,i)};if(n.is(e)&&n.is(t))return{start:e,end:t};throw new Error("Range#create called with invalid arguments["+e+", "+t+", "+r+", "+i+"]")},e.is=function(e){var t=e;return _.objectLiteral(t)&&n.is(t.start)&&n.is(t.end)}}(r=t.Range||(t.Range={})),function(e){e.create=function(e,t){return{uri:e,range:t}},e.is=function(e){var t=e;return _.defined(t)&&r.is(t.range)&&(_.string(t.uri)||_.undefined(t.uri))}}(i=t.Location||(t.Location={})),function(e){e.create=function(e,t,n,r){return{targetUri:e,targetRange:t,targetSelectionRange:n,originSelectionRange:r}},e.is=function(e){var t=e;return _.defined(t)&&r.is(t.targetRange)&&_.string(t.targetUri)&&(r.is(t.targetSelectionRange)||_.undefined(t.targetSelectionRange))&&(r.is(t.originSelectionRange)||_.undefined(t.originSelectionRange))}}(t.LocationLink||(t.LocationLink={})),function(e){e.create=function(e,t,n,r){return{red:e,green:t,blue:n,alpha:r}},e.is=function(e){var t=e;return _.number(t.red)&&_.number(t.green)&&_.number(t.blue)&&_.number(t.alpha)}}(o=t.Color||(t.Color={})),function(e){e.create=function(e,t){return{range:e,color:t}},e.is=function(e){var t=e;return r.is(t.range)&&o.is(t.color)}}(t.ColorInformation||(t.ColorInformation={})),function(e){e.create=function(e,t,n){return{label:e,textEdit:t,additionalTextEdits:n}},e.is=function(e){var t=e;return _.string(t.label)&&(_.undefined(t.textEdit)||c.is(t))&&(_.undefined(t.additionalTextEdits)||_.typedArray(t.additionalTextEdits,c.is))}}(t.ColorPresentation||(t.ColorPresentation={})),function(e){e.Comment="comment",e.Imports="imports",e.Region="region"}(t.FoldingRangeKind||(t.FoldingRangeKind={})),function(e){e.create=function(e,t,n,r,i){var o={startLine:e,endLine:t};return _.defined(n)&&(o.startCharacter=n),_.defined(r)&&(o.endCharacter=r),_.defined(i)&&(o.kind=i),o},e.is=function(e){var t=e;return _.number(t.startLine)&&_.number(t.startLine)&&(_.undefined(t.startCharacter)||_.number(t.startCharacter))&&(_.undefined(t.endCharacter)||_.number(t.endCharacter))&&(_.undefined(t.kind)||_.string(t.kind))}}(t.FoldingRange||(t.FoldingRange={})),function(e){e.create=function(e,t){return{location:e,message:t}},e.is=function(e){var t=e;return _.defined(t)&&i.is(t.location)&&_.string(t.message)}}(a=t.DiagnosticRelatedInformation||(t.DiagnosticRelatedInformation={})),function(e){e.Error=1,e.Warning=2,e.Information=3,e.Hint=4}(t.DiagnosticSeverity||(t.DiagnosticSeverity={})),function(e){e.Unnecessary=1,e.Deprecated=2}(t.DiagnosticTag||(t.DiagnosticTag={})),function(e){e.create=function(e,t,n,r,i,o){var a={range:e,message:t};return _.defined(n)&&(a.severity=n),_.defined(r)&&(a.code=r),_.defined(i)&&(a.source=i),_.defined(o)&&(a.relatedInformation=o),a},e.is=function(e){var t=e;return _.defined(t)&&r.is(t.range)&&_.string(t.message)&&(_.number(t.severity)||_.undefined(t.severity))&&(_.number(t.code)||_.string(t.code)||_.undefined(t.code))&&(_.string(t.source)||_.undefined(t.source))&&(_.undefined(t.relatedInformation)||_.typedArray(t.relatedInformation,a.is))}}(s=t.Diagnostic||(t.Diagnostic={})),function(e){e.create=function(e,t){for(var n=[],r=2;r<arguments.length;r++)n[r-2]=arguments[r];var i={title:e,command:t};return _.defined(n)&&n.length>0&&(i.arguments=n),i},e.is=function(e){var t=e;return _.defined(t)&&_.string(t.title)&&_.string(t.command)}}(u=t.Command||(t.Command={})),function(e){e.replace=function(e,t){return{range:e,newText:t}},e.insert=function(e,t){return{range:{start:e,end:e},newText:t}},e.del=function(e){return{range:e,newText:""}},e.is=function(e){var t=e;return _.objectLiteral(t)&&_.string(t.newText)&&r.is(t.range)}}(c=t.TextEdit||(t.TextEdit={})),function(e){e.create=function(e,t){return{textDocument:e,edits:t}},e.is=function(e){var t=e;return _.defined(t)&&v.is(t.textDocument)&&Array.isArray(t.edits)}}(d=t.TextDocumentEdit||(t.TextDocumentEdit={})),function(e){e.create=function(e,t){var n={kind:"create",uri:e};return void 0===t||void 0===t.overwrite&&void 0===t.ignoreIfExists||(n.options=t),n},e.is=function(e){var t=e;return t&&"create"===t.kind&&_.string(t.uri)&&(void 0===t.options||(void 0===t.options.overwrite||_.boolean(t.options.overwrite))&&(void 0===t.options.ignoreIfExists||_.boolean(t.options.ignoreIfExists)))}}(f=t.CreateFile||(t.CreateFile={})),function(e){e.create=function(e,t,n){var r={kind:"rename",oldUri:e,newUri:t};return void 0===n||void 0===n.overwrite&&void 0===n.ignoreIfExists||(r.options=n),r},e.is=function(e){var t=e;return t&&"rename"===t.kind&&_.string(t.oldUri)&&_.string(t.newUri)&&(void 0===t.options||(void 0===t.options.overwrite||_.boolean(t.options.overwrite))&&(void 0===t.options.ignoreIfExists||_.boolean(t.options.ignoreIfExists)))}}(g=t.RenameFile||(t.RenameFile={})),function(e){e.create=function(e,t){var n={kind:"delete",uri:e};return void 0===t||void 0===t.recursive&&void 0===t.ignoreIfNotExists||(n.options=t),n},e.is=function(e){var t=e;return t&&"delete"===t.kind&&_.string(t.uri)&&(void 0===t.options||(void 0===t.options.recursive||_.boolean(t.options.recursive))&&(void 0===t.options.ignoreIfNotExists||_.boolean(t.options.ignoreIfNotExists)))}}(l=t.DeleteFile||(t.DeleteFile={})),function(e){e.is=function(e){var t=e;return t&&(void 0!==t.changes||void 0!==t.documentChanges)&&(void 0===t.documentChanges||t.documentChanges.every(function(e){return _.string(e.kind)?f.is(e)||g.is(e)||l.is(e):d.is(e)}))}}(m=t.WorkspaceEdit||(t.WorkspaceEdit={}));var v,h,p,b,y=function(){function e(e){this.edits=e}return e.prototype.insert=function(e,t){this.edits.push(c.insert(e,t))},e.prototype.replace=function(e,t){this.edits.push(c.replace(e,t))},e.prototype.delete=function(e){this.edits.push(c.del(e))},e.prototype.add=function(e){this.edits.push(e)},e.prototype.all=function(){return this.edits},e.prototype.clear=function(){this.edits.splice(0,this.edits.length)},e}(),x=function(){function e(e){var t=this;this._textEditChanges=Object.create(null),e&&(this._workspaceEdit=e,e.documentChanges?e.documentChanges.forEach(function(e){if(d.is(e)){var n=new y(e.edits);t._textEditChanges[e.textDocument.uri]=n}}):e.changes&&Object.keys(e.changes).forEach(function(n){var r=new y(e.changes[n]);t._textEditChanges[n]=r}))}return Object.defineProperty(e.prototype,"edit",{get:function(){return this._workspaceEdit},enumerable:!0,configurable:!0}),e.prototype.getTextEditChange=function(e){if(v.is(e)){if(this._workspaceEdit||(this._workspaceEdit={documentChanges:[]}),!this._workspaceEdit.documentChanges)throw new Error("Workspace edit is not configured for document changes.");var t=e;if(!(r=this._textEditChanges[t.uri])){var n={textDocument:t,edits:i=[]};this._workspaceEdit.documentChanges.push(n),r=new y(i),this._textEditChanges[t.uri]=r}return r}if(this._workspaceEdit||(this._workspaceEdit={changes:Object.create(null)}),!this._workspaceEdit.changes)throw new Error("Workspace edit is not configured for normal text edit changes.");var r;if(!(r=this._textEditChanges[e])){var i=[];this._workspaceEdit.changes[e]=i,r=new y(i),this._textEditChanges[e]=r}return r},e.prototype.createFile=function(e,t){this.checkDocumentChanges(),this._workspaceEdit.documentChanges.push(f.create(e,t))},e.prototype.renameFile=function(e,t,n){this.checkDocumentChanges(),this._workspaceEdit.documentChanges.push(g.create(e,t,n))},e.prototype.deleteFile=function(e,t){this.checkDocumentChanges(),this._workspaceEdit.documentChanges.push(l.create(e,t))},e.prototype.checkDocumentChanges=function(){if(!this._workspaceEdit||!this._workspaceEdit.documentChanges)throw new Error("Workspace edit is not configured for document changes.")},e}();t.WorkspaceChange=x,function(e){e.create=function(e){return{uri:e}},e.is=function(e){var t=e;return _.defined(t)&&_.string(t.uri)}}(t.TextDocumentIdentifier||(t.TextDocumentIdentifier={})),function(e){e.create=function(e,t){return{uri:e,version:t}},e.is=function(e){var t=e;return _.defined(t)&&_.string(t.uri)&&(null===t.version||_.number(t.version))}}(v=t.VersionedTextDocumentIdentifier||(t.VersionedTextDocumentIdentifier={})),function(e){e.create=function(e,t,n,r){return{uri:e,languageId:t,version:n,text:r}},e.is=function(e){var t=e;return _.defined(t)&&_.string(t.uri)&&_.string(t.languageId)&&_.number(t.version)&&_.string(t.text)}}(t.TextDocumentItem||(t.TextDocumentItem={})),function(e){e.PlainText="plaintext",e.Markdown="markdown"}(h=t.MarkupKind||(t.MarkupKind={})),function(e){e.is=function(t){var n=t;return n===e.PlainText||n===e.Markdown}}(h=t.MarkupKind||(t.MarkupKind={})),function(e){e.is=function(e){var t=e;return _.objectLiteral(e)&&h.is(t.kind)&&_.string(t.value)}}(p=t.MarkupContent||(t.MarkupContent={})),function(e){e.Text=1,e.Method=2,e.Function=3,e.Constructor=4,e.Field=5,e.Variable=6,e.Class=7,e.Interface=8,e.Module=9,e.Property=10,e.Unit=11,e.Value=12,e.Enum=13,e.Keyword=14,e.Snippet=15,e.Color=16,e.File=17,e.Reference=18,e.Folder=19,e.EnumMember=20,e.Constant=21,e.Struct=22,e.Event=23,e.Operator=24,e.TypeParameter=25}(t.CompletionItemKind||(t.CompletionItemKind={})),function(e){e.PlainText=1,e.Snippet=2}(t.InsertTextFormat||(t.InsertTextFormat={})),function(e){e.Deprecated=1}(t.CompletionItemTag||(t.CompletionItemTag={})),function(e){e.create=function(e){return{label:e}}}(t.CompletionItem||(t.CompletionItem={})),function(e){e.create=function(e,t){return{items:e||[],isIncomplete:!!t}}}(t.CompletionList||(t.CompletionList={})),function(e){e.fromPlainText=function(e){return e.replace(/[\\`*_{}[\]()#+\-.!]/g,"\\$&")},e.is=function(e){var t=e;return _.string(t)||_.objectLiteral(t)&&_.string(t.language)&&_.string(t.value)}}(b=t.MarkedString||(t.MarkedString={})),function(e){e.is=function(e){var t=e;return!!t&&_.objectLiteral(t)&&(p.is(t.contents)||b.is(t.contents)||_.typedArray(t.contents,b.is))&&(void 0===e.range||r.is(e.range))}}(t.Hover||(t.Hover={})),function(e){e.create=function(e,t){return t?{label:e,documentation:t}:{label:e}}}(t.ParameterInformation||(t.ParameterInformation={})),function(e){e.create=function(e,t){for(var n=[],r=2;r<arguments.length;r++)n[r-2]=arguments[r];var i={label:e};return _.defined(t)&&(i.documentation=t),_.defined(n)?i.parameters=n:i.parameters=[],i}}(t.SignatureInformation||(t.SignatureInformation={})),function(e){e.Text=1,e.Read=2,e.Write=3}(t.DocumentHighlightKind||(t.DocumentHighlightKind={})),function(e){e.create=function(e,t){var n={range:e};return _.number(t)&&(n.kind=t),n}}(t.DocumentHighlight||(t.DocumentHighlight={})),function(e){e.File=1,e.Module=2,e.Namespace=3,e.Package=4,e.Class=5,e.Method=6,e.Property=7,e.Field=8,e.Constructor=9,e.Enum=10,e.Interface=11,e.Function=12,e.Variable=13,e.Constant=14,e.String=15,e.Number=16,e.Boolean=17,e.Array=18,e.Object=19,e.Key=20,e.Null=21,e.EnumMember=22,e.Struct=23,e.Event=24,e.Operator=25,e.TypeParameter=26}(t.SymbolKind||(t.SymbolKind={})),function(e){e.Deprecated=1}(t.SymbolTag||(t.SymbolTag={})),function(e){e.create=function(e,t,n,r,i){var o={name:e,kind:t,location:{uri:r,range:n}};return i&&(o.containerName=i),o}}(t.SymbolInformation||(t.SymbolInformation={})),function(e){e.create=function(e,t,n,r,i,o){var a={name:e,detail:t,kind:n,range:r,selectionRange:i};return void 0!==o&&(a.children=o),a},e.is=function(e){var t=e;return t&&_.string(t.name)&&_.number(t.kind)&&r.is(t.range)&&r.is(t.selectionRange)&&(void 0===t.detail||_.string(t.detail))&&(void 0===t.deprecated||_.boolean(t.deprecated))&&(void 0===t.children||Array.isArray(t.children))}}(t.DocumentSymbol||(t.DocumentSymbol={})),function(e){e.Empty="",e.QuickFix="quickfix",e.Refactor="refactor",e.RefactorExtract="refactor.extract",e.RefactorInline="refactor.inline",e.RefactorRewrite="refactor.rewrite",e.Source="source",e.SourceOrganizeImports="source.organizeImports",e.SourceFixAll="source.fixAll"}(t.CodeActionKind||(t.CodeActionKind={})),function(e){e.create=function(e,t){var n={diagnostics:e};return void 0!==t&&null!==t&&(n.only=t),n},e.is=function(e){var t=e;return _.defined(t)&&_.typedArray(t.diagnostics,s.is)&&(void 0===t.only||_.typedArray(t.only,_.string))}}(t.CodeActionContext||(t.CodeActionContext={})),function(e){e.create=function(e,t,n){var r={title:e};return u.is(t)?r.command=t:r.edit=t,void 0!==n&&(r.kind=n),r},e.is=function(e){var t=e;return t&&_.string(t.title)&&(void 0===t.diagnostics||_.typedArray(t.diagnostics,s.is))&&(void 0===t.kind||_.string(t.kind))&&(void 0!==t.edit||void 0!==t.command)&&(void 0===t.command||u.is(t.command))&&(void 0===t.isPreferred||_.boolean(t.isPreferred))&&(void 0===t.edit||m.is(t.edit))}}(t.CodeAction||(t.CodeAction={})),function(e){e.create=function(e,t){var n={range:e};return _.defined(t)&&(n.data=t),n},e.is=function(e){var t=e;return _.defined(t)&&r.is(t.range)&&(_.undefined(t.command)||u.is(t.command))}}(t.CodeLens||(t.CodeLens={})),function(e){e.create=function(e,t){return{tabSize:e,insertSpaces:t}},e.is=function(e){var t=e;return _.defined(t)&&_.number(t.tabSize)&&_.boolean(t.insertSpaces)}}(t.FormattingOptions||(t.FormattingOptions={})),function(e){e.create=function(e,t,n){return{range:e,target:t,data:n}},e.is=function(e){var t=e;return _.defined(t)&&r.is(t.range)&&(_.undefined(t.target)||_.string(t.target))}}(t.DocumentLink||(t.DocumentLink={})),function(e){e.create=function(e,t){return{range:e,parent:t}},e.is=function(t){var n=t;return void 0!==n&&r.is(n.range)&&(void 0===n.parent||e.is(n.parent))}}(t.SelectionRange||(t.SelectionRange={})),t.EOL=["\n","\r\n","\r"],function(e){e.create=function(e,t,n,r){return new C(e,t,n,r)},e.is=function(e){var t=e;return!!(_.defined(t)&&_.string(t.uri)&&(_.undefined(t.languageId)||_.string(t.languageId))&&_.number(t.lineCount)&&_.func(t.getText)&&_.func(t.positionAt)&&_.func(t.offsetAt))},e.applyEdits=function(e,t){for(var n=e.getText(),r=function e(t,n){if(t.length<=1)return t;var r=t.length/2|0,i=t.slice(0,r),o=t.slice(r);e(i,n),e(o,n);for(var a=0,s=0,u=0;a<i.length&&s<o.length;){var c=n(i[a],o[s]);t[u++]=c<=0?i[a++]:o[s++]}for(;a<i.length;)t[u++]=i[a++];for(;s<o.length;)t[u++]=o[s++];return t}(t,function(e,t){var n=e.range.start.line-t.range.start.line;return 0===n?e.range.start.character-t.range.start.character:n}),i=n.length,o=r.length-1;o>=0;o--){var a=r[o],s=e.offsetAt(a.range.start),u=e.offsetAt(a.range.end);if(!(u<=i))throw new Error("Overlapping edit");n=n.substring(0,s)+a.newText+n.substring(u,n.length),i=s}return n}}(t.TextDocument||(t.TextDocument={}));var _,C=function(){function e(e,t,n,r){this._uri=e,this._languageId=t,this._version=n,this._content=r,this._lineOffsets=void 0}return Object.defineProperty(e.prototype,"uri",{get:function(){return this._uri},enumerable:!0,configurable:!0}),Object.defineProperty(e.prototype,"languageId",{get:function(){return this._languageId},enumerable:!0,configurable:!0}),Object.defineProperty(e.prototype,"version",{get:function(){return this._version},enumerable:!0,configurable:!0}),e.prototype.getText=function(e){if(e){var t=this.offsetAt(e.start),n=this.offsetAt(e.end);return this._content.substring(t,n)}return this._content},e.prototype.update=function(e,t){this._content=e.text,this._version=t,this._lineOffsets=void 0},e.prototype.getLineOffsets=function(){if(void 0===this._lineOffsets){for(var e=[],t=this._content,n=!0,r=0;r<t.length;r++){n&&(e.push(r),n=!1);var i=t.charAt(r);n="\r"===i||"\n"===i,"\r"===i&&r+1<t.length&&"\n"===t.charAt(r+1)&&r++}n&&t.length>0&&e.push(t.length),this._lineOffsets=e}return this._lineOffsets},e.prototype.positionAt=function(e){e=Math.max(Math.min(e,this._content.length),0);var t=this.getLineOffsets(),r=0,i=t.length;if(0===i)return n.create(0,e);for(;r<i;){var o=Math.floor((r+i)/2);t[o]>e?i=o:r=o+1}var a=r-1;return n.create(a,e-t[a])},e.prototype.offsetAt=function(e){var t=this.getLineOffsets();if(e.line>=t.length)return this._content.length;if(e.line<0)return 0;var n=t[e.line],r=e.line+1<t.length?t[e.line+1]:this._content.length;return Math.max(Math.min(n+e.character,r),n)},Object.defineProperty(e.prototype,"lineCount",{get:function(){return this.getLineOffsets().length},enumerable:!0,configurable:!0}),e}();!function(e){var t=Object.prototype.toString;e.defined=function(e){return void 0!==e},e.undefined=function(e){return void 0===e},e.boolean=function(e){return!0===e||!1===e},e.string=function(e){return"[object String]"===t.call(e)},e.number=function(e){return"[object Number]"===t.call(e)},e.func=function(e){return"[object Function]"===t.call(e)},e.objectLiteral=function(e){return null!==e&&"object"==typeof e},e.typedArray=function(e,t){return Array.isArray(e)&&e.every(t)}}(_||(_={}))}),define("vscode-languageserver-types",["vscode-languageserver-types/main"],function(e){return e}),Object.defineProperty(exports,"__esModule",{value:!0}),__export(require("./languageservice/yamlLanguageService"));var vscode_json_languageservice_1=require("vscode-json-languageservice");exports.getJSONLanguageService=vscode_json_languageservice_1.getLanguageService,__export(require("vscode-languageserver-types")),define("yaml-language-server",["yaml-language-server/index"],function(e){return e}),define("yaml-language-server/index",function(){}),function(e){if("object"==typeof module&&"object"==typeof module.exports){var t=e(require,exports);void 0!==t&&(module.exports=t)}else"function"==typeof define&&define.amd&&define("vs/language/yaml/yamlWorker",["require","exports","vscode-languageserver-types","yaml-language-server"],e)}(function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.create=t.YAMLWorker=void 0;const n=e("vscode-languageserver-types"),r=e("yaml-language-server");let i;"undefined"!=typeof fetch&&(i=function(e){return fetch(e).then(e=>e.text())});class o{constructor(e,t){const n=t.prefix||"";this._ctx=e,this._languageSettings=t.languageSettings,this._languageId=t.languageId,this._languageService=r.getLanguageService(t.enableSchemaRequest&&(e=>i(`${n}${e}`)),null,[]),this._isKubernetes=t.isKubernetes||!1,this._languageService.configure(Object.assign(Object.assign({},this._languageSettings),{hover:!0,isKubernetes:this._isKubernetes}))}doValidation(e){const t=this._getTextDocument(e);return t?this._languageService.doValidation(t,this._isKubernetes):Promise.resolve([])}doComplete(e,t){const n=this._getTextDocument(e);return this._languageService.doComplete(n,t,this._isKubernetes)}doResolve(e){return this._languageService.doResolve(e)}doHover(e,t){const n=this._getTextDocument(e);return this._languageService.doHover(n,t)}format(e,t,n){const r=this._getTextDocument(e),i=this._languageService.doFormat(r,n);return Promise.resolve(i)}resetSchema(e){return Promise.resolve(this._languageService.resetSchema(e))}findDocumentSymbols(e){const t=this._getTextDocument(e),n=this._languageService.findDocumentSymbols2(t);return Promise.resolve(n)}_getTextDocument(e){const t=this._ctx.getMirrorModels();for(const r of t)if(r.uri.toString()===e)return n.TextDocument.create(e,this._languageId,r.version,r.getValue());return null}}t.YAMLWorker=o,t.create=function(e,t){return new o(e,t)}});
+(function (factory) {
+    if (typeof module === "object" && typeof module.exports === "object") {
+        var v = factory(require, exports);
+        if (v !== undefined) module.exports = v;
+    }
+    else if (typeof define === "function" && define.amd) {
+        define('vscode-languageserver-types/main',["require", "exports"], factory);
+    }
+})(function (require, exports) {
+    /* --------------------------------------------------------------------------------------------
+     * Copyright (c) Microsoft Corporation. All rights reserved.
+     * Licensed under the MIT License. See License.txt in the project root for license information.
+     * ------------------------------------------------------------------------------------------ */
+    'use strict';
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * The Position namespace provides helper functions to work with
+     * [Position](#Position) literals.
+     */
+    var Position;
+    (function (Position) {
+        /**
+         * Creates a new Position literal from the given line and character.
+         * @param line The position's line.
+         * @param character The position's character.
+         */
+        function create(line, character) {
+            return { line: line, character: character };
+        }
+        Position.create = create;
+        /**
+         * Checks whether the given liternal conforms to the [Position](#Position) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.objectLiteral(candidate) && Is.number(candidate.line) && Is.number(candidate.character);
+        }
+        Position.is = is;
+    })(Position = exports.Position || (exports.Position = {}));
+    /**
+     * The Range namespace provides helper functions to work with
+     * [Range](#Range) literals.
+     */
+    var Range;
+    (function (Range) {
+        function create(one, two, three, four) {
+            if (Is.number(one) && Is.number(two) && Is.number(three) && Is.number(four)) {
+                return { start: Position.create(one, two), end: Position.create(three, four) };
+            }
+            else if (Position.is(one) && Position.is(two)) {
+                return { start: one, end: two };
+            }
+            else {
+                throw new Error("Range#create called with invalid arguments[" + one + ", " + two + ", " + three + ", " + four + "]");
+            }
+        }
+        Range.create = create;
+        /**
+         * Checks whether the given literal conforms to the [Range](#Range) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.objectLiteral(candidate) && Position.is(candidate.start) && Position.is(candidate.end);
+        }
+        Range.is = is;
+    })(Range = exports.Range || (exports.Range = {}));
+    /**
+     * The Location namespace provides helper functions to work with
+     * [Location](#Location) literals.
+     */
+    var Location;
+    (function (Location) {
+        /**
+         * Creates a Location literal.
+         * @param uri The location's uri.
+         * @param range The location's range.
+         */
+        function create(uri, range) {
+            return { uri: uri, range: range };
+        }
+        Location.create = create;
+        /**
+         * Checks whether the given literal conforms to the [Location](#Location) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Range.is(candidate.range) && (Is.string(candidate.uri) || Is.undefined(candidate.uri));
+        }
+        Location.is = is;
+    })(Location = exports.Location || (exports.Location = {}));
+    /**
+     * The LocationLink namespace provides helper functions to work with
+     * [LocationLink](#LocationLink) literals.
+     */
+    var LocationLink;
+    (function (LocationLink) {
+        /**
+         * Creates a LocationLink literal.
+         * @param targetUri The definition's uri.
+         * @param targetRange The full range of the definition.
+         * @param targetSelectionRange The span of the symbol definition at the target.
+         * @param originSelectionRange The span of the symbol being defined in the originating source file.
+         */
+        function create(targetUri, targetRange, targetSelectionRange, originSelectionRange) {
+            return { targetUri: targetUri, targetRange: targetRange, targetSelectionRange: targetSelectionRange, originSelectionRange: originSelectionRange };
+        }
+        LocationLink.create = create;
+        /**
+         * Checks whether the given literal conforms to the [LocationLink](#LocationLink) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Range.is(candidate.targetRange) && Is.string(candidate.targetUri)
+                && (Range.is(candidate.targetSelectionRange) || Is.undefined(candidate.targetSelectionRange))
+                && (Range.is(candidate.originSelectionRange) || Is.undefined(candidate.originSelectionRange));
+        }
+        LocationLink.is = is;
+    })(LocationLink = exports.LocationLink || (exports.LocationLink = {}));
+    /**
+     * The Color namespace provides helper functions to work with
+     * [Color](#Color) literals.
+     */
+    var Color;
+    (function (Color) {
+        /**
+         * Creates a new Color literal.
+         */
+        function create(red, green, blue, alpha) {
+            return {
+                red: red,
+                green: green,
+                blue: blue,
+                alpha: alpha,
+            };
+        }
+        Color.create = create;
+        /**
+         * Checks whether the given literal conforms to the [Color](#Color) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.number(candidate.red)
+                && Is.number(candidate.green)
+                && Is.number(candidate.blue)
+                && Is.number(candidate.alpha);
+        }
+        Color.is = is;
+    })(Color = exports.Color || (exports.Color = {}));
+    /**
+     * The ColorInformation namespace provides helper functions to work with
+     * [ColorInformation](#ColorInformation) literals.
+     */
+    var ColorInformation;
+    (function (ColorInformation) {
+        /**
+         * Creates a new ColorInformation literal.
+         */
+        function create(range, color) {
+            return {
+                range: range,
+                color: color,
+            };
+        }
+        ColorInformation.create = create;
+        /**
+         * Checks whether the given literal conforms to the [ColorInformation](#ColorInformation) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Range.is(candidate.range) && Color.is(candidate.color);
+        }
+        ColorInformation.is = is;
+    })(ColorInformation = exports.ColorInformation || (exports.ColorInformation = {}));
+    /**
+     * The Color namespace provides helper functions to work with
+     * [ColorPresentation](#ColorPresentation) literals.
+     */
+    var ColorPresentation;
+    (function (ColorPresentation) {
+        /**
+         * Creates a new ColorInformation literal.
+         */
+        function create(label, textEdit, additionalTextEdits) {
+            return {
+                label: label,
+                textEdit: textEdit,
+                additionalTextEdits: additionalTextEdits,
+            };
+        }
+        ColorPresentation.create = create;
+        /**
+         * Checks whether the given literal conforms to the [ColorInformation](#ColorInformation) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.string(candidate.label)
+                && (Is.undefined(candidate.textEdit) || TextEdit.is(candidate))
+                && (Is.undefined(candidate.additionalTextEdits) || Is.typedArray(candidate.additionalTextEdits, TextEdit.is));
+        }
+        ColorPresentation.is = is;
+    })(ColorPresentation = exports.ColorPresentation || (exports.ColorPresentation = {}));
+    /**
+     * Enum of known range kinds
+     */
+    var FoldingRangeKind;
+    (function (FoldingRangeKind) {
+        /**
+         * Folding range for a comment
+         */
+        FoldingRangeKind["Comment"] = "comment";
+        /**
+         * Folding range for a imports or includes
+         */
+        FoldingRangeKind["Imports"] = "imports";
+        /**
+         * Folding range for a region (e.g. `#region`)
+         */
+        FoldingRangeKind["Region"] = "region";
+    })(FoldingRangeKind = exports.FoldingRangeKind || (exports.FoldingRangeKind = {}));
+    /**
+     * The folding range namespace provides helper functions to work with
+     * [FoldingRange](#FoldingRange) literals.
+     */
+    var FoldingRange;
+    (function (FoldingRange) {
+        /**
+         * Creates a new FoldingRange literal.
+         */
+        function create(startLine, endLine, startCharacter, endCharacter, kind) {
+            var result = {
+                startLine: startLine,
+                endLine: endLine
+            };
+            if (Is.defined(startCharacter)) {
+                result.startCharacter = startCharacter;
+            }
+            if (Is.defined(endCharacter)) {
+                result.endCharacter = endCharacter;
+            }
+            if (Is.defined(kind)) {
+                result.kind = kind;
+            }
+            return result;
+        }
+        FoldingRange.create = create;
+        /**
+         * Checks whether the given literal conforms to the [FoldingRange](#FoldingRange) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.number(candidate.startLine) && Is.number(candidate.startLine)
+                && (Is.undefined(candidate.startCharacter) || Is.number(candidate.startCharacter))
+                && (Is.undefined(candidate.endCharacter) || Is.number(candidate.endCharacter))
+                && (Is.undefined(candidate.kind) || Is.string(candidate.kind));
+        }
+        FoldingRange.is = is;
+    })(FoldingRange = exports.FoldingRange || (exports.FoldingRange = {}));
+    /**
+     * The DiagnosticRelatedInformation namespace provides helper functions to work with
+     * [DiagnosticRelatedInformation](#DiagnosticRelatedInformation) literals.
+     */
+    var DiagnosticRelatedInformation;
+    (function (DiagnosticRelatedInformation) {
+        /**
+         * Creates a new DiagnosticRelatedInformation literal.
+         */
+        function create(location, message) {
+            return {
+                location: location,
+                message: message
+            };
+        }
+        DiagnosticRelatedInformation.create = create;
+        /**
+         * Checks whether the given literal conforms to the [DiagnosticRelatedInformation](#DiagnosticRelatedInformation) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Location.is(candidate.location) && Is.string(candidate.message);
+        }
+        DiagnosticRelatedInformation.is = is;
+    })(DiagnosticRelatedInformation = exports.DiagnosticRelatedInformation || (exports.DiagnosticRelatedInformation = {}));
+    /**
+     * The diagnostic's severity.
+     */
+    var DiagnosticSeverity;
+    (function (DiagnosticSeverity) {
+        /**
+         * Reports an error.
+         */
+        DiagnosticSeverity.Error = 1;
+        /**
+         * Reports a warning.
+         */
+        DiagnosticSeverity.Warning = 2;
+        /**
+         * Reports an information.
+         */
+        DiagnosticSeverity.Information = 3;
+        /**
+         * Reports a hint.
+         */
+        DiagnosticSeverity.Hint = 4;
+    })(DiagnosticSeverity = exports.DiagnosticSeverity || (exports.DiagnosticSeverity = {}));
+    /**
+     * The diagnostic tags.
+     *
+     * @since 3.15.0
+     */
+    var DiagnosticTag;
+    (function (DiagnosticTag) {
+        /**
+         * Unused or unnecessary code.
+         *
+         * Clients are allowed to render diagnostics with this tag faded out instead of having
+         * an error squiggle.
+         */
+        DiagnosticTag.Unnecessary = 1;
+        /**
+         * Deprecated or obsolete code.
+         *
+         * Clients are allowed to rendered diagnostics with this tag strike through.
+         */
+        DiagnosticTag.Deprecated = 2;
+    })(DiagnosticTag = exports.DiagnosticTag || (exports.DiagnosticTag = {}));
+    /**
+     * The Diagnostic namespace provides helper functions to work with
+     * [Diagnostic](#Diagnostic) literals.
+     */
+    var Diagnostic;
+    (function (Diagnostic) {
+        /**
+         * Creates a new Diagnostic literal.
+         */
+        function create(range, message, severity, code, source, relatedInformation) {
+            var result = { range: range, message: message };
+            if (Is.defined(severity)) {
+                result.severity = severity;
+            }
+            if (Is.defined(code)) {
+                result.code = code;
+            }
+            if (Is.defined(source)) {
+                result.source = source;
+            }
+            if (Is.defined(relatedInformation)) {
+                result.relatedInformation = relatedInformation;
+            }
+            return result;
+        }
+        Diagnostic.create = create;
+        /**
+         * Checks whether the given literal conforms to the [Diagnostic](#Diagnostic) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate)
+                && Range.is(candidate.range)
+                && Is.string(candidate.message)
+                && (Is.number(candidate.severity) || Is.undefined(candidate.severity))
+                && (Is.number(candidate.code) || Is.string(candidate.code) || Is.undefined(candidate.code))
+                && (Is.string(candidate.source) || Is.undefined(candidate.source))
+                && (Is.undefined(candidate.relatedInformation) || Is.typedArray(candidate.relatedInformation, DiagnosticRelatedInformation.is));
+        }
+        Diagnostic.is = is;
+    })(Diagnostic = exports.Diagnostic || (exports.Diagnostic = {}));
+    /**
+     * The Command namespace provides helper functions to work with
+     * [Command](#Command) literals.
+     */
+    var Command;
+    (function (Command) {
+        /**
+         * Creates a new Command literal.
+         */
+        function create(title, command) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var result = { title: title, command: command };
+            if (Is.defined(args) && args.length > 0) {
+                result.arguments = args;
+            }
+            return result;
+        }
+        Command.create = create;
+        /**
+         * Checks whether the given literal conforms to the [Command](#Command) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Is.string(candidate.title) && Is.string(candidate.command);
+        }
+        Command.is = is;
+    })(Command = exports.Command || (exports.Command = {}));
+    /**
+     * The TextEdit namespace provides helper function to create replace,
+     * insert and delete edits more easily.
+     */
+    var TextEdit;
+    (function (TextEdit) {
+        /**
+         * Creates a replace text edit.
+         * @param range The range of text to be replaced.
+         * @param newText The new text.
+         */
+        function replace(range, newText) {
+            return { range: range, newText: newText };
+        }
+        TextEdit.replace = replace;
+        /**
+         * Creates a insert text edit.
+         * @param position The position to insert the text at.
+         * @param newText The text to be inserted.
+         */
+        function insert(position, newText) {
+            return { range: { start: position, end: position }, newText: newText };
+        }
+        TextEdit.insert = insert;
+        /**
+         * Creates a delete text edit.
+         * @param range The range of text to be deleted.
+         */
+        function del(range) {
+            return { range: range, newText: '' };
+        }
+        TextEdit.del = del;
+        function is(value) {
+            var candidate = value;
+            return Is.objectLiteral(candidate)
+                && Is.string(candidate.newText)
+                && Range.is(candidate.range);
+        }
+        TextEdit.is = is;
+    })(TextEdit = exports.TextEdit || (exports.TextEdit = {}));
+    /**
+     * The TextDocumentEdit namespace provides helper function to create
+     * an edit that manipulates a text document.
+     */
+    var TextDocumentEdit;
+    (function (TextDocumentEdit) {
+        /**
+         * Creates a new `TextDocumentEdit`
+         */
+        function create(textDocument, edits) {
+            return { textDocument: textDocument, edits: edits };
+        }
+        TextDocumentEdit.create = create;
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate)
+                && VersionedTextDocumentIdentifier.is(candidate.textDocument)
+                && Array.isArray(candidate.edits);
+        }
+        TextDocumentEdit.is = is;
+    })(TextDocumentEdit = exports.TextDocumentEdit || (exports.TextDocumentEdit = {}));
+    var CreateFile;
+    (function (CreateFile) {
+        function create(uri, options) {
+            var result = {
+                kind: 'create',
+                uri: uri
+            };
+            if (options !== void 0 && (options.overwrite !== void 0 || options.ignoreIfExists !== void 0)) {
+                result.options = options;
+            }
+            return result;
+        }
+        CreateFile.create = create;
+        function is(value) {
+            var candidate = value;
+            return candidate && candidate.kind === 'create' && Is.string(candidate.uri) &&
+                (candidate.options === void 0 ||
+                    ((candidate.options.overwrite === void 0 || Is.boolean(candidate.options.overwrite)) && (candidate.options.ignoreIfExists === void 0 || Is.boolean(candidate.options.ignoreIfExists))));
+        }
+        CreateFile.is = is;
+    })(CreateFile = exports.CreateFile || (exports.CreateFile = {}));
+    var RenameFile;
+    (function (RenameFile) {
+        function create(oldUri, newUri, options) {
+            var result = {
+                kind: 'rename',
+                oldUri: oldUri,
+                newUri: newUri
+            };
+            if (options !== void 0 && (options.overwrite !== void 0 || options.ignoreIfExists !== void 0)) {
+                result.options = options;
+            }
+            return result;
+        }
+        RenameFile.create = create;
+        function is(value) {
+            var candidate = value;
+            return candidate && candidate.kind === 'rename' && Is.string(candidate.oldUri) && Is.string(candidate.newUri) &&
+                (candidate.options === void 0 ||
+                    ((candidate.options.overwrite === void 0 || Is.boolean(candidate.options.overwrite)) && (candidate.options.ignoreIfExists === void 0 || Is.boolean(candidate.options.ignoreIfExists))));
+        }
+        RenameFile.is = is;
+    })(RenameFile = exports.RenameFile || (exports.RenameFile = {}));
+    var DeleteFile;
+    (function (DeleteFile) {
+        function create(uri, options) {
+            var result = {
+                kind: 'delete',
+                uri: uri
+            };
+            if (options !== void 0 && (options.recursive !== void 0 || options.ignoreIfNotExists !== void 0)) {
+                result.options = options;
+            }
+            return result;
+        }
+        DeleteFile.create = create;
+        function is(value) {
+            var candidate = value;
+            return candidate && candidate.kind === 'delete' && Is.string(candidate.uri) &&
+                (candidate.options === void 0 ||
+                    ((candidate.options.recursive === void 0 || Is.boolean(candidate.options.recursive)) && (candidate.options.ignoreIfNotExists === void 0 || Is.boolean(candidate.options.ignoreIfNotExists))));
+        }
+        DeleteFile.is = is;
+    })(DeleteFile = exports.DeleteFile || (exports.DeleteFile = {}));
+    var WorkspaceEdit;
+    (function (WorkspaceEdit) {
+        function is(value) {
+            var candidate = value;
+            return candidate &&
+                (candidate.changes !== void 0 || candidate.documentChanges !== void 0) &&
+                (candidate.documentChanges === void 0 || candidate.documentChanges.every(function (change) {
+                    if (Is.string(change.kind)) {
+                        return CreateFile.is(change) || RenameFile.is(change) || DeleteFile.is(change);
+                    }
+                    else {
+                        return TextDocumentEdit.is(change);
+                    }
+                }));
+        }
+        WorkspaceEdit.is = is;
+    })(WorkspaceEdit = exports.WorkspaceEdit || (exports.WorkspaceEdit = {}));
+    var TextEditChangeImpl = /** @class */ (function () {
+        function TextEditChangeImpl(edits) {
+            this.edits = edits;
+        }
+        TextEditChangeImpl.prototype.insert = function (position, newText) {
+            this.edits.push(TextEdit.insert(position, newText));
+        };
+        TextEditChangeImpl.prototype.replace = function (range, newText) {
+            this.edits.push(TextEdit.replace(range, newText));
+        };
+        TextEditChangeImpl.prototype.delete = function (range) {
+            this.edits.push(TextEdit.del(range));
+        };
+        TextEditChangeImpl.prototype.add = function (edit) {
+            this.edits.push(edit);
+        };
+        TextEditChangeImpl.prototype.all = function () {
+            return this.edits;
+        };
+        TextEditChangeImpl.prototype.clear = function () {
+            this.edits.splice(0, this.edits.length);
+        };
+        return TextEditChangeImpl;
+    }());
+    /**
+     * A workspace change helps constructing changes to a workspace.
+     */
+    var WorkspaceChange = /** @class */ (function () {
+        function WorkspaceChange(workspaceEdit) {
+            var _this = this;
+            this._textEditChanges = Object.create(null);
+            if (workspaceEdit) {
+                this._workspaceEdit = workspaceEdit;
+                if (workspaceEdit.documentChanges) {
+                    workspaceEdit.documentChanges.forEach(function (change) {
+                        if (TextDocumentEdit.is(change)) {
+                            var textEditChange = new TextEditChangeImpl(change.edits);
+                            _this._textEditChanges[change.textDocument.uri] = textEditChange;
+                        }
+                    });
+                }
+                else if (workspaceEdit.changes) {
+                    Object.keys(workspaceEdit.changes).forEach(function (key) {
+                        var textEditChange = new TextEditChangeImpl(workspaceEdit.changes[key]);
+                        _this._textEditChanges[key] = textEditChange;
+                    });
+                }
+            }
+        }
+        Object.defineProperty(WorkspaceChange.prototype, "edit", {
+            /**
+             * Returns the underlying [WorkspaceEdit](#WorkspaceEdit) literal
+             * use to be returned from a workspace edit operation like rename.
+             */
+            get: function () {
+                return this._workspaceEdit;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        WorkspaceChange.prototype.getTextEditChange = function (key) {
+            if (VersionedTextDocumentIdentifier.is(key)) {
+                if (!this._workspaceEdit) {
+                    this._workspaceEdit = {
+                        documentChanges: []
+                    };
+                }
+                if (!this._workspaceEdit.documentChanges) {
+                    throw new Error('Workspace edit is not configured for document changes.');
+                }
+                var textDocument = key;
+                var result = this._textEditChanges[textDocument.uri];
+                if (!result) {
+                    var edits = [];
+                    var textDocumentEdit = {
+                        textDocument: textDocument,
+                        edits: edits
+                    };
+                    this._workspaceEdit.documentChanges.push(textDocumentEdit);
+                    result = new TextEditChangeImpl(edits);
+                    this._textEditChanges[textDocument.uri] = result;
+                }
+                return result;
+            }
+            else {
+                if (!this._workspaceEdit) {
+                    this._workspaceEdit = {
+                        changes: Object.create(null)
+                    };
+                }
+                if (!this._workspaceEdit.changes) {
+                    throw new Error('Workspace edit is not configured for normal text edit changes.');
+                }
+                var result = this._textEditChanges[key];
+                if (!result) {
+                    var edits = [];
+                    this._workspaceEdit.changes[key] = edits;
+                    result = new TextEditChangeImpl(edits);
+                    this._textEditChanges[key] = result;
+                }
+                return result;
+            }
+        };
+        WorkspaceChange.prototype.createFile = function (uri, options) {
+            this.checkDocumentChanges();
+            this._workspaceEdit.documentChanges.push(CreateFile.create(uri, options));
+        };
+        WorkspaceChange.prototype.renameFile = function (oldUri, newUri, options) {
+            this.checkDocumentChanges();
+            this._workspaceEdit.documentChanges.push(RenameFile.create(oldUri, newUri, options));
+        };
+        WorkspaceChange.prototype.deleteFile = function (uri, options) {
+            this.checkDocumentChanges();
+            this._workspaceEdit.documentChanges.push(DeleteFile.create(uri, options));
+        };
+        WorkspaceChange.prototype.checkDocumentChanges = function () {
+            if (!this._workspaceEdit || !this._workspaceEdit.documentChanges) {
+                throw new Error('Workspace edit is not configured for document changes.');
+            }
+        };
+        return WorkspaceChange;
+    }());
+    exports.WorkspaceChange = WorkspaceChange;
+    /**
+     * The TextDocumentIdentifier namespace provides helper functions to work with
+     * [TextDocumentIdentifier](#TextDocumentIdentifier) literals.
+     */
+    var TextDocumentIdentifier;
+    (function (TextDocumentIdentifier) {
+        /**
+         * Creates a new TextDocumentIdentifier literal.
+         * @param uri The document's uri.
+         */
+        function create(uri) {
+            return { uri: uri };
+        }
+        TextDocumentIdentifier.create = create;
+        /**
+         * Checks whether the given literal conforms to the [TextDocumentIdentifier](#TextDocumentIdentifier) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Is.string(candidate.uri);
+        }
+        TextDocumentIdentifier.is = is;
+    })(TextDocumentIdentifier = exports.TextDocumentIdentifier || (exports.TextDocumentIdentifier = {}));
+    /**
+     * The VersionedTextDocumentIdentifier namespace provides helper functions to work with
+     * [VersionedTextDocumentIdentifier](#VersionedTextDocumentIdentifier) literals.
+     */
+    var VersionedTextDocumentIdentifier;
+    (function (VersionedTextDocumentIdentifier) {
+        /**
+         * Creates a new VersionedTextDocumentIdentifier literal.
+         * @param uri The document's uri.
+         * @param uri The document's text.
+         */
+        function create(uri, version) {
+            return { uri: uri, version: version };
+        }
+        VersionedTextDocumentIdentifier.create = create;
+        /**
+         * Checks whether the given literal conforms to the [VersionedTextDocumentIdentifier](#VersionedTextDocumentIdentifier) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Is.string(candidate.uri) && (candidate.version === null || Is.number(candidate.version));
+        }
+        VersionedTextDocumentIdentifier.is = is;
+    })(VersionedTextDocumentIdentifier = exports.VersionedTextDocumentIdentifier || (exports.VersionedTextDocumentIdentifier = {}));
+    /**
+     * The TextDocumentItem namespace provides helper functions to work with
+     * [TextDocumentItem](#TextDocumentItem) literals.
+     */
+    var TextDocumentItem;
+    (function (TextDocumentItem) {
+        /**
+         * Creates a new TextDocumentItem literal.
+         * @param uri The document's uri.
+         * @param languageId The document's language identifier.
+         * @param version The document's version number.
+         * @param text The document's text.
+         */
+        function create(uri, languageId, version, text) {
+            return { uri: uri, languageId: languageId, version: version, text: text };
+        }
+        TextDocumentItem.create = create;
+        /**
+         * Checks whether the given literal conforms to the [TextDocumentItem](#TextDocumentItem) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Is.string(candidate.uri) && Is.string(candidate.languageId) && Is.number(candidate.version) && Is.string(candidate.text);
+        }
+        TextDocumentItem.is = is;
+    })(TextDocumentItem = exports.TextDocumentItem || (exports.TextDocumentItem = {}));
+    /**
+     * Describes the content type that a client supports in various
+     * result literals like `Hover`, `ParameterInfo` or `CompletionItem`.
+     *
+     * Please note that `MarkupKinds` must not start with a `$`. This kinds
+     * are reserved for internal usage.
+     */
+    var MarkupKind;
+    (function (MarkupKind) {
+        /**
+         * Plain text is supported as a content format
+         */
+        MarkupKind.PlainText = 'plaintext';
+        /**
+         * Markdown is supported as a content format
+         */
+        MarkupKind.Markdown = 'markdown';
+    })(MarkupKind = exports.MarkupKind || (exports.MarkupKind = {}));
+    (function (MarkupKind) {
+        /**
+         * Checks whether the given value is a value of the [MarkupKind](#MarkupKind) type.
+         */
+        function is(value) {
+            var candidate = value;
+            return candidate === MarkupKind.PlainText || candidate === MarkupKind.Markdown;
+        }
+        MarkupKind.is = is;
+    })(MarkupKind = exports.MarkupKind || (exports.MarkupKind = {}));
+    var MarkupContent;
+    (function (MarkupContent) {
+        /**
+         * Checks whether the given value conforms to the [MarkupContent](#MarkupContent) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.objectLiteral(value) && MarkupKind.is(candidate.kind) && Is.string(candidate.value);
+        }
+        MarkupContent.is = is;
+    })(MarkupContent = exports.MarkupContent || (exports.MarkupContent = {}));
+    /**
+     * The kind of a completion entry.
+     */
+    var CompletionItemKind;
+    (function (CompletionItemKind) {
+        CompletionItemKind.Text = 1;
+        CompletionItemKind.Method = 2;
+        CompletionItemKind.Function = 3;
+        CompletionItemKind.Constructor = 4;
+        CompletionItemKind.Field = 5;
+        CompletionItemKind.Variable = 6;
+        CompletionItemKind.Class = 7;
+        CompletionItemKind.Interface = 8;
+        CompletionItemKind.Module = 9;
+        CompletionItemKind.Property = 10;
+        CompletionItemKind.Unit = 11;
+        CompletionItemKind.Value = 12;
+        CompletionItemKind.Enum = 13;
+        CompletionItemKind.Keyword = 14;
+        CompletionItemKind.Snippet = 15;
+        CompletionItemKind.Color = 16;
+        CompletionItemKind.File = 17;
+        CompletionItemKind.Reference = 18;
+        CompletionItemKind.Folder = 19;
+        CompletionItemKind.EnumMember = 20;
+        CompletionItemKind.Constant = 21;
+        CompletionItemKind.Struct = 22;
+        CompletionItemKind.Event = 23;
+        CompletionItemKind.Operator = 24;
+        CompletionItemKind.TypeParameter = 25;
+    })(CompletionItemKind = exports.CompletionItemKind || (exports.CompletionItemKind = {}));
+    /**
+     * Defines whether the insert text in a completion item should be interpreted as
+     * plain text or a snippet.
+     */
+    var InsertTextFormat;
+    (function (InsertTextFormat) {
+        /**
+         * The primary text to be inserted is treated as a plain string.
+         */
+        InsertTextFormat.PlainText = 1;
+        /**
+         * The primary text to be inserted is treated as a snippet.
+         *
+         * A snippet can define tab stops and placeholders with `$1`, `$2`
+         * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
+         * the end of the snippet. Placeholders with equal identifiers are linked,
+         * that is typing in one will update others too.
+         *
+         * See also: https://github.com/Microsoft/vscode/blob/master/src/vs/editor/contrib/snippet/common/snippet.md
+         */
+        InsertTextFormat.Snippet = 2;
+    })(InsertTextFormat = exports.InsertTextFormat || (exports.InsertTextFormat = {}));
+    /**
+     * Completion item tags are extra annotations that tweak the rendering of a completion
+     * item.
+     *
+     * @since 3.15.0
+     */
+    var CompletionItemTag;
+    (function (CompletionItemTag) {
+        /**
+         * Render a completion as obsolete, usually using a strike-out.
+         */
+        CompletionItemTag.Deprecated = 1;
+    })(CompletionItemTag = exports.CompletionItemTag || (exports.CompletionItemTag = {}));
+    /**
+     * The CompletionItem namespace provides functions to deal with
+     * completion items.
+     */
+    var CompletionItem;
+    (function (CompletionItem) {
+        /**
+         * Create a completion item and seed it with a label.
+         * @param label The completion item's label
+         */
+        function create(label) {
+            return { label: label };
+        }
+        CompletionItem.create = create;
+    })(CompletionItem = exports.CompletionItem || (exports.CompletionItem = {}));
+    /**
+     * The CompletionList namespace provides functions to deal with
+     * completion lists.
+     */
+    var CompletionList;
+    (function (CompletionList) {
+        /**
+         * Creates a new completion list.
+         *
+         * @param items The completion items.
+         * @param isIncomplete The list is not complete.
+         */
+        function create(items, isIncomplete) {
+            return { items: items ? items : [], isIncomplete: !!isIncomplete };
+        }
+        CompletionList.create = create;
+    })(CompletionList = exports.CompletionList || (exports.CompletionList = {}));
+    var MarkedString;
+    (function (MarkedString) {
+        /**
+         * Creates a marked string from plain text.
+         *
+         * @param plainText The plain text.
+         */
+        function fromPlainText(plainText) {
+            return plainText.replace(/[\\`*_{}[\]()#+\-.!]/g, '\\$&'); // escape markdown syntax tokens: http://daringfireball.net/projects/markdown/syntax#backslash
+        }
+        MarkedString.fromPlainText = fromPlainText;
+        /**
+         * Checks whether the given value conforms to the [MarkedString](#MarkedString) type.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.string(candidate) || (Is.objectLiteral(candidate) && Is.string(candidate.language) && Is.string(candidate.value));
+        }
+        MarkedString.is = is;
+    })(MarkedString = exports.MarkedString || (exports.MarkedString = {}));
+    var Hover;
+    (function (Hover) {
+        /**
+         * Checks whether the given value conforms to the [Hover](#Hover) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return !!candidate && Is.objectLiteral(candidate) && (MarkupContent.is(candidate.contents) ||
+                MarkedString.is(candidate.contents) ||
+                Is.typedArray(candidate.contents, MarkedString.is)) && (value.range === void 0 || Range.is(value.range));
+        }
+        Hover.is = is;
+    })(Hover = exports.Hover || (exports.Hover = {}));
+    /**
+     * The ParameterInformation namespace provides helper functions to work with
+     * [ParameterInformation](#ParameterInformation) literals.
+     */
+    var ParameterInformation;
+    (function (ParameterInformation) {
+        /**
+         * Creates a new parameter information literal.
+         *
+         * @param label A label string.
+         * @param documentation A doc string.
+         */
+        function create(label, documentation) {
+            return documentation ? { label: label, documentation: documentation } : { label: label };
+        }
+        ParameterInformation.create = create;
+    })(ParameterInformation = exports.ParameterInformation || (exports.ParameterInformation = {}));
+    /**
+     * The SignatureInformation namespace provides helper functions to work with
+     * [SignatureInformation](#SignatureInformation) literals.
+     */
+    var SignatureInformation;
+    (function (SignatureInformation) {
+        function create(label, documentation) {
+            var parameters = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                parameters[_i - 2] = arguments[_i];
+            }
+            var result = { label: label };
+            if (Is.defined(documentation)) {
+                result.documentation = documentation;
+            }
+            if (Is.defined(parameters)) {
+                result.parameters = parameters;
+            }
+            else {
+                result.parameters = [];
+            }
+            return result;
+        }
+        SignatureInformation.create = create;
+    })(SignatureInformation = exports.SignatureInformation || (exports.SignatureInformation = {}));
+    /**
+     * A document highlight kind.
+     */
+    var DocumentHighlightKind;
+    (function (DocumentHighlightKind) {
+        /**
+         * A textual occurrence.
+         */
+        DocumentHighlightKind.Text = 1;
+        /**
+         * Read-access of a symbol, like reading a variable.
+         */
+        DocumentHighlightKind.Read = 2;
+        /**
+         * Write-access of a symbol, like writing to a variable.
+         */
+        DocumentHighlightKind.Write = 3;
+    })(DocumentHighlightKind = exports.DocumentHighlightKind || (exports.DocumentHighlightKind = {}));
+    /**
+     * DocumentHighlight namespace to provide helper functions to work with
+     * [DocumentHighlight](#DocumentHighlight) literals.
+     */
+    var DocumentHighlight;
+    (function (DocumentHighlight) {
+        /**
+         * Create a DocumentHighlight object.
+         * @param range The range the highlight applies to.
+         */
+        function create(range, kind) {
+            var result = { range: range };
+            if (Is.number(kind)) {
+                result.kind = kind;
+            }
+            return result;
+        }
+        DocumentHighlight.create = create;
+    })(DocumentHighlight = exports.DocumentHighlight || (exports.DocumentHighlight = {}));
+    /**
+     * A symbol kind.
+     */
+    var SymbolKind;
+    (function (SymbolKind) {
+        SymbolKind.File = 1;
+        SymbolKind.Module = 2;
+        SymbolKind.Namespace = 3;
+        SymbolKind.Package = 4;
+        SymbolKind.Class = 5;
+        SymbolKind.Method = 6;
+        SymbolKind.Property = 7;
+        SymbolKind.Field = 8;
+        SymbolKind.Constructor = 9;
+        SymbolKind.Enum = 10;
+        SymbolKind.Interface = 11;
+        SymbolKind.Function = 12;
+        SymbolKind.Variable = 13;
+        SymbolKind.Constant = 14;
+        SymbolKind.String = 15;
+        SymbolKind.Number = 16;
+        SymbolKind.Boolean = 17;
+        SymbolKind.Array = 18;
+        SymbolKind.Object = 19;
+        SymbolKind.Key = 20;
+        SymbolKind.Null = 21;
+        SymbolKind.EnumMember = 22;
+        SymbolKind.Struct = 23;
+        SymbolKind.Event = 24;
+        SymbolKind.Operator = 25;
+        SymbolKind.TypeParameter = 26;
+    })(SymbolKind = exports.SymbolKind || (exports.SymbolKind = {}));
+    /**
+     * Symbol tags are extra annotations that tweak the rendering of a symbol.
+     * @since 3.15
+     */
+    var SymbolTag;
+    (function (SymbolTag) {
+        /**
+         * Render a symbol as obsolete, usually using a strike-out.
+         */
+        SymbolTag.Deprecated = 1;
+    })(SymbolTag = exports.SymbolTag || (exports.SymbolTag = {}));
+    var SymbolInformation;
+    (function (SymbolInformation) {
+        /**
+         * Creates a new symbol information literal.
+         *
+         * @param name The name of the symbol.
+         * @param kind The kind of the symbol.
+         * @param range The range of the location of the symbol.
+         * @param uri The resource of the location of symbol, defaults to the current document.
+         * @param containerName The name of the symbol containing the symbol.
+         */
+        function create(name, kind, range, uri, containerName) {
+            var result = {
+                name: name,
+                kind: kind,
+                location: { uri: uri, range: range }
+            };
+            if (containerName) {
+                result.containerName = containerName;
+            }
+            return result;
+        }
+        SymbolInformation.create = create;
+    })(SymbolInformation = exports.SymbolInformation || (exports.SymbolInformation = {}));
+    var DocumentSymbol;
+    (function (DocumentSymbol) {
+        /**
+         * Creates a new symbol information literal.
+         *
+         * @param name The name of the symbol.
+         * @param detail The detail of the symbol.
+         * @param kind The kind of the symbol.
+         * @param range The range of the symbol.
+         * @param selectionRange The selectionRange of the symbol.
+         * @param children Children of the symbol.
+         */
+        function create(name, detail, kind, range, selectionRange, children) {
+            var result = {
+                name: name,
+                detail: detail,
+                kind: kind,
+                range: range,
+                selectionRange: selectionRange
+            };
+            if (children !== void 0) {
+                result.children = children;
+            }
+            return result;
+        }
+        DocumentSymbol.create = create;
+        /**
+         * Checks whether the given literal conforms to the [DocumentSymbol](#DocumentSymbol) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return candidate &&
+                Is.string(candidate.name) && Is.number(candidate.kind) &&
+                Range.is(candidate.range) && Range.is(candidate.selectionRange) &&
+                (candidate.detail === void 0 || Is.string(candidate.detail)) &&
+                (candidate.deprecated === void 0 || Is.boolean(candidate.deprecated)) &&
+                (candidate.children === void 0 || Array.isArray(candidate.children));
+        }
+        DocumentSymbol.is = is;
+    })(DocumentSymbol = exports.DocumentSymbol || (exports.DocumentSymbol = {}));
+    /**
+     * A set of predefined code action kinds
+     */
+    var CodeActionKind;
+    (function (CodeActionKind) {
+        /**
+         * Empty kind.
+         */
+        CodeActionKind.Empty = '';
+        /**
+         * Base kind for quickfix actions: 'quickfix'
+         */
+        CodeActionKind.QuickFix = 'quickfix';
+        /**
+         * Base kind for refactoring actions: 'refactor'
+         */
+        CodeActionKind.Refactor = 'refactor';
+        /**
+         * Base kind for refactoring extraction actions: 'refactor.extract'
+         *
+         * Example extract actions:
+         *
+         * - Extract method
+         * - Extract function
+         * - Extract variable
+         * - Extract interface from class
+         * - ...
+         */
+        CodeActionKind.RefactorExtract = 'refactor.extract';
+        /**
+         * Base kind for refactoring inline actions: 'refactor.inline'
+         *
+         * Example inline actions:
+         *
+         * - Inline function
+         * - Inline variable
+         * - Inline constant
+         * - ...
+         */
+        CodeActionKind.RefactorInline = 'refactor.inline';
+        /**
+         * Base kind for refactoring rewrite actions: 'refactor.rewrite'
+         *
+         * Example rewrite actions:
+         *
+         * - Convert JavaScript function to class
+         * - Add or remove parameter
+         * - Encapsulate field
+         * - Make method static
+         * - Move method to base class
+         * - ...
+         */
+        CodeActionKind.RefactorRewrite = 'refactor.rewrite';
+        /**
+         * Base kind for source actions: `source`
+         *
+         * Source code actions apply to the entire file.
+         */
+        CodeActionKind.Source = 'source';
+        /**
+         * Base kind for an organize imports source action: `source.organizeImports`
+         */
+        CodeActionKind.SourceOrganizeImports = 'source.organizeImports';
+        /**
+         * Base kind for auto-fix source actions: `source.fixAll`.
+         *
+         * Fix all actions automatically fix errors that have a clear fix that do not require user input.
+         * They should not suppress errors or perform unsafe fixes such as generating new types or classes.
+         *
+         * @since 3.15.0
+         */
+        CodeActionKind.SourceFixAll = 'source.fixAll';
+    })(CodeActionKind = exports.CodeActionKind || (exports.CodeActionKind = {}));
+    /**
+     * The CodeActionContext namespace provides helper functions to work with
+     * [CodeActionContext](#CodeActionContext) literals.
+     */
+    var CodeActionContext;
+    (function (CodeActionContext) {
+        /**
+         * Creates a new CodeActionContext literal.
+         */
+        function create(diagnostics, only) {
+            var result = { diagnostics: diagnostics };
+            if (only !== void 0 && only !== null) {
+                result.only = only;
+            }
+            return result;
+        }
+        CodeActionContext.create = create;
+        /**
+         * Checks whether the given literal conforms to the [CodeActionContext](#CodeActionContext) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Is.typedArray(candidate.diagnostics, Diagnostic.is) && (candidate.only === void 0 || Is.typedArray(candidate.only, Is.string));
+        }
+        CodeActionContext.is = is;
+    })(CodeActionContext = exports.CodeActionContext || (exports.CodeActionContext = {}));
+    var CodeAction;
+    (function (CodeAction) {
+        function create(title, commandOrEdit, kind) {
+            var result = { title: title };
+            if (Command.is(commandOrEdit)) {
+                result.command = commandOrEdit;
+            }
+            else {
+                result.edit = commandOrEdit;
+            }
+            if (kind !== void 0) {
+                result.kind = kind;
+            }
+            return result;
+        }
+        CodeAction.create = create;
+        function is(value) {
+            var candidate = value;
+            return candidate && Is.string(candidate.title) &&
+                (candidate.diagnostics === void 0 || Is.typedArray(candidate.diagnostics, Diagnostic.is)) &&
+                (candidate.kind === void 0 || Is.string(candidate.kind)) &&
+                (candidate.edit !== void 0 || candidate.command !== void 0) &&
+                (candidate.command === void 0 || Command.is(candidate.command)) &&
+                (candidate.isPreferred === void 0 || Is.boolean(candidate.isPreferred)) &&
+                (candidate.edit === void 0 || WorkspaceEdit.is(candidate.edit));
+        }
+        CodeAction.is = is;
+    })(CodeAction = exports.CodeAction || (exports.CodeAction = {}));
+    /**
+     * The CodeLens namespace provides helper functions to work with
+     * [CodeLens](#CodeLens) literals.
+     */
+    var CodeLens;
+    (function (CodeLens) {
+        /**
+         * Creates a new CodeLens literal.
+         */
+        function create(range, data) {
+            var result = { range: range };
+            if (Is.defined(data)) {
+                result.data = data;
+            }
+            return result;
+        }
+        CodeLens.create = create;
+        /**
+         * Checks whether the given literal conforms to the [CodeLens](#CodeLens) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Range.is(candidate.range) && (Is.undefined(candidate.command) || Command.is(candidate.command));
+        }
+        CodeLens.is = is;
+    })(CodeLens = exports.CodeLens || (exports.CodeLens = {}));
+    /**
+     * The FormattingOptions namespace provides helper functions to work with
+     * [FormattingOptions](#FormattingOptions) literals.
+     */
+    var FormattingOptions;
+    (function (FormattingOptions) {
+        /**
+         * Creates a new FormattingOptions literal.
+         */
+        function create(tabSize, insertSpaces) {
+            return { tabSize: tabSize, insertSpaces: insertSpaces };
+        }
+        FormattingOptions.create = create;
+        /**
+         * Checks whether the given literal conforms to the [FormattingOptions](#FormattingOptions) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Is.number(candidate.tabSize) && Is.boolean(candidate.insertSpaces);
+        }
+        FormattingOptions.is = is;
+    })(FormattingOptions = exports.FormattingOptions || (exports.FormattingOptions = {}));
+    /**
+     * The DocumentLink namespace provides helper functions to work with
+     * [DocumentLink](#DocumentLink) literals.
+     */
+    var DocumentLink;
+    (function (DocumentLink) {
+        /**
+         * Creates a new DocumentLink literal.
+         */
+        function create(range, target, data) {
+            return { range: range, target: target, data: data };
+        }
+        DocumentLink.create = create;
+        /**
+         * Checks whether the given literal conforms to the [DocumentLink](#DocumentLink) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Range.is(candidate.range) && (Is.undefined(candidate.target) || Is.string(candidate.target));
+        }
+        DocumentLink.is = is;
+    })(DocumentLink = exports.DocumentLink || (exports.DocumentLink = {}));
+    /**
+     * The SelectionRange namespace provides helper function to work with
+     * SelectionRange literals.
+     */
+    var SelectionRange;
+    (function (SelectionRange) {
+        /**
+         * Creates a new SelectionRange
+         * @param range the range.
+         * @param parent an optional parent.
+         */
+        function create(range, parent) {
+            return { range: range, parent: parent };
+        }
+        SelectionRange.create = create;
+        function is(value) {
+            var candidate = value;
+            return candidate !== undefined && Range.is(candidate.range) && (candidate.parent === undefined || SelectionRange.is(candidate.parent));
+        }
+        SelectionRange.is = is;
+    })(SelectionRange = exports.SelectionRange || (exports.SelectionRange = {}));
+    exports.EOL = ['\n', '\r\n', '\r'];
+    /**
+     * @deprecated Use the text document from the new vscode-languageserver-textdocument package.
+     */
+    var TextDocument;
+    (function (TextDocument) {
+        /**
+         * Creates a new ITextDocument literal from the given uri and content.
+         * @param uri The document's uri.
+         * @param languageId  The document's language Id.
+         * @param content The document's content.
+         */
+        function create(uri, languageId, version, content) {
+            return new FullTextDocument(uri, languageId, version, content);
+        }
+        TextDocument.create = create;
+        /**
+         * Checks whether the given literal conforms to the [ITextDocument](#ITextDocument) interface.
+         */
+        function is(value) {
+            var candidate = value;
+            return Is.defined(candidate) && Is.string(candidate.uri) && (Is.undefined(candidate.languageId) || Is.string(candidate.languageId)) && Is.number(candidate.lineCount)
+                && Is.func(candidate.getText) && Is.func(candidate.positionAt) && Is.func(candidate.offsetAt) ? true : false;
+        }
+        TextDocument.is = is;
+        function applyEdits(document, edits) {
+            var text = document.getText();
+            var sortedEdits = mergeSort(edits, function (a, b) {
+                var diff = a.range.start.line - b.range.start.line;
+                if (diff === 0) {
+                    return a.range.start.character - b.range.start.character;
+                }
+                return diff;
+            });
+            var lastModifiedOffset = text.length;
+            for (var i = sortedEdits.length - 1; i >= 0; i--) {
+                var e = sortedEdits[i];
+                var startOffset = document.offsetAt(e.range.start);
+                var endOffset = document.offsetAt(e.range.end);
+                if (endOffset <= lastModifiedOffset) {
+                    text = text.substring(0, startOffset) + e.newText + text.substring(endOffset, text.length);
+                }
+                else {
+                    throw new Error('Overlapping edit');
+                }
+                lastModifiedOffset = startOffset;
+            }
+            return text;
+        }
+        TextDocument.applyEdits = applyEdits;
+        function mergeSort(data, compare) {
+            if (data.length <= 1) {
+                // sorted
+                return data;
+            }
+            var p = (data.length / 2) | 0;
+            var left = data.slice(0, p);
+            var right = data.slice(p);
+            mergeSort(left, compare);
+            mergeSort(right, compare);
+            var leftIdx = 0;
+            var rightIdx = 0;
+            var i = 0;
+            while (leftIdx < left.length && rightIdx < right.length) {
+                var ret = compare(left[leftIdx], right[rightIdx]);
+                if (ret <= 0) {
+                    // smaller_equal -> take left to preserve order
+                    data[i++] = left[leftIdx++];
+                }
+                else {
+                    // greater -> take right
+                    data[i++] = right[rightIdx++];
+                }
+            }
+            while (leftIdx < left.length) {
+                data[i++] = left[leftIdx++];
+            }
+            while (rightIdx < right.length) {
+                data[i++] = right[rightIdx++];
+            }
+            return data;
+        }
+    })(TextDocument = exports.TextDocument || (exports.TextDocument = {}));
+    var FullTextDocument = /** @class */ (function () {
+        function FullTextDocument(uri, languageId, version, content) {
+            this._uri = uri;
+            this._languageId = languageId;
+            this._version = version;
+            this._content = content;
+            this._lineOffsets = undefined;
+        }
+        Object.defineProperty(FullTextDocument.prototype, "uri", {
+            get: function () {
+                return this._uri;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(FullTextDocument.prototype, "languageId", {
+            get: function () {
+                return this._languageId;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(FullTextDocument.prototype, "version", {
+            get: function () {
+                return this._version;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        FullTextDocument.prototype.getText = function (range) {
+            if (range) {
+                var start = this.offsetAt(range.start);
+                var end = this.offsetAt(range.end);
+                return this._content.substring(start, end);
+            }
+            return this._content;
+        };
+        FullTextDocument.prototype.update = function (event, version) {
+            this._content = event.text;
+            this._version = version;
+            this._lineOffsets = undefined;
+        };
+        FullTextDocument.prototype.getLineOffsets = function () {
+            if (this._lineOffsets === undefined) {
+                var lineOffsets = [];
+                var text = this._content;
+                var isLineStart = true;
+                for (var i = 0; i < text.length; i++) {
+                    if (isLineStart) {
+                        lineOffsets.push(i);
+                        isLineStart = false;
+                    }
+                    var ch = text.charAt(i);
+                    isLineStart = (ch === '\r' || ch === '\n');
+                    if (ch === '\r' && i + 1 < text.length && text.charAt(i + 1) === '\n') {
+                        i++;
+                    }
+                }
+                if (isLineStart && text.length > 0) {
+                    lineOffsets.push(text.length);
+                }
+                this._lineOffsets = lineOffsets;
+            }
+            return this._lineOffsets;
+        };
+        FullTextDocument.prototype.positionAt = function (offset) {
+            offset = Math.max(Math.min(offset, this._content.length), 0);
+            var lineOffsets = this.getLineOffsets();
+            var low = 0, high = lineOffsets.length;
+            if (high === 0) {
+                return Position.create(0, offset);
+            }
+            while (low < high) {
+                var mid = Math.floor((low + high) / 2);
+                if (lineOffsets[mid] > offset) {
+                    high = mid;
+                }
+                else {
+                    low = mid + 1;
+                }
+            }
+            // low is the least x for which the line offset is larger than the current offset
+            // or array.length if no line offset is larger than the current offset
+            var line = low - 1;
+            return Position.create(line, offset - lineOffsets[line]);
+        };
+        FullTextDocument.prototype.offsetAt = function (position) {
+            var lineOffsets = this.getLineOffsets();
+            if (position.line >= lineOffsets.length) {
+                return this._content.length;
+            }
+            else if (position.line < 0) {
+                return 0;
+            }
+            var lineOffset = lineOffsets[position.line];
+            var nextLineOffset = (position.line + 1 < lineOffsets.length) ? lineOffsets[position.line + 1] : this._content.length;
+            return Math.max(Math.min(lineOffset + position.character, nextLineOffset), lineOffset);
+        };
+        Object.defineProperty(FullTextDocument.prototype, "lineCount", {
+            get: function () {
+                return this.getLineOffsets().length;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return FullTextDocument;
+    }());
+    var Is;
+    (function (Is) {
+        var toString = Object.prototype.toString;
+        function defined(value) {
+            return typeof value !== 'undefined';
+        }
+        Is.defined = defined;
+        function undefined(value) {
+            return typeof value === 'undefined';
+        }
+        Is.undefined = undefined;
+        function boolean(value) {
+            return value === true || value === false;
+        }
+        Is.boolean = boolean;
+        function string(value) {
+            return toString.call(value) === '[object String]';
+        }
+        Is.string = string;
+        function number(value) {
+            return toString.call(value) === '[object Number]';
+        }
+        Is.number = number;
+        function func(value) {
+            return toString.call(value) === '[object Function]';
+        }
+        Is.func = func;
+        function objectLiteral(value) {
+            // Strictly speaking class instances pass this check as well. Since the LSP
+            // doesn't use classes we ignore this for now. If we do we need to add something
+            // like this: `Object.getPrototypeOf(Object.getPrototypeOf(x)) === null`
+            return value !== null && typeof value === 'object';
+        }
+        Is.objectLiteral = objectLiteral;
+        function typedArray(value, check) {
+            return Array.isArray(value) && value.every(check);
+        }
+        Is.typedArray = typedArray;
+    })(Is || (Is = {}));
+});
+
+define('vscode-languageserver-types', ['vscode-languageserver-types/main'], function (main) { return main; });
+
+
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(require("./languageservice/yamlLanguageService"));
+var vscode_json_languageservice_1 = require("vscode-json-languageservice");
+exports.getJSONLanguageService = vscode_json_languageservice_1.getLanguageService;
+__export(require("vscode-languageserver-types"));
+//# sourceMappingURL=index.js.map;
+define('yaml-language-server', ['yaml-language-server/index'], function (main) { return main; });
+
+define("yaml-language-server/index", function(){});
+
+(function (factory) {
+    if (typeof module === "object" && typeof module.exports === "object") {
+        var v = factory(require, exports);
+        if (v !== undefined) module.exports = v;
+    }
+    else if (typeof define === "function" && define.amd) {
+        define('vs/language/yaml/yamlWorker',["require", "exports", "vscode-languageserver-types", "yaml-language-server"], factory);
+    }
+})(function (require, exports) {
+    /*---------------------------------------------------------------------------------------------
+     *  Copyright (c) Red Hat, Inc. All rights reserved.
+     *  Copyright (c) Adam Voss. All rights reserved.
+     *  Copyright (c) Microsoft Corporation. All rights reserved.
+     *  Licensed under the MIT License. See License.txt in the project root for license information.
+     *--------------------------------------------------------------------------------------------*/
+    'use strict';
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.create = exports.YAMLWorker = void 0;
+    const ls = require("vscode-languageserver-types");
+    const yamlService = require("yaml-language-server");
+    let defaultSchemaRequestService;
+    if (typeof fetch !== 'undefined') {
+        defaultSchemaRequestService = function (url) {
+            return fetch(url).then(response => response.text());
+        };
+    }
+    class YAMLWorker {
+        constructor(ctx, createData) {
+            const prefix = createData.prefix || '';
+            const service = (url) => defaultSchemaRequestService(`${prefix}${url}`);
+            this._ctx = ctx;
+            this._languageSettings = createData.languageSettings;
+            this._languageId = createData.languageId;
+            this._languageService = yamlService.getLanguageService(createData.enableSchemaRequest && service, null, []);
+            this._isKubernetes = createData.isKubernetes || false;
+            this._languageService.configure(Object.assign(Object.assign({}, this._languageSettings), { hover: true, isKubernetes: this._isKubernetes }));
+        }
+        doValidation(uri) {
+            const document = this._getTextDocument(uri);
+            if (document) {
+                return this._languageService.doValidation(document, this._isKubernetes);
+            }
+            return Promise.resolve([]);
+        }
+        doComplete(uri, position) {
+            const document = this._getTextDocument(uri);
+            return this._languageService.doComplete(document, position, this._isKubernetes);
+        }
+        doResolve(item) {
+            return this._languageService.doResolve(item);
+        }
+        doHover(uri, position) {
+            const document = this._getTextDocument(uri);
+            return this._languageService.doHover(document, position);
+        }
+        format(uri, range, options) {
+            const document = this._getTextDocument(uri);
+            const textEdits = this._languageService.doFormat(document, options);
+            return Promise.resolve(textEdits);
+        }
+        resetSchema(uri) {
+            return Promise.resolve(this._languageService.resetSchema(uri));
+        }
+        findDocumentSymbols(uri) {
+            const document = this._getTextDocument(uri);
+            const symbols = this._languageService.findDocumentSymbols2(document);
+            return Promise.resolve(symbols);
+        }
+        _getTextDocument(uri) {
+            const models = this._ctx.getMirrorModels();
+            for (const model of models) {
+                if (model.uri.toString() === uri) {
+                    return ls.TextDocument.create(uri, this._languageId, model.version, model.getValue());
+                }
+            }
+            return null;
+        }
+    }
+    exports.YAMLWorker = YAMLWorker;
+    function create(ctx, createData) {
+        return new YAMLWorker(ctx, createData);
+    }
+    exports.create = create;
+});
+

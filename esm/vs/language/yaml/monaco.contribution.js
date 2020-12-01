@@ -5,7 +5,8 @@ import '../../editor/editor.api.js';
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 import { setupMode } from './yamlMode.js';
-var Emitter = monaco.Emitter;
+import { Emitter, languages } from './fillers/monaco-editor-core.js';
+
 // --- YAML configuration and defaults ---------
 export class LanguageServiceDefaultsImpl {
     constructor(languageId, diagnosticsOptions) {
@@ -39,14 +40,14 @@ function createAPI() {
         yamlDefaults,
     };
 }
-monaco.languages.yaml = createAPI();
+languages.yaml = createAPI();
 // --- Registration to monaco editor ---
-monaco.languages.register({
+languages.register({
     id: 'yaml',
     extensions: ['.yaml', '.yml'],
     aliases: ['YAML', 'yaml', 'YML', 'yml'],
     mimetypes: ['application/x-yaml'],
 });
-monaco.languages.onLanguage('yaml', () => {
+languages.onLanguage('yaml', () => {
     setupMode(yamlDefaults);
 });
