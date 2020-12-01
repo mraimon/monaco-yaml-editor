@@ -2377,7 +2377,9 @@ define('vs/language/yaml/monaco.contribution',["require", "exports", "./fillers/
     'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LanguageServiceDefaultsImpl = void 0;
-    const yamlMode_1 = require("./yamlMode");
+    function getMode() {
+        return new Promise(function (resolve_1, reject_1) { require(['./yamlMode'], resolve_1, reject_1); });
+    }
     var Emitter = monaco.Emitter;
     // --- YAML configuration and defaults ---------
     class LanguageServiceDefaultsImpl {
@@ -2423,6 +2425,9 @@ define('vs/language/yaml/monaco.contribution',["require", "exports", "./fillers/
     });
     monaco.languages.onLanguage('yaml', () => {
         yamlMode_1.setupMode(yamlDefaults);
+    });
+    monaco.languages.onLanguage('yaml', function () {
+        getMode().then(function (mode) { return mode.setupMode(yamlDefaults); });
     });
 });
 
