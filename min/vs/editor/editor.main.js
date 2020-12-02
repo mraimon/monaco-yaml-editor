@@ -2314,15 +2314,7 @@ define("vs/language/typescript/lib/typescriptServicesMetadata",["require","expor
  * https://github.com/Microsoft/monaco-css/blob/master/LICENSE.md
  *-----------------------------------------------------------------------------*/
 define("vs/language/css/monaco.contribution",["require","exports","vs/editor/editor.api"],(function(e,n){"use strict";Object.defineProperty(n,"__esModule",{value:!0});var o=monaco.Emitter,t=function(){function e(e,n,t){this._onDidChange=new o,this._languageId=e,this.setDiagnosticsOptions(n),this.setModeConfiguration(t)}return Object.defineProperty(e.prototype,"onDidChange",{get:function(){return this._onDidChange.event},enumerable:!0,configurable:!0}),Object.defineProperty(e.prototype,"languageId",{get:function(){return this._languageId},enumerable:!0,configurable:!0}),Object.defineProperty(e.prototype,"modeConfiguration",{get:function(){return this._modeConfiguration},enumerable:!0,configurable:!0}),Object.defineProperty(e.prototype,"diagnosticsOptions",{get:function(){return this._diagnosticsOptions},enumerable:!0,configurable:!0}),e.prototype.setDiagnosticsOptions=function(e){this._diagnosticsOptions=e||Object.create(null),this._onDidChange.fire(this)},e.prototype.setModeConfiguration=function(e){this._modeConfiguration=e||Object.create(null),this._onDidChange.fire(this)},e}();n.LanguageServiceDefaultsImpl=t;var i={validate:!0,lint:{compatibleVendorPrefixes:"ignore",vendorPrefix:"warning",duplicateProperties:"warning",emptyRules:"warning",importStatement:"ignore",boxModel:"ignore",universalSelector:"ignore",zeroUnits:"ignore",fontFaceProperties:"warning",hexColorLength:"error",argumentsInColorFunction:"error",unknownProperties:"warning",ieHack:"ignore",unknownVendorSpecificProperties:"ignore",propertyIgnoredDueToDisplay:"warning",important:"ignore",float:"ignore",idSelector:"ignore"}},r={completionItems:!0,hovers:!0,documentSymbols:!0,definitions:!0,references:!0,documentHighlights:!0,rename:!0,colors:!0,foldingRanges:!0,diagnostics:!0,selectionRanges:!0},s=new t("css",i,r),a=new t("scss",i,r),u=new t("less",i,r);function g(){return new Promise((function(n,o){e(["./cssMode"],n,o)}))}monaco.languages.css={cssDefaults:s,lessDefaults:u,scssDefaults:a},monaco.languages.onLanguage("less",(function(){g().then((function(e){return e.setupMode(u)}))})),monaco.languages.onLanguage("scss",(function(){g().then((function(e){return e.setupMode(a)}))})),monaco.languages.onLanguage("css",(function(){g().then((function(e){return e.setupMode(s)}))}))}));
-(function (factory) {
-    if (typeof module === "object" && typeof module.exports === "object") {
-        var v = factory(require, exports);
-        if (v !== undefined) module.exports = v;
-    }
-    else if (typeof define === "function" && define.amd) {
-        define('vscode-languageserver-types/main',["require", "exports"], factory);
-    }
-})(function (require, exports) {
+define('vscode-languageserver-types/main',["require", "exports"], function (require, exports) {
     /* --------------------------------------------------------------------------------------------
      * Copyright (c) Microsoft Corporation. All rights reserved.
      * Licensed under the MIT License. See License.txt in the project root for license information.
@@ -3855,15 +3847,7 @@ define("vs/language/css/monaco.contribution",["require","exports","vs/editor/edi
 
 define('vscode-languageserver-types', ['vscode-languageserver-types/main'], function (main) { return main; });
 
-(function (factory) {
-    if (typeof module === "object" && typeof module.exports === "object") {
-        var v = factory(require, exports);
-        if (v !== undefined) module.exports = v;
-    }
-    else if (typeof define === "function" && define.amd) {
-        define('vs/language/yaml/languageFeatures',["require", "exports", "vscode-languageserver-types"], factory);
-    }
-})(function (require, exports) {
+define('vs/language/yaml/languageFeatures',["require", "exports", "vscode-languageserver-types"], function (require, exports) {
     /*---------------------------------------------------------------------------------------------
      *  Copyright (c) Microsoft Corporation. All rights reserved.
      *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -4375,15 +4359,7 @@ define('vscode-languageserver-types', ['vscode-languageserver-types/main'], func
 // }
 // }
 ;
-(function (factory) {
-    if (typeof module === "object" && typeof module.exports === "object") {
-        var v = factory(require, exports);
-        if (v !== undefined) module.exports = v;
-    }
-    else if (typeof define === "function" && define.amd) {
-        define('vs/language/yaml/workerManager',["require", "exports"], factory);
-    }
-})(function (require, exports) {
+define('vs/language/yaml/workerManager',["require", "exports"], function (require, exports) {
     /*---------------------------------------------------------------------------------------------
      *  Copyright (c) Microsoft Corporation. All rights reserved.
      *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -4457,15 +4433,7 @@ define('vscode-languageserver-types', ['vscode-languageserver-types/main'], func
     exports.WorkerManager = WorkerManager;
 });
 
-(function (factory) {
-    if (typeof module === "object" && typeof module.exports === "object") {
-        var v = factory(require, exports);
-        if (v !== undefined) module.exports = v;
-    }
-    else if (typeof define === "function" && define.amd) {
-        define('vs/language/yaml/yamlMode',["require", "exports", "./languageFeatures", "./workerManager"], factory);
-    }
-})(function (require, exports) {
+define('vs/language/yaml/yamlMode',["require", "exports", "./languageFeatures", "./workerManager"], function (require, exports) {
     /*---------------------------------------------------------------------------------------------
      *  Copyright (c) Microsoft Corporation. All rights reserved.
      *  Licensed under the MIT License. See License.txt in the project root for license information.
