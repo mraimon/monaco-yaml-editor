@@ -1,4 +1,4 @@
-import { Schema, Type } from './../../../../../../../../../js-yaml.js';
+import { Schema, Type } from '../../../../../../../../../js-yaml.js';
 import { filterInvalidCustomTags } from './arrUtils.js';
 export const DUPLICATE_KEY_REASON = 'duplicate key';
 /**

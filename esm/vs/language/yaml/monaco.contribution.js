@@ -3,8 +3,9 @@ import '../../editor/editor.api.js';
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter, languages } from './fillers/monaco-editor-core.js';
-
+'use strict';
+import { setupMode } from './yamlMode.js';
+var Emitter = monaco.Emitter;
 // --- YAML configuration and defaults ---------
 export class LanguageServiceDefaultsImpl {
     constructor(languageId, diagnosticsOptions) {
@@ -38,18 +39,14 @@ function createAPI() {
         yamlDefaults,
     };
 }
-languages.yaml = createAPI();
+monaco.languages.yaml = createAPI();
 // --- Registration to monaco editor ---
-languages.register({
+monaco.languages.register({
     id: 'yaml',
     extensions: ['.yaml', '.yml'],
     aliases: ['YAML', 'yaml', 'YML', 'yml'],
     mimetypes: ['application/x-yaml'],
 });
-function getMode() {
-    return import('./yamlMode.js');
-}
-languages.onLanguage('yaml', function () {
-    getMode().then(function (mode) { return mode.setupMode(yamlDefaults); });
+monaco.languages.onLanguage('yaml', () => {
+    setupMode(yamlDefaults);
 });
-

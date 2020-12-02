@@ -1539,7 +1539,7 @@
 
 define('vscode-languageserver-types', ['vscode-languageserver-types/main'], function (main) { return main; });
 
-/*
+
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
@@ -1549,10 +1549,9 @@ var vscode_json_languageservice_1 = require("vscode-json-languageservice");
 exports.getJSONLanguageService = vscode_json_languageservice_1.getLanguageService;
 __export(require("vscode-languageserver-types"));
 //# sourceMappingURL=index.js.map;
-*/
 define('yaml-language-server', ['yaml-language-server/index'], function (main) { return main; });
 
-// define("yaml-language-server/index", function(){});
+define("yaml-language-server/index", function(){});
 
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
@@ -1639,4 +1638,3 @@ define('yaml-language-server', ['yaml-language-server/index'], function (main) {
     exports.create = create;
 });
 
-/* ============================ */

@@ -1,5 +1,5 @@
 import { NullASTNodeImpl, PropertyASTNodeImpl, StringASTNodeImpl, ObjectASTNodeImpl, NumberASTNodeImpl, ArrayASTNodeImpl, BooleanASTNodeImpl, } from './jsonParser07.js';
-import * as Yaml from './../../../../../../../../../yaml-ast-parser-custom-tags.js';
+import * as Yaml from '../../../../../../../../../yaml-ast-parser-custom-tags.js';
 import { parseYamlBoolean } from './scalar-type.js';
 export default function recursivelyBuildAst(parent, node) {
     if (!node) {
