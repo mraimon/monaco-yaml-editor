@@ -2,6 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -20,54 +33,58 @@ import { optional } from '../../../platform/instantiation/common/instantiation.j
 import { Emitter } from '../../../base/common/event.js';
 import { DisposableStore, Disposable } from '../../../base/common/lifecycle.js';
 import { TokenizationRegistry } from '../../common/modes.js';
-let MarkdownRenderer = class MarkdownRenderer extends Disposable {
-    constructor(_editor, _modeService, _openerService = NullOpenerService) {
-        super();
-        this._editor = _editor;
-        this._modeService = _modeService;
-        this._openerService = _openerService;
-        this._onDidRenderCodeBlock = this._register(new Emitter());
-        this.onDidRenderCodeBlock = this._onDidRenderCodeBlock.event;
+var MarkdownRenderer = /** @class */ (function (_super) {
+    __extends(MarkdownRenderer, _super);
+    function MarkdownRenderer(_editor, _modeService, _openerService) {
+        if (_openerService === void 0) { _openerService = NullOpenerService; }
+        var _this = _super.call(this) || this;
+        _this._editor = _editor;
+        _this._modeService = _modeService;
+        _this._openerService = _openerService;
+        _this._onDidRenderCodeBlock = _this._register(new Emitter());
+        _this.onDidRenderCodeBlock = _this._onDidRenderCodeBlock.event;
+        return _this;
     }
-    getOptions(disposeables) {
+    MarkdownRenderer.prototype.getOptions = function (disposeables) {
+        var _this = this;
         return {
-            codeBlockRenderer: (languageAlias, value) => {
+            codeBlockRenderer: function (languageAlias, value) {
                 // In markdown,
                 // it is possible that we stumble upon language aliases (e.g.js instead of javascript)
                 // it is possible no alias is given in which case we fall back to the current editor lang
-                let modeId = null;
+                var modeId = null;
                 if (languageAlias) {
-                    modeId = this._modeService.getModeIdForLanguageName(languageAlias);
+                    modeId = _this._modeService.getModeIdForLanguageName(languageAlias);
                 }
                 else {
-                    const model = this._editor.getModel();
+                    var model = _this._editor.getModel();
                     if (model) {
                         modeId = model.getLanguageIdentifier().language;
                     }
                 }
-                this._modeService.triggerMode(modeId || '');
-                return Promise.resolve(true).then(_ => {
-                    const promise = TokenizationRegistry.getPromise(modeId || '');
+                _this._modeService.triggerMode(modeId || '');
+                return Promise.resolve(true).then(function (_) {
+                    var promise = TokenizationRegistry.getPromise(modeId || '');
                     if (promise) {
-                        return promise.then(support => tokenizeToString(value, support));
+                        return promise.then(function (support) { return tokenizeToString(value, support); });
                     }
                     return tokenizeToString(value, undefined);
-                }).then(code => {
-                    return `<span style="font-family: ${this._editor.getOption(36 /* fontInfo */).fontFamily}">${code}</span>`;
+                }).then(function (code) {
+                    return "<span style=\"font-family: " + _this._editor.getOption(34 /* fontInfo */).fontFamily + "\">" + code + "</span>";
                 });
             },
-            codeBlockRenderCallback: () => this._onDidRenderCodeBlock.fire(),
+            codeBlockRenderCallback: function () { return _this._onDidRenderCodeBlock.fire(); },
             actionHandler: {
-                callback: (content) => {
-                    this._openerService.open(content, { fromUserGesture: true }).catch(onUnexpectedError);
+                callback: function (content) {
+                    _this._openerService.open(content, { fromUserGesture: true }).catch(onUnexpectedError);
                 },
-                disposeables
+                disposeables: disposeables
             }
         };
-    }
-    render(markdown) {
-        const disposeables = new DisposableStore();
-        let element;
+    };
+    MarkdownRenderer.prototype.render = function (markdown) {
+        var disposeables = new DisposableStore();
+        var element;
         if (!markdown) {
             element = document.createElement('span');
         }
@@ -75,13 +92,14 @@ let MarkdownRenderer = class MarkdownRenderer extends Disposable {
             element = renderMarkdown(markdown, this.getOptions(disposeables));
         }
         return {
-            element,
-            dispose: () => disposeables.dispose()
+            element: element,
+            dispose: function () { return disposeables.dispose(); }
         };
-    }
-};
-MarkdownRenderer = __decorate([
-    __param(1, IModeService),
-    __param(2, optional(IOpenerService))
-], MarkdownRenderer);
+    };
+    MarkdownRenderer = __decorate([
+        __param(1, IModeService),
+        __param(2, optional(IOpenerService))
+    ], MarkdownRenderer);
+    return MarkdownRenderer;
+}(Disposable));
 export { MarkdownRenderer };

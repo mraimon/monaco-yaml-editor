@@ -6,7 +6,7 @@
 /* Find widget */
 .monaco-editor .find-widget {
 	position: absolute;
-	z-index: 50;
+	z-index: 10;
 	height: 33px;
 	overflow: hidden;
 	line-height: 19px;
@@ -126,6 +126,10 @@
 	justify-content: center;
 }
 
+.monaco-editor .find-widget .button:not(.disabled):hover {
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
 .monaco-editor .find-widget .button.left {
 	margin-left: 0;
 	margin-right: 3px;
@@ -203,7 +207,13 @@
 }
 
 .monaco-editor .find-widget .monaco-sash {
-	left: 0 !important;
+	width: 2px !important;
+	margin-left: -4px;
+}
+
+.monaco-editor.hc-black .find-widget .button:not(.disabled):hover,
+.monaco-editor.vs-dark .find-widget .button:not(.disabled):hover {
+	background-color: rgba(255, 255, 255, 0.1);
 }
 
 .monaco-editor.hc-black .find-widget .button:before {

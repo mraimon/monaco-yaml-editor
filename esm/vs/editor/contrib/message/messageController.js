@@ -2,6 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -21,38 +34,41 @@ import { registerEditorContribution, EditorCommand, registerEditorCommand } from
 import { IContextKeyService, RawContextKey } from '../../../platform/contextkey/common/contextkey.js';
 import { registerThemingParticipant, HIGH_CONTRAST } from '../../../platform/theme/common/themeService.js';
 import { inputValidationInfoBorder, inputValidationInfoBackground, inputValidationInfoForeground } from '../../../platform/theme/common/colorRegistry.js';
-let MessageController = class MessageController extends Disposable {
-    constructor(editor, contextKeyService) {
-        super();
-        this._messageWidget = this._register(new MutableDisposable());
-        this._messageListeners = this._register(new DisposableStore());
-        this._editor = editor;
-        this._visible = MessageController.MESSAGE_VISIBLE.bindTo(contextKeyService);
-        this._register(this._editor.onDidAttemptReadOnlyEdit(() => this._onDidAttemptReadOnlyEdit()));
+var MessageController = /** @class */ (function (_super) {
+    __extends(MessageController, _super);
+    function MessageController(editor, contextKeyService) {
+        var _this = _super.call(this) || this;
+        _this.closeTimeout = 3000; // close after 3s
+        _this._messageWidget = _this._register(new MutableDisposable());
+        _this._messageListeners = _this._register(new DisposableStore());
+        _this._editor = editor;
+        _this._visible = MessageController.MESSAGE_VISIBLE.bindTo(contextKeyService);
+        _this._register(_this._editor.onDidAttemptReadOnlyEdit(function () { return _this._onDidAttemptReadOnlyEdit(); }));
+        return _this;
     }
-    static get(editor) {
+    MessageController.get = function (editor) {
         return editor.getContribution(MessageController.ID);
-    }
-    dispose() {
-        super.dispose();
+    };
+    MessageController.prototype.dispose = function () {
+        _super.prototype.dispose.call(this);
         this._visible.reset();
-    }
-    showMessage(message, position) {
+    };
+    MessageController.prototype.showMessage = function (message, position) {
+        var _this = this;
         alert(message);
         this._visible.set(true);
         this._messageWidget.clear();
         this._messageListeners.clear();
         this._messageWidget.value = new MessageWidget(this._editor, position, message);
         // close on blur, cursor, model change, dispose
-        this._messageListeners.add(this._editor.onDidBlurEditorText(() => this.closeMessage()));
-        this._messageListeners.add(this._editor.onDidChangeCursorPosition(() => this.closeMessage()));
-        this._messageListeners.add(this._editor.onDidDispose(() => this.closeMessage()));
-        this._messageListeners.add(this._editor.onDidChangeModel(() => this.closeMessage()));
-        // 3sec
-        this._messageListeners.add(new TimeoutTimer(() => this.closeMessage(), 3000));
+        this._messageListeners.add(this._editor.onDidBlurEditorText(function () { return _this.closeMessage(); }));
+        this._messageListeners.add(this._editor.onDidChangeCursorPosition(function () { return _this.closeMessage(); }));
+        this._messageListeners.add(this._editor.onDidDispose(function () { return _this.closeMessage(); }));
+        this._messageListeners.add(this._editor.onDidChangeModel(function () { return _this.closeMessage(); }));
+        this._messageListeners.add(new TimeoutTimer(function () { return _this.closeMessage(); }, this.closeTimeout));
         // close on mouse move
-        let bounds;
-        this._messageListeners.add(this._editor.onMouseMove(e => {
+        var bounds;
+        this._messageListeners.add(this._editor.onMouseMove(function (e) {
             // outside the text area
             if (!e.target.position) {
                 return;
@@ -63,62 +79,64 @@ let MessageController = class MessageController extends Disposable {
             }
             else if (!bounds.containsPosition(e.target.position)) {
                 // check if position is still in bounds
-                this.closeMessage();
+                _this.closeMessage();
             }
         }));
-    }
-    closeMessage() {
+    };
+    MessageController.prototype.closeMessage = function () {
         this._visible.reset();
         this._messageListeners.clear();
         if (this._messageWidget.value) {
             this._messageListeners.add(MessageWidget.fadeOut(this._messageWidget.value));
         }
-    }
-    _onDidAttemptReadOnlyEdit() {
+    };
+    MessageController.prototype._onDidAttemptReadOnlyEdit = function () {
         if (this._editor.hasModel()) {
             this.showMessage(nls.localize('editor.readonly', "Cannot edit in read-only editor"), this._editor.getPosition());
         }
-    }
-};
-MessageController.ID = 'editor.contrib.messageController';
-MessageController.MESSAGE_VISIBLE = new RawContextKey('messageVisible', false);
-MessageController = __decorate([
-    __param(1, IContextKeyService)
-], MessageController);
+    };
+    MessageController.ID = 'editor.contrib.messageController';
+    MessageController.MESSAGE_VISIBLE = new RawContextKey('messageVisible', false);
+    MessageController = __decorate([
+        __param(1, IContextKeyService)
+    ], MessageController);
+    return MessageController;
+}(Disposable));
 export { MessageController };
-const MessageCommand = EditorCommand.bindToContribution(MessageController.get);
+var MessageCommand = EditorCommand.bindToContribution(MessageController.get);
 registerEditorCommand(new MessageCommand({
     id: 'leaveEditorMessage',
     precondition: MessageController.MESSAGE_VISIBLE,
-    handler: c => c.closeMessage(),
+    handler: function (c) { return c.closeMessage(); },
     kbOpts: {
         weight: 100 /* EditorContrib */ + 30,
         primary: 9 /* Escape */
     }
 }));
-class MessageWidget {
-    constructor(editor, { lineNumber, column }, text) {
+var MessageWidget = /** @class */ (function () {
+    function MessageWidget(editor, _a, text) {
+        var lineNumber = _a.lineNumber, column = _a.column;
         // Editor.IContentWidget.allowEditorOverflow
         this.allowEditorOverflow = true;
         this.suppressMouseDown = false;
         this._editor = editor;
         this._editor.revealLinesInCenterIfOutsideViewport(lineNumber, lineNumber, 0 /* Smooth */);
-        this._position = { lineNumber, column: column - 1 };
+        this._position = { lineNumber: lineNumber, column: column - 1 };
         this._domNode = document.createElement('div');
         this._domNode.classList.add('monaco-editor-overlaymessage');
-        const message = document.createElement('div');
+        var message = document.createElement('div');
         message.classList.add('message');
         message.textContent = text;
         this._domNode.appendChild(message);
-        const anchor = document.createElement('div');
+        var anchor = document.createElement('div');
         anchor.classList.add('anchor');
         this._domNode.appendChild(anchor);
         this._editor.addContentWidget(this);
         this._domNode.classList.add('fadeIn');
     }
-    static fadeOut(messageWidget) {
-        let handle;
-        const dispose = () => {
+    MessageWidget.fadeOut = function (messageWidget) {
+        var handle;
+        var dispose = function () {
             messageWidget.dispose();
             clearTimeout(handle);
             messageWidget.getDomNode().removeEventListener('animationend', dispose);
@@ -126,35 +144,36 @@ class MessageWidget {
         handle = setTimeout(dispose, 110);
         messageWidget.getDomNode().addEventListener('animationend', dispose);
         messageWidget.getDomNode().classList.add('fadeOut');
-        return { dispose };
-    }
-    dispose() {
+        return { dispose: dispose };
+    };
+    MessageWidget.prototype.dispose = function () {
         this._editor.removeContentWidget(this);
-    }
-    getId() {
+    };
+    MessageWidget.prototype.getId = function () {
         return 'messageoverlay';
-    }
-    getDomNode() {
+    };
+    MessageWidget.prototype.getDomNode = function () {
         return this._domNode;
-    }
-    getPosition() {
+    };
+    MessageWidget.prototype.getPosition = function () {
         return { position: this._position, preference: [1 /* ABOVE */, 2 /* BELOW */] };
-    }
-}
+    };
+    return MessageWidget;
+}());
 registerEditorContribution(MessageController.ID, MessageController);
-registerThemingParticipant((theme, collector) => {
-    const border = theme.getColor(inputValidationInfoBorder);
+registerThemingParticipant(function (theme, collector) {
+    var border = theme.getColor(inputValidationInfoBorder);
     if (border) {
-        let borderWidth = theme.type === HIGH_CONTRAST ? 2 : 1;
-        collector.addRule(`.monaco-editor .monaco-editor-overlaymessage .anchor { border-top-color: ${border}; }`);
-        collector.addRule(`.monaco-editor .monaco-editor-overlaymessage .message { border: ${borderWidth}px solid ${border}; }`);
+        var borderWidth = theme.type === HIGH_CONTRAST ? 2 : 1;
+        collector.addRule(".monaco-editor .monaco-editor-overlaymessage .anchor { border-top-color: " + border + "; }");
+        collector.addRule(".monaco-editor .monaco-editor-overlaymessage .message { border: " + borderWidth + "px solid " + border + "; }");
     }
-    const background = theme.getColor(inputValidationInfoBackground);
+    var background = theme.getColor(inputValidationInfoBackground);
     if (background) {
-        collector.addRule(`.monaco-editor .monaco-editor-overlaymessage .message { background-color: ${background}; }`);
+        collector.addRule(".monaco-editor .monaco-editor-overlaymessage .message { background-color: " + background + "; }");
     }
-    const foreground = theme.getColor(inputValidationInfoForeground);
+    var foreground = theme.getColor(inputValidationInfoForeground);
     if (foreground) {
-        collector.addRule(`.monaco-editor .monaco-editor-overlaymessage .message { color: ${foreground}; }`);
+        collector.addRule(".monaco-editor .monaco-editor-overlaymessage .message { color: " + foreground + "; }");
     }
 });

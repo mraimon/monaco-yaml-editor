@@ -15,9 +15,9 @@ var JSONDocumentSymbols = /** @class */ (function () {
         if (context === void 0) { context = { resultLimit: Number.MAX_VALUE }; }
         var root = doc.root;
         if (!root) {
-            return [];
+            return null;
         }
-        var limit = context.resultLimit || Number.MAX_VALUE;
+        var limit = context.resultLimit;
         // special handling for key bindings
         var resourceString = document.uri;
         if ((resourceString === 'vscode://defaultsettings/keybindings.json') || Strings.endsWith(resourceString.toLowerCase(), '/user/keybindings.json')) {
@@ -92,9 +92,9 @@ var JSONDocumentSymbols = /** @class */ (function () {
         if (context === void 0) { context = { resultLimit: Number.MAX_VALUE }; }
         var root = doc.root;
         if (!root) {
-            return [];
+            return null;
         }
-        var limit = context.resultLimit || Number.MAX_VALUE;
+        var limit = context.resultLimit;
         // special handling for key bindings
         var resourceString = document.uri;
         if ((resourceString === 'vscode://defaultsettings/keybindings.json') || Strings.endsWith(resourceString.toLowerCase(), '/user/keybindings.json')) {

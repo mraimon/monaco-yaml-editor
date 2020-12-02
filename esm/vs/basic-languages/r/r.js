@@ -2,6 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+'use strict';
 export var conf = {
     comments: {
         lineComment: '#'
@@ -15,13 +16,13 @@ export var conf = {
         { open: '{', close: '}' },
         { open: '[', close: ']' },
         { open: '(', close: ')' },
-        { open: '"', close: '"' }
+        { open: '"', close: '"' },
     ],
     surroundingPairs: [
         { open: '{', close: '}' },
         { open: '[', close: ']' },
         { open: '(', close: ')' },
-        { open: '"', close: '"' }
+        { open: '"', close: '"' },
     ]
 };
 export var language = {
@@ -117,7 +118,18 @@ export var language = {
         'detach',
         'source'
     ],
-    special: ['\\n', '\\r', '\\t', '\\b', '\\a', '\\f', '\\v', "\\'", '\\"', '\\\\'],
+    special: [
+        '\\n',
+        '\\r',
+        '\\t',
+        '\\b',
+        '\\a',
+        '\\f',
+        '\\v',
+        '\\\'',
+        '\\"',
+        '\\\\'
+    ],
     brackets: [
         { open: '{', close: '}', token: 'delimiter.curly' },
         { open: '[', close: ']', token: 'delimiter.bracket' },
@@ -134,38 +146,29 @@ export var language = {
             [/\s+/, 'white'],
             [/[,:;]/, 'delimiter'],
             [/@[a-zA-Z]\w*/, 'tag'],
-            [
-                /[a-zA-Z]\w*/,
-                {
+            [/[a-zA-Z]\w*/, {
                     cases: {
                         '@keywords': 'keyword',
                         '@constants': 'constant',
                         '@default': 'identifier'
                     }
-                }
-            ]
+                }]
         ],
         // Recognize Roxygen comments
         roxygen: [
-            [
-                /@\w+/,
-                {
+            [/@\w+/, {
                     cases: {
                         '@roxygen': 'tag',
                         '@eos': { token: 'comment.doc', next: '@pop' },
                         '@default': 'comment.doc'
                     }
-                }
-            ],
-            [
-                /\s+/,
-                {
+                }],
+            [/\s+/, {
                     cases: {
                         '@eos': { token: 'comment.doc', next: '@pop' },
                         '@default': 'comment.doc'
                     }
-                }
-            ],
+                }],
             [/.*/, { token: 'comment.doc', next: '@pop' }]
         ],
         // Recognize positives, negatives, decimals, imaginaries, and scientific notation
@@ -192,30 +195,24 @@ export var language = {
             [/"/, 'string.escape', '@dblStringBody']
         ],
         stringBody: [
-            [
-                /\\./,
-                {
+            [/\\./, {
                     cases: {
                         '@special': 'string',
                         '@default': 'error-token'
                     }
-                }
-            ],
+                }],
             [/'/, 'string.escape', '@popall'],
-            [/./, 'string']
+            [/./, 'string'],
         ],
         dblStringBody: [
-            [
-                /\\./,
-                {
+            [/\\./, {
                     cases: {
                         '@special': 'string',
                         '@default': 'error-token'
                     }
-                }
-            ],
+                }],
             [/"/, 'string.escape', '@popall'],
-            [/./, 'string']
+            [/./, 'string'],
         ]
     }
 };

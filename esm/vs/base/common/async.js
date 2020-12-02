@@ -9,37 +9,40 @@ export function isThenable(obj) {
     return obj && typeof obj.then === 'function';
 }
 export function createCancelablePromise(callback) {
-    const source = new CancellationTokenSource();
-    const thenable = callback(source.token);
-    const promise = new Promise((resolve, reject) => {
-        source.token.onCancellationRequested(() => {
+    var source = new CancellationTokenSource();
+    var thenable = callback(source.token);
+    var promise = new Promise(function (resolve, reject) {
+        source.token.onCancellationRequested(function () {
             reject(errors.canceled());
         });
-        Promise.resolve(thenable).then(value => {
+        Promise.resolve(thenable).then(function (value) {
             source.dispose();
             resolve(value);
-        }, err => {
+        }, function (err) {
             source.dispose();
             reject(err);
         });
     });
-    return new class {
-        cancel() {
+    return new /** @class */ (function () {
+        function class_1() {
+        }
+        class_1.prototype.cancel = function () {
             source.cancel();
-        }
-        then(resolve, reject) {
+        };
+        class_1.prototype.then = function (resolve, reject) {
             return promise.then(resolve, reject);
-        }
-        catch(reject) {
+        };
+        class_1.prototype.catch = function (reject) {
             return this.then(undefined, reject);
-        }
-        finally(onfinally) {
+        };
+        class_1.prototype.finally = function (onfinally) {
             return promise.finally(onfinally);
-        }
-    };
+        };
+        return class_1;
+    }());
 }
 export function raceCancellation(promise, token, defaultValue) {
-    return Promise.race([promise, new Promise(resolve => token.onCancellationRequested(() => resolve(defaultValue)))]);
+    return Promise.race([promise, new Promise(function (resolve) { return token.onCancellationRequested(function () { return resolve(defaultValue); }); })]);
 }
 /**
  * A helper to delay execution of a task that is being requested often.
@@ -64,8 +67,8 @@ export function raceCancellation(promise, token, defaultValue) {
  * 			delayer.trigger(() => { return makeTheTrip(); });
  * 		}
  */
-export class Delayer {
-    constructor(defaultDelay) {
+var Delayer = /** @class */ (function () {
+    function Delayer(defaultDelay) {
         this.defaultDelay = defaultDelay;
         this.timeout = null;
         this.completionPromise = null;
@@ -73,36 +76,38 @@ export class Delayer {
         this.doReject = null;
         this.task = null;
     }
-    trigger(task, delay = this.defaultDelay) {
+    Delayer.prototype.trigger = function (task, delay) {
+        var _this = this;
+        if (delay === void 0) { delay = this.defaultDelay; }
         this.task = task;
         this.cancelTimeout();
         if (!this.completionPromise) {
-            this.completionPromise = new Promise((c, e) => {
-                this.doResolve = c;
-                this.doReject = e;
-            }).then(() => {
-                this.completionPromise = null;
-                this.doResolve = null;
-                if (this.task) {
-                    const task = this.task;
-                    this.task = null;
-                    return task();
+            this.completionPromise = new Promise(function (c, e) {
+                _this.doResolve = c;
+                _this.doReject = e;
+            }).then(function () {
+                _this.completionPromise = null;
+                _this.doResolve = null;
+                if (_this.task) {
+                    var task_1 = _this.task;
+                    _this.task = null;
+                    return task_1();
                 }
                 return undefined;
             });
         }
-        this.timeout = setTimeout(() => {
-            this.timeout = null;
-            if (this.doResolve) {
-                this.doResolve(null);
+        this.timeout = setTimeout(function () {
+            _this.timeout = null;
+            if (_this.doResolve) {
+                _this.doResolve(null);
             }
         }, delay);
         return this.completionPromise;
-    }
-    isTriggered() {
+    };
+    Delayer.prototype.isTriggered = function () {
         return this.timeout !== null;
-    }
-    cancel() {
+    };
+    Delayer.prototype.cancel = function () {
         this.cancelTimeout();
         if (this.completionPromise) {
             if (this.doReject) {
@@ -110,43 +115,48 @@ export class Delayer {
             }
             this.completionPromise = null;
         }
-    }
-    cancelTimeout() {
+    };
+    Delayer.prototype.cancelTimeout = function () {
         if (this.timeout !== null) {
             clearTimeout(this.timeout);
             this.timeout = null;
         }
-    }
-    dispose() {
+    };
+    Delayer.prototype.dispose = function () {
         this.cancelTimeout();
-    }
-}
+    };
+    return Delayer;
+}());
+export { Delayer };
 export function timeout(millis, token) {
     if (!token) {
-        return createCancelablePromise(token => timeout(millis, token));
+        return createCancelablePromise(function (token) { return timeout(millis, token); });
     }
-    return new Promise((resolve, reject) => {
-        const handle = setTimeout(resolve, millis);
-        token.onCancellationRequested(() => {
+    return new Promise(function (resolve, reject) {
+        var handle = setTimeout(resolve, millis);
+        token.onCancellationRequested(function () {
             clearTimeout(handle);
             reject(errors.canceled());
         });
     });
 }
-export function disposableTimeout(handler, timeout = 0) {
-    const timer = setTimeout(handler, timeout);
-    return toDisposable(() => clearTimeout(timer));
+export function disposableTimeout(handler, timeout) {
+    if (timeout === void 0) { timeout = 0; }
+    var timer = setTimeout(handler, timeout);
+    return toDisposable(function () { return clearTimeout(timer); });
 }
-export function first(promiseFactories, shouldStop = t => !!t, defaultValue = null) {
-    let index = 0;
-    const len = promiseFactories.length;
-    const loop = () => {
+export function first(promiseFactories, shouldStop, defaultValue) {
+    if (shouldStop === void 0) { shouldStop = function (t) { return !!t; }; }
+    if (defaultValue === void 0) { defaultValue = null; }
+    var index = 0;
+    var len = promiseFactories.length;
+    var loop = function () {
         if (index >= len) {
             return Promise.resolve(defaultValue);
         }
-        const factory = promiseFactories[index++];
-        const promise = Promise.resolve(factory());
-        return promise.then(result => {
+        var factory = promiseFactories[index++];
+        var promise = Promise.resolve(factory());
+        return promise.then(function (result) {
             if (shouldStop(result)) {
                 return Promise.resolve(result);
             }
@@ -155,62 +165,68 @@ export function first(promiseFactories, shouldStop = t => !!t, defaultValue = nu
     };
     return loop();
 }
-export class TimeoutTimer {
-    constructor(runner, timeout) {
+var TimeoutTimer = /** @class */ (function () {
+    function TimeoutTimer(runner, timeout) {
         this._token = -1;
         if (typeof runner === 'function' && typeof timeout === 'number') {
             this.setIfNotSet(runner, timeout);
         }
     }
-    dispose() {
+    TimeoutTimer.prototype.dispose = function () {
         this.cancel();
-    }
-    cancel() {
+    };
+    TimeoutTimer.prototype.cancel = function () {
         if (this._token !== -1) {
             clearTimeout(this._token);
             this._token = -1;
         }
-    }
-    cancelAndSet(runner, timeout) {
+    };
+    TimeoutTimer.prototype.cancelAndSet = function (runner, timeout) {
+        var _this = this;
         this.cancel();
-        this._token = setTimeout(() => {
-            this._token = -1;
+        this._token = setTimeout(function () {
+            _this._token = -1;
             runner();
         }, timeout);
-    }
-    setIfNotSet(runner, timeout) {
+    };
+    TimeoutTimer.prototype.setIfNotSet = function (runner, timeout) {
+        var _this = this;
         if (this._token !== -1) {
             // timer is already set
             return;
         }
-        this._token = setTimeout(() => {
-            this._token = -1;
+        this._token = setTimeout(function () {
+            _this._token = -1;
             runner();
         }, timeout);
-    }
-}
-export class IntervalTimer {
-    constructor() {
+    };
+    return TimeoutTimer;
+}());
+export { TimeoutTimer };
+var IntervalTimer = /** @class */ (function () {
+    function IntervalTimer() {
         this._token = -1;
     }
-    dispose() {
+    IntervalTimer.prototype.dispose = function () {
         this.cancel();
-    }
-    cancel() {
+    };
+    IntervalTimer.prototype.cancel = function () {
         if (this._token !== -1) {
             clearInterval(this._token);
             this._token = -1;
         }
-    }
-    cancelAndSet(runner, interval) {
+    };
+    IntervalTimer.prototype.cancelAndSet = function (runner, interval) {
         this.cancel();
-        this._token = setInterval(() => {
+        this._token = setInterval(function () {
             runner();
         }, interval);
-    }
-}
-export class RunOnceScheduler {
-    constructor(runner, timeout) {
+    };
+    return IntervalTimer;
+}());
+export { IntervalTimer };
+var RunOnceScheduler = /** @class */ (function () {
+    function RunOnceScheduler(runner, timeout) {
         this.timeoutToken = -1;
         this.runner = runner;
         this.timeout = timeout;
@@ -219,59 +235,62 @@ export class RunOnceScheduler {
     /**
      * Dispose RunOnceScheduler
      */
-    dispose() {
+    RunOnceScheduler.prototype.dispose = function () {
         this.cancel();
         this.runner = null;
-    }
+    };
     /**
      * Cancel current scheduled runner (if any).
      */
-    cancel() {
+    RunOnceScheduler.prototype.cancel = function () {
         if (this.isScheduled()) {
             clearTimeout(this.timeoutToken);
             this.timeoutToken = -1;
         }
-    }
+    };
     /**
      * Cancel previous runner (if any) & schedule a new runner.
      */
-    schedule(delay = this.timeout) {
+    RunOnceScheduler.prototype.schedule = function (delay) {
+        if (delay === void 0) { delay = this.timeout; }
         this.cancel();
         this.timeoutToken = setTimeout(this.timeoutHandler, delay);
-    }
+    };
     /**
      * Returns true if scheduled.
      */
-    isScheduled() {
+    RunOnceScheduler.prototype.isScheduled = function () {
         return this.timeoutToken !== -1;
-    }
-    onTimeout() {
+    };
+    RunOnceScheduler.prototype.onTimeout = function () {
         this.timeoutToken = -1;
         if (this.runner) {
             this.doRun();
         }
-    }
-    doRun() {
+    };
+    RunOnceScheduler.prototype.doRun = function () {
         if (this.runner) {
             this.runner();
         }
-    }
-}
+    };
+    return RunOnceScheduler;
+}());
+export { RunOnceScheduler };
 /**
  * Execute the callback the next time the browser is idle
  */
-export let runWhenIdle;
+export var runWhenIdle;
 (function () {
     if (typeof requestIdleCallback !== 'function' || typeof cancelIdleCallback !== 'function') {
-        const dummyIdle = Object.freeze({
+        var dummyIdle_1 = Object.freeze({
             didTimeout: true,
-            timeRemaining() { return 15; }
+            timeRemaining: function () { return 15; }
         });
-        runWhenIdle = (runner) => {
-            const handle = setTimeout(() => runner(dummyIdle));
-            let disposed = false;
+        runWhenIdle = function (runner) {
+            var handle = setTimeout(function () { return runner(dummyIdle_1); });
+            var disposed = false;
             return {
-                dispose() {
+                dispose: function () {
                     if (disposed) {
                         return;
                     }
@@ -282,11 +301,11 @@ export let runWhenIdle;
         };
     }
     else {
-        runWhenIdle = (runner, timeout) => {
-            const handle = requestIdleCallback(runner, typeof timeout === 'number' ? { timeout } : undefined);
-            let disposed = false;
+        runWhenIdle = function (runner, timeout) {
+            var handle = requestIdleCallback(runner, typeof timeout === 'number' ? { timeout: timeout } : undefined);
+            var disposed = false;
             return {
-                dispose() {
+                dispose: function () {
                     if (disposed) {
                         return;
                     }
@@ -301,26 +320,27 @@ export let runWhenIdle;
  * An implementation of the "idle-until-urgent"-strategy as introduced
  * here: https://philipwalton.com/articles/idle-until-urgent/
  */
-export class IdleValue {
-    constructor(executor) {
+var IdleValue = /** @class */ (function () {
+    function IdleValue(executor) {
+        var _this = this;
         this._didRun = false;
-        this._executor = () => {
+        this._executor = function () {
             try {
-                this._value = executor();
+                _this._value = executor();
             }
             catch (err) {
-                this._error = err;
+                _this._error = err;
             }
             finally {
-                this._didRun = true;
+                _this._didRun = true;
             }
         };
-        this._handle = runWhenIdle(() => this._executor());
+        this._handle = runWhenIdle(function () { return _this._executor(); });
     }
-    dispose() {
+    IdleValue.prototype.dispose = function () {
         this._handle.dispose();
-    }
-    get value() {
+    };
+    IdleValue.prototype.getValue = function () {
         if (!this._didRun) {
             this._handle.dispose();
             this._executor();
@@ -329,6 +349,7 @@ export class IdleValue {
             throw this._error;
         }
         return this._value;
-    }
-}
-//#endregion
+    };
+    return IdleValue;
+}());
+export { IdleValue };

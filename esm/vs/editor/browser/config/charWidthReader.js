@@ -2,24 +2,26 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-export class CharWidthRequest {
-    constructor(chr, type) {
+var CharWidthRequest = /** @class */ (function () {
+    function CharWidthRequest(chr, type) {
         this.chr = chr;
         this.type = type;
         this.width = 0;
     }
-    fulfill(width) {
+    CharWidthRequest.prototype.fulfill = function (width) {
         this.width = width;
-    }
-}
-class DomCharWidthReader {
-    constructor(bareFontInfo, requests) {
+    };
+    return CharWidthRequest;
+}());
+export { CharWidthRequest };
+var DomCharWidthReader = /** @class */ (function () {
+    function DomCharWidthReader(bareFontInfo, requests) {
         this._bareFontInfo = bareFontInfo;
         this._requests = requests;
         this._container = null;
         this._testElements = null;
     }
-    read() {
+    DomCharWidthReader.prototype.read = function () {
         // Create a test container with all these test elements
         this._createDomElements();
         // Add the container to the DOM
@@ -30,13 +32,13 @@ class DomCharWidthReader {
         document.body.removeChild(this._container);
         this._container = null;
         this._testElements = null;
-    }
-    _createDomElements() {
-        const container = document.createElement('div');
+    };
+    DomCharWidthReader.prototype._createDomElements = function () {
+        var container = document.createElement('div');
         container.style.position = 'absolute';
         container.style.top = '-50000px';
         container.style.width = '50000px';
-        const regularDomNode = document.createElement('div');
+        var regularDomNode = document.createElement('div');
         regularDomNode.style.fontFamily = this._bareFontInfo.getMassagedFontFamily();
         regularDomNode.style.fontWeight = this._bareFontInfo.fontWeight;
         regularDomNode.style.fontSize = this._bareFontInfo.fontSize + 'px';
@@ -44,7 +46,7 @@ class DomCharWidthReader {
         regularDomNode.style.lineHeight = this._bareFontInfo.lineHeight + 'px';
         regularDomNode.style.letterSpacing = this._bareFontInfo.letterSpacing + 'px';
         container.appendChild(regularDomNode);
-        const boldDomNode = document.createElement('div');
+        var boldDomNode = document.createElement('div');
         boldDomNode.style.fontFamily = this._bareFontInfo.getMassagedFontFamily();
         boldDomNode.style.fontWeight = 'bold';
         boldDomNode.style.fontSize = this._bareFontInfo.fontSize + 'px';
@@ -52,7 +54,7 @@ class DomCharWidthReader {
         boldDomNode.style.lineHeight = this._bareFontInfo.lineHeight + 'px';
         boldDomNode.style.letterSpacing = this._bareFontInfo.letterSpacing + 'px';
         container.appendChild(boldDomNode);
-        const italicDomNode = document.createElement('div');
+        var italicDomNode = document.createElement('div');
         italicDomNode.style.fontFamily = this._bareFontInfo.getMassagedFontFamily();
         italicDomNode.style.fontWeight = this._bareFontInfo.fontWeight;
         italicDomNode.style.fontSize = this._bareFontInfo.fontSize + 'px';
@@ -61,54 +63,56 @@ class DomCharWidthReader {
         italicDomNode.style.letterSpacing = this._bareFontInfo.letterSpacing + 'px';
         italicDomNode.style.fontStyle = 'italic';
         container.appendChild(italicDomNode);
-        const testElements = [];
-        for (const request of this._requests) {
-            let parent;
+        var testElements = [];
+        for (var _i = 0, _a = this._requests; _i < _a.length; _i++) {
+            var request = _a[_i];
+            var parent_1 = void 0;
             if (request.type === 0 /* Regular */) {
-                parent = regularDomNode;
+                parent_1 = regularDomNode;
             }
             if (request.type === 2 /* Bold */) {
-                parent = boldDomNode;
+                parent_1 = boldDomNode;
             }
             if (request.type === 1 /* Italic */) {
-                parent = italicDomNode;
+                parent_1 = italicDomNode;
             }
-            parent.appendChild(document.createElement('br'));
-            const testElement = document.createElement('span');
+            parent_1.appendChild(document.createElement('br'));
+            var testElement = document.createElement('span');
             DomCharWidthReader._render(testElement, request);
-            parent.appendChild(testElement);
+            parent_1.appendChild(testElement);
             testElements.push(testElement);
         }
         this._container = container;
         this._testElements = testElements;
-    }
-    static _render(testElement, request) {
+    };
+    DomCharWidthReader._render = function (testElement, request) {
         if (request.chr === ' ') {
-            let htmlString = '\u00a0';
+            var htmlString = '&#160;';
             // Repeat character 256 (2^8) times
-            for (let i = 0; i < 8; i++) {
+            for (var i = 0; i < 8; i++) {
                 htmlString += htmlString;
             }
-            testElement.innerText = htmlString;
+            testElement.innerHTML = htmlString;
         }
         else {
-            let testString = request.chr;
+            var testString = request.chr;
             // Repeat character 256 (2^8) times
-            for (let i = 0; i < 8; i++) {
+            for (var i = 0; i < 8; i++) {
                 testString += testString;
             }
             testElement.textContent = testString;
         }
-    }
-    _readFromDomElements() {
-        for (let i = 0, len = this._requests.length; i < len; i++) {
-            const request = this._requests[i];
-            const testElement = this._testElements[i];
+    };
+    DomCharWidthReader.prototype._readFromDomElements = function () {
+        for (var i = 0, len = this._requests.length; i < len; i++) {
+            var request = this._requests[i];
+            var testElement = this._testElements[i];
             request.fulfill(testElement.offsetWidth / 256);
         }
-    }
-}
+    };
+    return DomCharWidthReader;
+}());
 export function readCharWidths(bareFontInfo, requests) {
-    const reader = new DomCharWidthReader(bareFontInfo, requests);
+    var reader = new DomCharWidthReader(bareFontInfo, requests);
     reader.read();
 }

@@ -14,11 +14,20 @@ var HTMLDataProvider = /** @class */ (function () {
         this.id = id;
         this._tags = [];
         this._tagMap = {};
+        this._attributeMap = {};
         this._valueSetMap = {};
         this._tags = customData.tags || [];
         this._globalAttributes = customData.globalAttributes || [];
         this._tags.forEach(function (t) {
-            _this._tagMap[t.name.toLowerCase()] = t;
+            _this._tagMap[t.name] = t;
+            if (t.attributes) {
+                t.attributes.forEach(function (a) {
+                    _this._attributeMap[a.name] = a;
+                });
+            }
+        });
+        this._globalAttributes.forEach(function (a) {
+            _this._attributeMap[a.name] = a;
         });
         if (customData.valueSets) {
             customData.valueSets.forEach(function (vs) {
@@ -40,20 +49,22 @@ var HTMLDataProvider = /** @class */ (function () {
         var processAttribute = function (a) {
             attributes.push(a);
         };
-        var tagEntry = this._tagMap[tag.toLowerCase()];
-        if (tagEntry) {
-            tagEntry.attributes.forEach(processAttribute);
+        if (this._tagMap[tag]) {
+            this._tagMap[tag].attributes.forEach(function (a) {
+                processAttribute(a);
+            });
         }
-        this._globalAttributes.forEach(processAttribute);
+        this._globalAttributes.forEach(function (ga) {
+            processAttribute(ga);
+        });
         return attributes;
     };
     HTMLDataProvider.prototype.provideValues = function (tag, attribute) {
         var _this = this;
         var values = [];
-        attribute = attribute.toLowerCase();
         var processAttributes = function (attributes) {
             attributes.forEach(function (a) {
-                if (a.name.toLowerCase() === attribute) {
+                if (a.name === attribute) {
                     if (a.values) {
                         a.values.forEach(function (v) {
                             values.push(v);
@@ -69,11 +80,10 @@ var HTMLDataProvider = /** @class */ (function () {
                 }
             });
         };
-        var tagEntry = this._tagMap[tag.toLowerCase()];
-        if (!tagEntry) {
+        if (!this._tagMap[tag]) {
             return [];
         }
-        processAttributes(tagEntry.attributes);
+        processAttributes(this._tagMap[tag].attributes);
         processAttributes(this._globalAttributes);
         return values;
     };
@@ -107,9 +117,6 @@ export function generateDocumentation(item, doesSupportMarkdown) {
                 return r.name + ": " + r.url;
             }).join('\n');
         }
-    }
-    if (result.value === '') {
-        return undefined;
     }
     return result;
 }

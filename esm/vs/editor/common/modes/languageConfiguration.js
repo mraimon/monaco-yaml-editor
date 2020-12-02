@@ -29,15 +29,15 @@ export var IndentAction;
 /**
  * @internal
  */
-export class StandardAutoClosingPairConditional {
-    constructor(source) {
+var StandardAutoClosingPairConditional = /** @class */ (function () {
+    function StandardAutoClosingPairConditional(source) {
         this.open = source.open;
         this.close = source.close;
         // initially allowed in all tokens
         this._standardTokenMask = 0;
         if (Array.isArray(source.notIn)) {
-            for (let i = 0, len = source.notIn.length; i < len; i++) {
-                const notIn = source.notIn[i];
+            for (var i = 0, len = source.notIn.length; i < len; i++) {
+                var notIn = source.notIn[i];
                 switch (notIn) {
                     case 'string':
                         this._standardTokenMask |= 2 /* String */;
@@ -52,7 +52,9 @@ export class StandardAutoClosingPairConditional {
             }
         }
     }
-    isOK(standardToken) {
+    StandardAutoClosingPairConditional.prototype.isOK = function (standardToken) {
         return (this._standardTokenMask & standardToken) === 0;
-    }
-}
+    };
+    return StandardAutoClosingPairConditional;
+}());
+export { StandardAutoClosingPairConditional };

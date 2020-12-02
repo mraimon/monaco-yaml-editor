@@ -2,41 +2,40 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-define('vs/basic-languages/java/java',["require", "exports"], function (require, exports) {
-    "use strict";
+define(["require", "exports"], function (require, exports) {
+    'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.language = exports.conf = void 0;
     exports.conf = {
         // the default separators except `@$`
         wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
         comments: {
             lineComment: '//',
-            blockComment: ['/*', '*/']
+            blockComment: ['/*', '*/'],
         },
         brackets: [
             ['{', '}'],
             ['[', ']'],
-            ['(', ')']
+            ['(', ')'],
         ],
         autoClosingPairs: [
             { open: '{', close: '}' },
             { open: '[', close: ']' },
             { open: '(', close: ')' },
             { open: '"', close: '"' },
-            { open: "'", close: "'" }
+            { open: '\'', close: '\'' },
         ],
         surroundingPairs: [
             { open: '{', close: '}' },
             { open: '[', close: ']' },
             { open: '(', close: ')' },
             { open: '"', close: '"' },
-            { open: "'", close: "'" },
-            { open: '<', close: '>' }
+            { open: '\'', close: '\'' },
+            { open: '<', close: '>' },
         ],
         folding: {
             markers: {
-                start: new RegExp('^\\s*//\\s*(?:(?:#?region\\b)|(?:<editor-fold\\b))'),
-                end: new RegExp('^\\s*//\\s*(?:(?:#?endregion\\b)|(?:</editor-fold>))')
+                start: new RegExp("^\\s*//\\s*(?:(?:#?region\\b)|(?:<editor-fold\\b))"),
+                end: new RegExp("^\\s*//\\s*(?:(?:#?endregion\\b)|(?:</editor-fold>))")
             }
         }
     };
@@ -44,97 +43,20 @@ define('vs/basic-languages/java/java',["require", "exports"], function (require,
         defaultToken: '',
         tokenPostfix: '.java',
         keywords: [
-            'abstract',
-            'continue',
-            'for',
-            'new',
-            'switch',
-            'assert',
-            'default',
-            'goto',
-            'package',
-            'synchronized',
-            'boolean',
-            'do',
-            'if',
-            'private',
-            'this',
-            'break',
-            'double',
-            'implements',
-            'protected',
-            'throw',
-            'byte',
-            'else',
-            'import',
-            'public',
-            'throws',
-            'case',
-            'enum',
-            'instanceof',
-            'return',
-            'transient',
-            'catch',
-            'extends',
-            'int',
-            'short',
-            'try',
-            'char',
-            'final',
-            'interface',
-            'static',
-            'void',
-            'class',
-            'finally',
-            'long',
-            'strictfp',
-            'volatile',
-            'const',
-            'float',
-            'native',
-            'super',
-            'while',
-            'true',
-            'false'
+            'abstract', 'continue', 'for', 'new', 'switch', 'assert', 'default',
+            'goto', 'package', 'synchronized', 'boolean', 'do', 'if', 'private',
+            'this', 'break', 'double', 'implements', 'protected', 'throw', 'byte',
+            'else', 'import', 'public', 'throws', 'case', 'enum', 'instanceof', 'return',
+            'transient', 'catch', 'extends', 'int', 'short', 'try', 'char', 'final',
+            'interface', 'static', 'void', 'class', 'finally', 'long', 'strictfp',
+            'volatile', 'const', 'float', 'native', 'super', 'while', 'true', 'false'
         ],
         operators: [
-            '=',
-            '>',
-            '<',
-            '!',
-            '~',
-            '?',
-            ':',
-            '==',
-            '<=',
-            '>=',
-            '!=',
-            '&&',
-            '||',
-            '++',
-            '--',
-            '+',
-            '-',
-            '*',
-            '/',
-            '&',
-            '|',
-            '^',
-            '%',
-            '<<',
-            '>>',
-            '>>>',
-            '+=',
-            '-=',
-            '*=',
-            '/=',
-            '&=',
-            '|=',
-            '^=',
-            '%=',
-            '<<=',
-            '>>=',
-            '>>>='
+            '=', '>', '<', '!', '~', '?', ':',
+            '==', '<=', '>=', '!=', '&&', '||', '++', '--',
+            '+', '-', '*', '/', '&', '|', '^', '%', '<<',
+            '>>', '>>>', '+=', '-=', '*=', '/=', '&=', '|=',
+            '^=', '%=', '<<=', '>>=', '>>>='
         ],
         // we include these common regular expressions
         symbols: /[=><!~?:&|+\-*\/\^%]+/,
@@ -147,29 +69,23 @@ define('vs/basic-languages/java/java',["require", "exports"], function (require,
         tokenizer: {
             root: [
                 // identifiers and keywords
-                [
-                    /[a-zA-Z_$][\w$]*/,
-                    {
+                [/[a-zA-Z_$][\w$]*/, {
                         cases: {
                             '@keywords': { token: 'keyword.$0' },
                             '@default': 'identifier'
                         }
-                    }
-                ],
+                    }],
                 // whitespace
                 { include: '@whitespace' },
                 // delimiters and operators
                 [/[{}()\[\]]/, '@brackets'],
                 [/[<>](?!@symbols)/, '@brackets'],
-                [
-                    /@symbols/,
-                    {
+                [/@symbols/, {
                         cases: {
                             '@operators': 'delimiter',
                             '@default': ''
                         }
-                    }
-                ],
+                    }],
                 // @ annotations.
                 [/@\s*[a-zA-Z_\$][\w\$]*/, 'annotation'],
                 // numbers
@@ -194,7 +110,7 @@ define('vs/basic-languages/java/java',["require", "exports"], function (require,
                 [/[ \t\r\n]+/, ''],
                 [/\/\*\*(?!\/)/, 'comment.doc', '@javadoc'],
                 [/\/\*/, 'comment', '@comment'],
-                [/\/\/.*$/, 'comment']
+                [/\/\/.*$/, 'comment'],
             ],
             comment: [
                 [/[^\/*]+/, 'comment'],
@@ -216,8 +132,7 @@ define('vs/basic-languages/java/java',["require", "exports"], function (require,
                 [/@escapes/, 'string.escape'],
                 [/\\./, 'string.escape.invalid'],
                 [/"/, 'string', '@pop']
-            ]
-        }
+            ],
+        },
     };
 });
-

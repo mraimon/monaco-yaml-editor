@@ -5,6 +5,10 @@
 import BaseSeverity from '../../../base/common/severity.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 export var Severity = BaseSeverity;
-export const INotificationService = createDecorator('notificationService');
-export class NoOpNotification {
-}
+export var INotificationService = createDecorator('notificationService');
+var NoOpNotification = /** @class */ (function () {
+    function NoOpNotification() {
+    }
+    return NoOpNotification;
+}());
+export { NoOpNotification };

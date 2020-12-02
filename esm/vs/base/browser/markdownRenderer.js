@@ -15,16 +15,14 @@ import { escape } from '../common/strings.js';
 import { URI } from '../common/uri.js';
 import { Schemas } from '../common/network.js';
 import { renderCodicons, markdownEscapeEscapedCodicons } from '../common/codicons.js';
-import { resolvePath } from '../common/resources.js';
-import { StandardMouseEvent } from './mouseEvent.js';
 /**
  * Create html nodes for the given content element.
  */
-export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
-    var _a;
-    const element = createElement(options);
-    const _uriMassage = function (part) {
-        let data;
+export function renderMarkdown(markdown, options) {
+    if (options === void 0) { options = {}; }
+    var element = createElement(options);
+    var _uriMassage = function (part) {
+        var data;
         try {
             data = parse(decodeURIComponent(part));
         }
@@ -34,7 +32,7 @@ export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
         if (!data) {
             return part;
         }
-        data = cloneAndChange(data, value => {
+        data = cloneAndChange(data, function (value) {
             if (markdown.uris && markdown.uris[value]) {
                 return URI.revive(markdown.uris[value]);
             }
@@ -44,70 +42,54 @@ export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
         });
         return encodeURIComponent(JSON.stringify(data));
     };
-    const _href = function (href, isDomUri) {
-        const data = markdown.uris && markdown.uris[href];
+    var _href = function (href, isDomUri) {
+        var data = markdown.uris && markdown.uris[href];
         if (!data) {
             return href; // no uri exists
         }
-        let uri = URI.revive(data);
+        var uri = URI.revive(data);
         if (URI.parse(href).toString() === uri.toString()) {
             return href; // no tranformation performed
         }
         if (isDomUri) {
-            // this URI will end up as "src"-attribute of a dom node
-            // and because of that special rewriting needs to be done
-            // so that the URI uses a protocol that's understood by
-            // browsers (like http or https)
-            return DOM.asDomUri(uri).toString(true);
+            uri = DOM.asDomUri(uri);
         }
         if (uri.query) {
             uri = uri.with({ query: _uriMassage(uri.query) });
         }
-        return uri.toString();
+        return uri.toString(true);
     };
     // signal to code-block render that the
     // element has been created
-    let signalInnerHTML;
-    const withInnerHTML = new Promise(c => signalInnerHTML = c);
-    const renderer = new marked.Renderer();
-    renderer.image = (href, title, text) => {
-        let dimensions = [];
-        let attributes = [];
+    var signalInnerHTML;
+    var withInnerHTML = new Promise(function (c) { return signalInnerHTML = c; });
+    var renderer = new marked.Renderer();
+    renderer.image = function (href, title, text) {
+        var _a;
+        var dimensions = [];
+        var attributes = [];
         if (href) {
-            ({ href, dimensions } = parseHrefAndDimensions(href));
+            (_a = parseHrefAndDimensions(href), href = _a.href, dimensions = _a.dimensions);
             href = _href(href, true);
-            try {
-                const hrefAsUri = URI.parse(href);
-                if (options.baseUrl && hrefAsUri.scheme === Schemas.file) { // absolute or relative local path, or file: uri
-                    href = resolvePath(options.baseUrl, href).toString();
-                }
-            }
-            catch (err) { }
-            attributes.push(`src="${href}"`);
+            attributes.push("src=\"" + href + "\"");
         }
         if (text) {
-            attributes.push(`alt="${text}"`);
+            attributes.push("alt=\"" + text + "\"");
         }
         if (title) {
-            attributes.push(`title="${title}"`);
+            attributes.push("title=\"" + title + "\"");
         }
         if (dimensions.length) {
             attributes = attributes.concat(dimensions);
         }
         return '<img ' + attributes.join(' ') + '>';
     };
-    renderer.link = (href, title, text) => {
+    renderer.link = function (href, title, text) {
         // Remove markdown escapes. Workaround for https://github.com/chjj/marked/issues/829
         if (href === text) { // raw link case
             text = removeMarkdownEscapes(text);
         }
         href = _href(href, false);
-        if (options.baseUrl) {
-            const hasScheme = /^\w[\w\d+.-]*:/.test(href);
-            if (!hasScheme) {
-                href = resolvePath(options.baseUrl, href).toString();
-            }
-        }
         title = removeMarkdownEscapes(title);
         href = removeMarkdownEscapes(href);
         if (!href
@@ -124,112 +106,77 @@ export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
-            return `<a href="#" data-href="${href}" title="${title || href}">${text}</a>`;
+            return "<a href=\"#\" data-href=\"" + href + "\" title=\"" + (title || href) + "\">" + text + "</a>";
         }
     };
-    renderer.paragraph = (text) => {
-        return `<p>${markdown.supportThemeIcons ? renderCodicons(text) : text}</p>`;
+    renderer.paragraph = function (text) {
+        return "<p>" + (markdown.supportThemeIcons ? renderCodicons(text) : text) + "</p>";
     };
     if (options.codeBlockRenderer) {
-        renderer.code = (code, lang) => {
-            const value = options.codeBlockRenderer(lang, code);
+        renderer.code = function (code, lang) {
+            var value = options.codeBlockRenderer(lang, code);
             // when code-block rendering is async we return sync
             // but update the node with the real result later.
-            const id = defaultGenerator.nextId();
-            const promise = Promise.all([value, withInnerHTML]).then(values => {
-                const strValue = values[0];
-                const span = element.querySelector(`div[data-code="${id}"]`);
+            var id = defaultGenerator.nextId();
+            var promise = Promise.all([value, withInnerHTML]).then(function (values) {
+                var strValue = values[0];
+                var span = element.querySelector("div[data-code=\"" + id + "\"]");
                 if (span) {
                     span.innerHTML = strValue;
                 }
-            }).catch(err => {
+            }).catch(function (err) {
                 // ignore
             });
             if (options.codeBlockRenderCallback) {
                 promise.then(options.codeBlockRenderCallback);
             }
-            return `<div class="code" data-code="${id}">${escape(code)}</div>`;
+            return "<div class=\"code\" data-code=\"" + id + "\">" + escape(code) + "</div>";
         };
     }
-    const actionHandler = options.actionHandler;
+    var actionHandler = options.actionHandler;
     if (actionHandler) {
-        [DOM.EventType.CLICK, DOM.EventType.AUXCLICK].forEach(event => {
-            actionHandler.disposeables.add(DOM.addDisposableListener(element, event, (e) => {
-                const mouseEvent = new StandardMouseEvent(e);
-                if (!mouseEvent.leftButton && !mouseEvent.middleButton) {
+        actionHandler.disposeables.add(DOM.addStandardDisposableListener(element, 'click', function (event) {
+            var target = event.target;
+            if (target.tagName !== 'A') {
+                target = target.parentElement;
+                if (!target || target.tagName !== 'A') {
                     return;
                 }
-                let target = mouseEvent.target;
-                if (target.tagName !== 'A') {
-                    target = target.parentElement;
-                    if (!target || target.tagName !== 'A') {
-                        return;
-                    }
+            }
+            try {
+                var href = target.dataset['href'];
+                if (href) {
+                    actionHandler.callback(href, event);
                 }
-                try {
-                    const href = target.dataset['href'];
-                    if (href) {
-                        actionHandler.callback(href, mouseEvent);
-                    }
-                }
-                catch (err) {
-                    onUnexpectedError(err);
-                }
-                finally {
-                    mouseEvent.preventDefault();
-                }
-            }));
-        });
+            }
+            catch (err) {
+                onUnexpectedError(err);
+            }
+            finally {
+                event.preventDefault();
+            }
+        }));
     }
-    // Use our own sanitizer so that we can let through only spans.
-    // Otherwise, we'd be letting all html be rendered.
-    // If we want to allow markdown permitted tags, then we can delete sanitizer and sanitize.
-    markedOptions.sanitizer = (html) => {
-        const match = markdown.isTrusted ? html.match(/^(<span[^<]+>)|(<\/\s*span>)$/) : undefined;
-        return match ? html : '';
+    var markedOptions = {
+        sanitize: true,
+        renderer: renderer
     };
-    markedOptions.sanitize = true;
-    markedOptions.renderer = renderer;
-    const allowedSchemes = [Schemas.http, Schemas.https, Schemas.mailto, Schemas.data, Schemas.file, Schemas.vscodeRemote, Schemas.vscodeRemoteResource];
+    var allowedSchemes = [Schemas.http, Schemas.https, Schemas.mailto, Schemas.data, Schemas.file, Schemas.vscodeRemote, Schemas.vscodeRemoteResource];
     if (markdown.isTrusted) {
         allowedSchemes.push(Schemas.command);
     }
-    // values that are too long will freeze the UI
-    let value = (_a = markdown.value) !== null && _a !== void 0 ? _a : '';
-    if (value.length > 100000) {
-        value = `${value.substr(0, 100000)}…`;
-    }
-    const renderedMarkdown = marked.parse(markdown.supportThemeIcons ? markdownEscapeEscapedCodicons(value) : value, markedOptions);
-    function filter(token) {
-        if (token.tag === 'span' && markdown.isTrusted && (Object.keys(token.attrs).length === 1)) {
-            if (token.attrs['style']) {
-                return !!token.attrs['style'].match(/^(color\:#[0-9a-fA-F]+;)?(background-color\:#[0-9a-fA-F]+;)?$/);
-            }
-            else if (token.attrs['class']) {
-                // The class should match codicon rendering in src\vs\base\common\codicons.ts
-                return !!token.attrs['class'].match(/^codicon codicon-[a-z\-]+( codicon-animation-[a-z\-]+)?$/);
-            }
-            return false;
-        }
-        return true;
-    }
+    var renderedMarkdown = marked.parse(markdown.supportThemeIcons
+        ? markdownEscapeEscapedCodicons(markdown.value)
+        : markdown.value, markedOptions);
     element.innerHTML = insane(renderedMarkdown, {
-        allowedSchemes,
-        // allowedTags should included everything that markdown renders to.
-        // Since we have our own sanitize function for marked, it's possible we missed some tag so let insane make sure.
-        // HTML tags that can result from markdown are from reading https://spec.commonmark.org/0.29/
-        // HTML table tags that can result from markdown are from https://github.github.com/gfm/#tables-extension-
-        allowedTags: ['ul', 'li', 'p', 'code', 'blockquote', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'em', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'del', 'a', 'strong', 'br', 'img', 'span'],
+        allowedSchemes: allowedSchemes,
         allowedAttributes: {
             'a': ['href', 'name', 'target', 'data-href'],
+            'iframe': ['allowfullscreen', 'frameborder', 'src'],
             'img': ['src', 'title', 'alt', 'width', 'height'],
             'div': ['class', 'data-code'],
-            'span': ['class', 'style'],
-            // https://github.com/microsoft/vscode/issues/95937
-            'th': ['align'],
-            'td': ['align']
-        },
-        filter
+            'span': ['class']
+        }
     });
     signalInnerHTML();
     return element;

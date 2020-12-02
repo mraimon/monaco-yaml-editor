@@ -1,3 +1,7 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 /**
  * Vertical Lane in the overview ruler of the editor.
  */
@@ -16,11 +20,11 @@ export var MinimapPosition;
     MinimapPosition[MinimapPosition["Inline"] = 1] = "Inline";
     MinimapPosition[MinimapPosition["Gutter"] = 2] = "Gutter";
 })(MinimapPosition || (MinimapPosition = {}));
-export class TextModelResolvedOptions {
+var TextModelResolvedOptions = /** @class */ (function () {
     /**
      * @internal
      */
-    constructor(src) {
+    function TextModelResolvedOptions(src) {
         this.tabSize = Math.max(1, src.tabSize | 0);
         this.indentSize = src.tabSize | 0;
         this.insertSpaces = Boolean(src.insertSpaces);
@@ -30,54 +34,47 @@ export class TextModelResolvedOptions {
     /**
      * @internal
      */
-    equals(other) {
+    TextModelResolvedOptions.prototype.equals = function (other) {
         return (this.tabSize === other.tabSize
             && this.indentSize === other.indentSize
             && this.insertSpaces === other.insertSpaces
             && this.defaultEOL === other.defaultEOL
             && this.trimAutoWhitespace === other.trimAutoWhitespace);
-    }
+    };
     /**
      * @internal
      */
-    createChangeEvent(newOpts) {
+    TextModelResolvedOptions.prototype.createChangeEvent = function (newOpts) {
         return {
             tabSize: this.tabSize !== newOpts.tabSize,
             indentSize: this.indentSize !== newOpts.indentSize,
             insertSpaces: this.insertSpaces !== newOpts.insertSpaces,
             trimAutoWhitespace: this.trimAutoWhitespace !== newOpts.trimAutoWhitespace,
         };
-    }
-}
-export class FindMatch {
+    };
+    return TextModelResolvedOptions;
+}());
+export { TextModelResolvedOptions };
+var FindMatch = /** @class */ (function () {
     /**
      * @internal
      */
-    constructor(range, matches) {
+    function FindMatch(range, matches) {
         this.range = range;
         this.matches = matches;
     }
-}
+    return FindMatch;
+}());
+export { FindMatch };
 /**
  * @internal
  */
-export class ValidAnnotatedEditOperation {
-    constructor(identifier, range, text, forceMoveMarkers, isAutoWhitespaceEdit, _isTracked) {
-        this.identifier = identifier;
-        this.range = range;
-        this.text = text;
-        this.forceMoveMarkers = forceMoveMarkers;
-        this.isAutoWhitespaceEdit = isAutoWhitespaceEdit;
-        this._isTracked = _isTracked;
-    }
-}
-/**
- * @internal
- */
-export class ApplyEditsResult {
-    constructor(reverseEdits, changes, trimAutoWhitespaceLineNumbers) {
+var ApplyEditsResult = /** @class */ (function () {
+    function ApplyEditsResult(reverseEdits, changes, trimAutoWhitespaceLineNumbers) {
         this.reverseEdits = reverseEdits;
         this.changes = changes;
         this.trimAutoWhitespaceLineNumbers = trimAutoWhitespaceLineNumbers;
     }
-}
+    return ApplyEditsResult;
+}());
+export { ApplyEditsResult };

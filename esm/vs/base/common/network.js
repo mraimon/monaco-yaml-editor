@@ -37,56 +37,40 @@ export var Schemas;
     Schemas.vscodeRemote = 'vscode-remote';
     Schemas.vscodeRemoteResource = 'vscode-remote-resource';
     Schemas.userData = 'vscode-userdata';
-    Schemas.vscodeCustomEditor = 'vscode-custom-editor';
-    Schemas.vscodeNotebook = 'vscode-notebook';
-    Schemas.vscodeNotebookCell = 'vscode-notebook-cell';
-    Schemas.vscodeSettings = 'vscode-settings';
-    Schemas.webviewPanel = 'webview-panel';
-    /**
-     * Scheme used for loading the wrapper html and script in webviews.
-     */
-    Schemas.vscodeWebview = 'vscode-webview';
-    /**
-     * Scheme used for loading resources inside of webviews.
-     */
-    Schemas.vscodeWebviewResource = 'vscode-webview-resource';
-    /**
-     * Scheme used for extension pages
-     */
-    Schemas.extension = 'extension';
 })(Schemas || (Schemas = {}));
-class RemoteAuthoritiesImpl {
-    constructor() {
+var RemoteAuthoritiesImpl = /** @class */ (function () {
+    function RemoteAuthoritiesImpl() {
         this._hosts = Object.create(null);
         this._ports = Object.create(null);
         this._connectionTokens = Object.create(null);
         this._preferredWebSchema = 'http';
         this._delegate = null;
     }
-    setPreferredWebSchema(schema) {
+    RemoteAuthoritiesImpl.prototype.setPreferredWebSchema = function (schema) {
         this._preferredWebSchema = schema;
-    }
-    rewrite(uri) {
+    };
+    RemoteAuthoritiesImpl.prototype.rewrite = function (uri) {
         if (this._delegate) {
             return this._delegate(uri);
         }
-        const authority = uri.authority;
-        let host = this._hosts[authority];
+        var authority = uri.authority;
+        var host = this._hosts[authority];
         if (host && host.indexOf(':') !== -1) {
-            host = `[${host}]`;
+            host = "[" + host + "]";
         }
-        const port = this._ports[authority];
-        const connectionToken = this._connectionTokens[authority];
-        let query = `path=${encodeURIComponent(uri.path)}`;
+        var port = this._ports[authority];
+        var connectionToken = this._connectionTokens[authority];
+        var query = "path=" + encodeURIComponent(uri.path);
         if (typeof connectionToken === 'string') {
-            query += `&tkn=${encodeURIComponent(connectionToken)}`;
+            query += "&tkn=" + encodeURIComponent(connectionToken);
         }
         return URI.from({
             scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
-            authority: `${host}:${port}`,
-            path: `/vscode-remote-resource`,
-            query
+            authority: host + ":" + port,
+            path: "/vscode-remote-resource",
+            query: query
         });
-    }
-}
-export const RemoteAuthorities = new RemoteAuthoritiesImpl();
+    };
+    return RemoteAuthoritiesImpl;
+}());
+export var RemoteAuthorities = new RemoteAuthoritiesImpl();

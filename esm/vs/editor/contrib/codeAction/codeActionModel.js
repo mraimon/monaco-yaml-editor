@@ -2,69 +2,87 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 import { createCancelablePromise, TimeoutTimer } from '../../../base/common/async.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { Range } from '../../common/core/range.js';
 import { CodeActionProviderRegistry } from '../../common/modes.js';
 import { RawContextKey } from '../../../platform/contextkey/common/contextkey.js';
-import { Progress } from '../../../platform/progress/common/progress.js';
 import { getCodeActions } from './codeAction.js';
 import { isEqual } from '../../../base/common/resources.js';
-export const SUPPORTED_CODE_ACTIONS = new RawContextKey('supportedCodeAction', '');
-class CodeActionOracle extends Disposable {
-    constructor(_editor, _markerService, _signalChange, _delay = 250) {
-        super();
-        this._editor = _editor;
-        this._markerService = _markerService;
-        this._signalChange = _signalChange;
-        this._delay = _delay;
-        this._autoTriggerTimer = this._register(new TimeoutTimer());
-        this._register(this._markerService.onMarkerChanged(e => this._onMarkerChanges(e)));
-        this._register(this._editor.onDidChangeCursorPosition(() => this._onCursorChange()));
+export var SUPPORTED_CODE_ACTIONS = new RawContextKey('supportedCodeAction', '');
+var CodeActionOracle = /** @class */ (function (_super) {
+    __extends(CodeActionOracle, _super);
+    function CodeActionOracle(_editor, _markerService, _signalChange, _delay) {
+        if (_delay === void 0) { _delay = 250; }
+        var _this = _super.call(this) || this;
+        _this._editor = _editor;
+        _this._markerService = _markerService;
+        _this._signalChange = _signalChange;
+        _this._delay = _delay;
+        _this._autoTriggerTimer = _this._register(new TimeoutTimer());
+        _this._register(_this._markerService.onMarkerChanged(function (e) { return _this._onMarkerChanges(e); }));
+        _this._register(_this._editor.onDidChangeCursorPosition(function () { return _this._onCursorChange(); }));
+        return _this;
     }
-    trigger(trigger) {
-        const selection = this._getRangeOfSelectionUnlessWhitespaceEnclosed(trigger);
+    CodeActionOracle.prototype.trigger = function (trigger) {
+        var selection = this._getRangeOfSelectionUnlessWhitespaceEnclosed(trigger);
         return this._createEventAndSignalChange(trigger, selection);
-    }
-    _onMarkerChanges(resources) {
-        const model = this._editor.getModel();
+    };
+    CodeActionOracle.prototype._onMarkerChanges = function (resources) {
+        var _this = this;
+        var model = this._editor.getModel();
         if (!model) {
             return;
         }
-        if (resources.some(resource => isEqual(resource, model.uri))) {
-            this._autoTriggerTimer.cancelAndSet(() => {
-                this.trigger({ type: 1 /* Auto */ });
+        if (resources.some(function (resource) { return isEqual(resource, model.uri); })) {
+            this._autoTriggerTimer.cancelAndSet(function () {
+                _this.trigger({ type: 1 /* Auto */ });
             }, this._delay);
         }
-    }
-    _onCursorChange() {
-        this._autoTriggerTimer.cancelAndSet(() => {
-            this.trigger({ type: 1 /* Auto */ });
+    };
+    CodeActionOracle.prototype._onCursorChange = function () {
+        var _this = this;
+        this._autoTriggerTimer.cancelAndSet(function () {
+            _this.trigger({ type: 1 /* Auto */ });
         }, this._delay);
-    }
-    _getRangeOfMarker(selection) {
-        const model = this._editor.getModel();
+    };
+    CodeActionOracle.prototype._getRangeOfMarker = function (selection) {
+        var model = this._editor.getModel();
         if (!model) {
             return undefined;
         }
-        for (const marker of this._markerService.read({ resource: model.uri })) {
-            const markerRange = model.validateRange(marker);
+        for (var _i = 0, _a = this._markerService.read({ resource: model.uri }); _i < _a.length; _i++) {
+            var marker = _a[_i];
+            var markerRange = model.validateRange(marker);
             if (Range.intersectRanges(markerRange, selection)) {
                 return Range.lift(markerRange);
             }
         }
         return undefined;
-    }
-    _getRangeOfSelectionUnlessWhitespaceEnclosed(trigger) {
+    };
+    CodeActionOracle.prototype._getRangeOfSelectionUnlessWhitespaceEnclosed = function (trigger) {
         if (!this._editor.hasModel()) {
             return undefined;
         }
-        const model = this._editor.getModel();
-        const selection = this._editor.getSelection();
+        var model = this._editor.getModel();
+        var selection = this._editor.getSelection();
         if (selection.isEmpty() && trigger.type === 1 /* Auto */) {
-            const { lineNumber, column } = selection.getPosition();
-            const line = model.getLineContent(lineNumber);
+            var _a = selection.getPosition(), lineNumber = _a.lineNumber, column = _a.column;
+            var line = model.getLineContent(lineNumber);
             if (line.length === 0) {
                 // empty line
                 return undefined;
@@ -89,97 +107,102 @@ class CodeActionOracle extends Disposable {
             }
         }
         return selection;
-    }
-    _createEventAndSignalChange(trigger, selection) {
-        const model = this._editor.getModel();
+    };
+    CodeActionOracle.prototype._createEventAndSignalChange = function (trigger, selection) {
+        var model = this._editor.getModel();
         if (!selection || !model) {
             // cancel
             this._signalChange(undefined);
             return undefined;
         }
-        const markerRange = this._getRangeOfMarker(selection);
-        const position = markerRange ? markerRange.getStartPosition() : selection.getStartPosition();
-        const e = {
-            trigger,
-            selection,
-            position
+        var markerRange = this._getRangeOfMarker(selection);
+        var position = markerRange ? markerRange.getStartPosition() : selection.getStartPosition();
+        var e = {
+            trigger: trigger,
+            selection: selection,
+            position: position
         };
         this._signalChange(e);
         return e;
-    }
-}
+    };
+    return CodeActionOracle;
+}(Disposable));
 export var CodeActionsState;
 (function (CodeActionsState) {
     CodeActionsState.Empty = { type: 0 /* Empty */ };
-    class Triggered {
-        constructor(trigger, rangeOrSelection, position, actions) {
+    var Triggered = /** @class */ (function () {
+        function Triggered(trigger, rangeOrSelection, position, actions) {
             this.trigger = trigger;
             this.rangeOrSelection = rangeOrSelection;
             this.position = position;
             this.actions = actions;
             this.type = 1 /* Triggered */;
         }
-    }
+        return Triggered;
+    }());
     CodeActionsState.Triggered = Triggered;
 })(CodeActionsState || (CodeActionsState = {}));
-export class CodeActionModel extends Disposable {
-    constructor(_editor, _markerService, contextKeyService, _progressService) {
-        super();
-        this._editor = _editor;
-        this._markerService = _markerService;
-        this._progressService = _progressService;
-        this._codeActionOracle = this._register(new MutableDisposable());
-        this._state = CodeActionsState.Empty;
-        this._onDidChangeState = this._register(new Emitter());
-        this.onDidChangeState = this._onDidChangeState.event;
-        this._supportedCodeActions = SUPPORTED_CODE_ACTIONS.bindTo(contextKeyService);
-        this._register(this._editor.onDidChangeModel(() => this._update()));
-        this._register(this._editor.onDidChangeModelLanguage(() => this._update()));
-        this._register(CodeActionProviderRegistry.onDidChange(() => this._update()));
-        this._update();
+var CodeActionModel = /** @class */ (function (_super) {
+    __extends(CodeActionModel, _super);
+    function CodeActionModel(_editor, _markerService, contextKeyService, _progressService) {
+        var _this = _super.call(this) || this;
+        _this._editor = _editor;
+        _this._markerService = _markerService;
+        _this._progressService = _progressService;
+        _this._codeActionOracle = _this._register(new MutableDisposable());
+        _this._state = CodeActionsState.Empty;
+        _this._onDidChangeState = _this._register(new Emitter());
+        _this.onDidChangeState = _this._onDidChangeState.event;
+        _this._supportedCodeActions = SUPPORTED_CODE_ACTIONS.bindTo(contextKeyService);
+        _this._register(_this._editor.onDidChangeModel(function () { return _this._update(); }));
+        _this._register(_this._editor.onDidChangeModelLanguage(function () { return _this._update(); }));
+        _this._register(CodeActionProviderRegistry.onDidChange(function () { return _this._update(); }));
+        _this._update();
+        return _this;
     }
-    dispose() {
-        super.dispose();
+    CodeActionModel.prototype.dispose = function () {
+        _super.prototype.dispose.call(this);
         this.setState(CodeActionsState.Empty, true);
-    }
-    _update() {
+    };
+    CodeActionModel.prototype._update = function () {
+        var _this = this;
         this._codeActionOracle.value = undefined;
         this.setState(CodeActionsState.Empty);
-        const model = this._editor.getModel();
+        var model = this._editor.getModel();
         if (model
             && CodeActionProviderRegistry.has(model)
-            && !this._editor.getOption(72 /* readOnly */)) {
-            const supportedActions = [];
-            for (const provider of CodeActionProviderRegistry.all(model)) {
+            && !this._editor.getOption(68 /* readOnly */)) {
+            var supportedActions = [];
+            for (var _i = 0, _a = CodeActionProviderRegistry.all(model); _i < _a.length; _i++) {
+                var provider = _a[_i];
                 if (Array.isArray(provider.providedCodeActionKinds)) {
-                    supportedActions.push(...provider.providedCodeActionKinds);
+                    supportedActions.push.apply(supportedActions, provider.providedCodeActionKinds);
                 }
             }
             this._supportedCodeActions.set(supportedActions.join(' '));
-            this._codeActionOracle.value = new CodeActionOracle(this._editor, this._markerService, trigger => {
-                var _a;
+            this._codeActionOracle.value = new CodeActionOracle(this._editor, this._markerService, function (trigger) {
                 if (!trigger) {
-                    this.setState(CodeActionsState.Empty);
+                    _this.setState(CodeActionsState.Empty);
                     return;
                 }
-                const actions = createCancelablePromise(token => getCodeActions(model, trigger.selection, trigger.trigger, Progress.None, token));
-                if (trigger.trigger.type === 2 /* Manual */) {
-                    (_a = this._progressService) === null || _a === void 0 ? void 0 : _a.showWhile(actions, 250);
+                var actions = createCancelablePromise(function (token) { return getCodeActions(model, trigger.selection, trigger.trigger, token); });
+                if (_this._progressService && trigger.trigger.type === 2 /* Manual */) {
+                    _this._progressService.showWhile(actions, 250);
                 }
-                this.setState(new CodeActionsState.Triggered(trigger.trigger, trigger.selection, trigger.position, actions));
+                _this.setState(new CodeActionsState.Triggered(trigger.trigger, trigger.selection, trigger.position, actions));
             }, undefined);
             this._codeActionOracle.value.trigger({ type: 1 /* Auto */ });
         }
         else {
             this._supportedCodeActions.reset();
         }
-    }
-    trigger(trigger) {
+    };
+    CodeActionModel.prototype.trigger = function (trigger) {
         if (this._codeActionOracle.value) {
             this._codeActionOracle.value.trigger(trigger);
         }
-    }
-    setState(newState, skipNotify) {
+    };
+    CodeActionModel.prototype.setState = function (newState, skipNotify) {
         if (newState === this._state) {
             return;
         }
@@ -191,5 +214,7 @@ export class CodeActionModel extends Disposable {
         if (!skipNotify) {
             this._onDidChangeState.fire(newState);
         }
-    }
-}
+    };
+    return CodeActionModel;
+}(Disposable));
+export { CodeActionModel };

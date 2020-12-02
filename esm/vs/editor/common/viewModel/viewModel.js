@@ -3,22 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as strings from '../../../base/common/strings.js';
-export class Viewport {
-    constructor(top, left, width, height) {
+var Viewport = /** @class */ (function () {
+    function Viewport(top, left, width, height) {
         this.top = top | 0;
         this.left = left | 0;
         this.width = width | 0;
         this.height = height | 0;
     }
-}
-export class MinimapLinesRenderingData {
-    constructor(tabSize, data) {
+    return Viewport;
+}());
+export { Viewport };
+var MinimapLinesRenderingData = /** @class */ (function () {
+    function MinimapLinesRenderingData(tabSize, data) {
         this.tabSize = tabSize;
         this.data = data;
     }
-}
-export class ViewLineData {
-    constructor(content, continuesWithWrappedLine, minColumn, maxColumn, startVisibleColumn, tokens) {
+    return MinimapLinesRenderingData;
+}());
+export { MinimapLinesRenderingData };
+var ViewLineData = /** @class */ (function () {
+    function ViewLineData(content, continuesWithWrappedLine, minColumn, maxColumn, startVisibleColumn, tokens) {
         this.content = content;
         this.continuesWithWrappedLine = continuesWithWrappedLine;
         this.minColumn = minColumn;
@@ -26,9 +30,11 @@ export class ViewLineData {
         this.startVisibleColumn = startVisibleColumn;
         this.tokens = tokens;
     }
-}
-export class ViewLineRenderingData {
-    constructor(minColumn, maxColumn, content, continuesWithWrappedLine, mightContainRTL, mightContainNonBasicASCII, tokens, inlineDecorations, tabSize, startVisibleColumn) {
+    return ViewLineData;
+}());
+export { ViewLineData };
+var ViewLineRenderingData = /** @class */ (function () {
+    function ViewLineRenderingData(minColumn, maxColumn, content, continuesWithWrappedLine, mightContainRTL, mightContainNonBasicASCII, tokens, inlineDecorations, tabSize, startVisibleColumn) {
         this.minColumn = minColumn;
         this.maxColumn = maxColumn;
         this.content = content;
@@ -40,29 +46,35 @@ export class ViewLineRenderingData {
         this.tabSize = tabSize;
         this.startVisibleColumn = startVisibleColumn;
     }
-    static isBasicASCII(lineContent, mightContainNonBasicASCII) {
+    ViewLineRenderingData.isBasicASCII = function (lineContent, mightContainNonBasicASCII) {
         if (mightContainNonBasicASCII) {
             return strings.isBasicASCII(lineContent);
         }
         return true;
-    }
-    static containsRTL(lineContent, isBasicASCII, mightContainRTL) {
+    };
+    ViewLineRenderingData.containsRTL = function (lineContent, isBasicASCII, mightContainRTL) {
         if (!isBasicASCII && mightContainRTL) {
             return strings.containsRTL(lineContent);
         }
         return false;
-    }
-}
-export class InlineDecoration {
-    constructor(range, inlineClassName, type) {
+    };
+    return ViewLineRenderingData;
+}());
+export { ViewLineRenderingData };
+var InlineDecoration = /** @class */ (function () {
+    function InlineDecoration(range, inlineClassName, type) {
         this.range = range;
         this.inlineClassName = inlineClassName;
         this.type = type;
     }
-}
-export class ViewModelDecoration {
-    constructor(range, options) {
+    return InlineDecoration;
+}());
+export { InlineDecoration };
+var ViewModelDecoration = /** @class */ (function () {
+    function ViewModelDecoration(range, options) {
         this.range = range;
         this.options = options;
     }
-}
+    return ViewModelDecoration;
+}());
+export { ViewModelDecoration };

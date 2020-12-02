@@ -3,7 +3,8 @@ import '../../editor/editor.api.js';
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { languages, Emitter } from './fillers/monaco-editor-core.js';
+'use strict';
+var Emitter = monaco.Emitter;
 // --- CSS configuration and defaults ---------
 var LanguageServiceDefaultsImpl = /** @class */ (function () {
     function LanguageServiceDefaultsImpl(languageId, diagnosticsOptions, modeConfiguration) {
@@ -16,28 +17,28 @@ var LanguageServiceDefaultsImpl = /** @class */ (function () {
         get: function () {
             return this._onDidChange.event;
         },
-        enumerable: false,
+        enumerable: true,
         configurable: true
     });
     Object.defineProperty(LanguageServiceDefaultsImpl.prototype, "languageId", {
         get: function () {
             return this._languageId;
         },
-        enumerable: false,
+        enumerable: true,
         configurable: true
     });
     Object.defineProperty(LanguageServiceDefaultsImpl.prototype, "modeConfiguration", {
         get: function () {
             return this._modeConfiguration;
         },
-        enumerable: false,
+        enumerable: true,
         configurable: true
     });
     Object.defineProperty(LanguageServiceDefaultsImpl.prototype, "diagnosticsOptions", {
         get: function () {
             return this._diagnosticsOptions;
         },
-        enumerable: false,
+        enumerable: true,
         configurable: true
     });
     LanguageServiceDefaultsImpl.prototype.setDiagnosticsOptions = function (options) {
@@ -48,8 +49,10 @@ var LanguageServiceDefaultsImpl = /** @class */ (function () {
         this._modeConfiguration = modeConfiguration || Object.create(null);
         this._onDidChange.fire(this);
     };
+    ;
     return LanguageServiceDefaultsImpl;
 }());
+export { LanguageServiceDefaultsImpl };
 var diagnosticDefault = {
     validate: true,
     lint: {
@@ -86,21 +89,28 @@ var modeConfigurationDefault = {
     diagnostics: true,
     selectionRanges: true
 };
-export var cssDefaults = new LanguageServiceDefaultsImpl('css', diagnosticDefault, modeConfigurationDefault);
-export var scssDefaults = new LanguageServiceDefaultsImpl('scss', diagnosticDefault, modeConfigurationDefault);
-export var lessDefaults = new LanguageServiceDefaultsImpl('less', diagnosticDefault, modeConfigurationDefault);
-// export to the global based API
-languages.css = { cssDefaults: cssDefaults, lessDefaults: lessDefaults, scssDefaults: scssDefaults };
+var cssDefaults = new LanguageServiceDefaultsImpl('css', diagnosticDefault, modeConfigurationDefault);
+var scssDefaults = new LanguageServiceDefaultsImpl('scss', diagnosticDefault, modeConfigurationDefault);
+var lessDefaults = new LanguageServiceDefaultsImpl('less', diagnosticDefault, modeConfigurationDefault);
+// Export API
+function createAPI() {
+    return {
+        cssDefaults: cssDefaults,
+        lessDefaults: lessDefaults,
+        scssDefaults: scssDefaults
+    };
+}
+monaco.languages.css = createAPI();
 // --- Registration to monaco editor ---
 function getMode() {
     return import('./cssMode.js');
 }
-languages.onLanguage('less', function () {
+monaco.languages.onLanguage('less', function () {
     getMode().then(function (mode) { return mode.setupMode(lessDefaults); });
 });
-languages.onLanguage('scss', function () {
+monaco.languages.onLanguage('scss', function () {
     getMode().then(function (mode) { return mode.setupMode(scssDefaults); });
 });
-languages.onLanguage('css', function () {
+monaco.languages.onLanguage('css', function () {
     getMode().then(function (mode) { return mode.setupMode(cssDefaults); });
 });

@@ -2,24 +2,25 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-define('vs/basic-languages/xml/xml',["require", "exports"], function (require, exports) {
-    "use strict";
+define(["require", "exports"], function (require, exports) {
+    'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.language = exports.conf = void 0;
     exports.conf = {
         comments: {
-            blockComment: ['<!--', '-->']
+            blockComment: ['<!--', '-->'],
         },
-        brackets: [['<', '>']],
+        brackets: [
+            ['<', '>']
+        ],
         autoClosingPairs: [
             { open: '<', close: '>' },
-            { open: "'", close: "'" },
-            { open: '"', close: '"' }
+            { open: '\'', close: '\'' },
+            { open: '"', close: '"' },
         ],
         surroundingPairs: [
             { open: '<', close: '>' },
-            { open: "'", close: "'" },
-            { open: '"', close: '"' }
+            { open: '\'', close: '\'' },
+            { open: '"', close: '"' },
         ]
     };
     exports.language = {
@@ -33,19 +34,30 @@ define('vs/basic-languages/xml/xml',["require", "exports"], function (require, e
                 [/[^<&]+/, ''],
                 { include: '@whitespace' },
                 // Standard opening tag
-                [/(<)(@qualifiedName)/, [{ token: 'delimiter' }, { token: 'tag', next: '@tag' }]],
+                [/(<)(@qualifiedName)/, [
+                        { token: 'delimiter' },
+                        { token: 'tag', next: '@tag' }
+                    ]],
                 // Standard closing tag
-                [
-                    /(<\/)(@qualifiedName)(\s*)(>)/,
-                    [{ token: 'delimiter' }, { token: 'tag' }, '', { token: 'delimiter' }]
-                ],
+                [/(<\/)(@qualifiedName)(\s*)(>)/, [
+                        { token: 'delimiter' },
+                        { token: 'tag' },
+                        '',
+                        { token: 'delimiter' }
+                    ]],
                 // Meta tags - instruction
-                [/(<\?)(@qualifiedName)/, [{ token: 'delimiter' }, { token: 'metatag', next: '@tag' }]],
+                [/(<\?)(@qualifiedName)/, [
+                        { token: 'delimiter' },
+                        { token: 'metatag', next: '@tag' }
+                    ]],
                 // Meta tags - declaration
-                [/(<\!)(@qualifiedName)/, [{ token: 'delimiter' }, { token: 'metatag', next: '@tag' }]],
+                [/(<\!)(@qualifiedName)/, [
+                        { token: 'delimiter' },
+                        { token: 'metatag', next: '@tag' }
+                    ]],
                 // CDATA
                 [/<\!\[CDATA\[/, { token: 'delimiter.cdata', next: '@cdata' }],
-                [/&\w+;/, 'string.escape']
+                [/&\w+;/, 'string.escape'],
             ],
             cdata: [
                 [/[^\]]+/, ''],
@@ -54,22 +66,16 @@ define('vs/basic-languages/xml/xml',["require", "exports"], function (require, e
             ],
             tag: [
                 [/[ \t\r\n]+/, ''],
-                [
-                    /(@qualifiedName)(\s*=\s*)("[^"]*"|'[^']*')/,
-                    ['attribute.name', '', 'attribute.value']
-                ],
-                [
-                    /(@qualifiedName)(\s*=\s*)("[^">?\/]*|'[^'>?\/]*)(?=[\?\/]\>)/,
-                    ['attribute.name', '', 'attribute.value']
-                ],
-                [
-                    /(@qualifiedName)(\s*=\s*)("[^">]*|'[^'>]*)/,
-                    ['attribute.name', '', 'attribute.value']
-                ],
+                [/(@qualifiedName)(\s*=\s*)("[^"]*"|'[^']*')/, ['attribute.name', '', 'attribute.value']],
+                [/(@qualifiedName)(\s*=\s*)("[^">?\/]*|'[^'>?\/]*)(?=[\?\/]\>)/, ['attribute.name', '', 'attribute.value']],
+                [/(@qualifiedName)(\s*=\s*)("[^">]*|'[^'>]*)/, ['attribute.name', '', 'attribute.value']],
                 [/@qualifiedName/, 'attribute.name'],
                 [/\?>/, { token: 'delimiter', next: '@pop' }],
-                [/(\/)(>)/, [{ token: 'tag' }, { token: 'delimiter', next: '@pop' }]],
-                [/>/, { token: 'delimiter', next: '@pop' }]
+                [/(\/)(>)/, [
+                        { token: 'tag' },
+                        { token: 'delimiter', next: '@pop' }
+                    ]],
+                [/>/, { token: 'delimiter', next: '@pop' }],
             ],
             whitespace: [
                 [/[ \t\r\n]+/, ''],
@@ -80,8 +86,7 @@ define('vs/basic-languages/xml/xml',["require", "exports"], function (require, e
                 [/-->/, { token: 'comment', next: '@pop' }],
                 [/<!--/, 'comment.content.invalid'],
                 [/[<\-]/, 'comment.content']
-            ]
-        }
+            ],
+        },
     };
 });
-

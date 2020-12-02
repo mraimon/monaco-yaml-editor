@@ -1,10 +1,10 @@
-let memoizeId = 0;
+var memoizeId = 0;
 export function createMemoizer() {
-    const memoizeKeyPrefix = `$memoize${memoizeId++}`;
-    let self = undefined;
-    const result = function memoize(target, key, descriptor) {
-        let fnKey = null;
-        let fn = null;
+    var memoizeKeyPrefix = "$memoize" + memoizeId++;
+    var self = undefined;
+    var result = function memoize(target, key, descriptor) {
+        var fnKey = null;
+        var fn = null;
         if (typeof descriptor.value === 'function') {
             fnKey = 'value';
             fn = descriptor.value;
@@ -19,8 +19,12 @@ export function createMemoizer() {
         if (!fn) {
             throw new Error('not supported');
         }
-        const memoizeKey = `${memoizeKeyPrefix}:${key}`;
-        descriptor[fnKey] = function (...args) {
+        var memoizeKey = memoizeKeyPrefix + ":" + key;
+        descriptor[fnKey] = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
             self = this;
             if (!this.hasOwnProperty(memoizeKey)) {
                 Object.defineProperty(this, memoizeKey, {
@@ -33,11 +37,11 @@ export function createMemoizer() {
             return this[memoizeKey];
         };
     };
-    result.clear = () => {
+    result.clear = function () {
         if (typeof self === 'undefined') {
             return;
         }
-        Object.getOwnPropertyNames(self).forEach(property => {
+        Object.getOwnPropertyNames(self).forEach(function (property) {
             if (property.indexOf(memoizeKeyPrefix) === 0) {
                 delete self[property];
             }

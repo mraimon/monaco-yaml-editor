@@ -205,7 +205,6 @@ export function parseTree(text, errors, options) {
             currentParent.children.push({ type: 'string', value: name, offset: offset, length: length, parent: currentParent });
         },
         onObjectEnd: function (offset, length) {
-            ensurePropertyComplete(offset + length); // in case of a missing value for a property: make sure property is complete
             currentParent.length = offset + length - currentParent.offset;
             currentParent = currentParent.parent;
             ensurePropertyComplete(offset + length);

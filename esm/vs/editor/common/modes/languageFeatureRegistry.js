@@ -17,64 +17,70 @@ function isExclusive(selector) {
         return !!selector.exclusive;
     }
 }
-export class LanguageFeatureRegistry {
-    constructor() {
+var LanguageFeatureRegistry = /** @class */ (function () {
+    function LanguageFeatureRegistry() {
         this._clock = 0;
         this._entries = [];
         this._onDidChange = new Emitter();
     }
-    get onDidChange() {
-        return this._onDidChange.event;
-    }
-    register(selector, provider) {
-        let entry = {
-            selector,
-            provider,
+    Object.defineProperty(LanguageFeatureRegistry.prototype, "onDidChange", {
+        get: function () {
+            return this._onDidChange.event;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    LanguageFeatureRegistry.prototype.register = function (selector, provider) {
+        var _this = this;
+        var entry = {
+            selector: selector,
+            provider: provider,
             _score: -1,
             _time: this._clock++
         };
         this._entries.push(entry);
         this._lastCandidate = undefined;
         this._onDidChange.fire(this._entries.length);
-        return toDisposable(() => {
+        return toDisposable(function () {
             if (entry) {
-                let idx = this._entries.indexOf(entry);
+                var idx = _this._entries.indexOf(entry);
                 if (idx >= 0) {
-                    this._entries.splice(idx, 1);
-                    this._lastCandidate = undefined;
-                    this._onDidChange.fire(this._entries.length);
+                    _this._entries.splice(idx, 1);
+                    _this._lastCandidate = undefined;
+                    _this._onDidChange.fire(_this._entries.length);
                     entry = undefined;
                 }
             }
         });
-    }
-    has(model) {
+    };
+    LanguageFeatureRegistry.prototype.has = function (model) {
         return this.all(model).length > 0;
-    }
-    all(model) {
+    };
+    LanguageFeatureRegistry.prototype.all = function (model) {
         if (!model) {
             return [];
         }
         this._updateScores(model);
-        const result = [];
+        var result = [];
         // from registry
-        for (let entry of this._entries) {
+        for (var _i = 0, _a = this._entries; _i < _a.length; _i++) {
+            var entry = _a[_i];
             if (entry._score > 0) {
                 result.push(entry.provider);
             }
         }
         return result;
-    }
-    ordered(model) {
-        const result = [];
-        this._orderedForEach(model, entry => result.push(entry.provider));
+    };
+    LanguageFeatureRegistry.prototype.ordered = function (model) {
+        var result = [];
+        this._orderedForEach(model, function (entry) { return result.push(entry.provider); });
         return result;
-    }
-    orderedGroups(model) {
-        const result = [];
-        let lastBucket;
-        let lastBucketScore;
-        this._orderedForEach(model, entry => {
+    };
+    LanguageFeatureRegistry.prototype.orderedGroups = function (model) {
+        var result = [];
+        var lastBucket;
+        var lastBucketScore;
+        this._orderedForEach(model, function (entry) {
             if (lastBucket && lastBucketScore === entry._score) {
                 lastBucket.push(entry.provider);
             }
@@ -85,20 +91,21 @@ export class LanguageFeatureRegistry {
             }
         });
         return result;
-    }
-    _orderedForEach(model, callback) {
+    };
+    LanguageFeatureRegistry.prototype._orderedForEach = function (model, callback) {
         if (!model) {
             return;
         }
         this._updateScores(model);
-        for (const entry of this._entries) {
+        for (var _i = 0, _a = this._entries; _i < _a.length; _i++) {
+            var entry = _a[_i];
             if (entry._score > 0) {
                 callback(entry);
             }
         }
-    }
-    _updateScores(model) {
-        let candidate = {
+    };
+    LanguageFeatureRegistry.prototype._updateScores = function (model) {
+        var candidate = {
             uri: model.uri.toString(),
             language: model.getLanguageIdentifier().language
         };
@@ -109,13 +116,15 @@ export class LanguageFeatureRegistry {
             return;
         }
         this._lastCandidate = candidate;
-        for (let entry of this._entries) {
+        for (var _i = 0, _a = this._entries; _i < _a.length; _i++) {
+            var entry = _a[_i];
             entry._score = score(entry.selector, model.uri, model.getLanguageIdentifier().language, shouldSynchronizeModel(model));
             if (isExclusive(entry.selector) && entry._score > 0) {
                 // support for one exclusive selector that overwrites
                 // any other selector
-                for (let entry of this._entries) {
-                    entry._score = 0;
+                for (var _b = 0, _c = this._entries; _b < _c.length; _b++) {
+                    var entry_1 = _c[_b];
+                    entry_1._score = 0;
                 }
                 entry._score = 1000;
                 break;
@@ -123,8 +132,8 @@ export class LanguageFeatureRegistry {
         }
         // needs sorting
         this._entries.sort(LanguageFeatureRegistry._compareByScoreAndTime);
-    }
-    static _compareByScoreAndTime(a, b) {
+    };
+    LanguageFeatureRegistry._compareByScoreAndTime = function (a, b) {
         if (a._score < b._score) {
             return 1;
         }
@@ -140,5 +149,7 @@ export class LanguageFeatureRegistry {
         else {
             return 0;
         }
-    }
-}
+    };
+    return LanguageFeatureRegistry;
+}());
+export { LanguageFeatureRegistry };

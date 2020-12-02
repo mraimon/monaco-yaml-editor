@@ -6,103 +6,114 @@
  * An event describing that a model has been reset to a new value.
  * @internal
  */
-export class ModelRawFlush {
-    constructor() {
+var ModelRawFlush = /** @class */ (function () {
+    function ModelRawFlush() {
         this.changeType = 1 /* Flush */;
     }
-}
+    return ModelRawFlush;
+}());
+export { ModelRawFlush };
 /**
  * An event describing that a line has changed in a model.
  * @internal
  */
-export class ModelRawLineChanged {
-    constructor(lineNumber, detail) {
+var ModelRawLineChanged = /** @class */ (function () {
+    function ModelRawLineChanged(lineNumber, detail) {
         this.changeType = 2 /* LineChanged */;
         this.lineNumber = lineNumber;
         this.detail = detail;
     }
-}
+    return ModelRawLineChanged;
+}());
+export { ModelRawLineChanged };
 /**
  * An event describing that line(s) have been deleted in a model.
  * @internal
  */
-export class ModelRawLinesDeleted {
-    constructor(fromLineNumber, toLineNumber) {
+var ModelRawLinesDeleted = /** @class */ (function () {
+    function ModelRawLinesDeleted(fromLineNumber, toLineNumber) {
         this.changeType = 3 /* LinesDeleted */;
         this.fromLineNumber = fromLineNumber;
         this.toLineNumber = toLineNumber;
     }
-}
+    return ModelRawLinesDeleted;
+}());
+export { ModelRawLinesDeleted };
 /**
  * An event describing that line(s) have been inserted in a model.
  * @internal
  */
-export class ModelRawLinesInserted {
-    constructor(fromLineNumber, toLineNumber, detail) {
+var ModelRawLinesInserted = /** @class */ (function () {
+    function ModelRawLinesInserted(fromLineNumber, toLineNumber, detail) {
         this.changeType = 4 /* LinesInserted */;
         this.fromLineNumber = fromLineNumber;
         this.toLineNumber = toLineNumber;
         this.detail = detail;
     }
-}
+    return ModelRawLinesInserted;
+}());
+export { ModelRawLinesInserted };
 /**
  * An event describing that a model has had its EOL changed.
  * @internal
  */
-export class ModelRawEOLChanged {
-    constructor() {
+var ModelRawEOLChanged = /** @class */ (function () {
+    function ModelRawEOLChanged() {
         this.changeType = 5 /* EOLChanged */;
     }
-}
+    return ModelRawEOLChanged;
+}());
+export { ModelRawEOLChanged };
 /**
  * An event describing a change in the text of a model.
  * @internal
  */
-export class ModelRawContentChangedEvent {
-    constructor(changes, versionId, isUndoing, isRedoing) {
+var ModelRawContentChangedEvent = /** @class */ (function () {
+    function ModelRawContentChangedEvent(changes, versionId, isUndoing, isRedoing) {
         this.changes = changes;
         this.versionId = versionId;
         this.isUndoing = isUndoing;
         this.isRedoing = isRedoing;
-        this.resultingSelection = null;
     }
-    containsEvent(type) {
-        for (let i = 0, len = this.changes.length; i < len; i++) {
-            const change = this.changes[i];
+    ModelRawContentChangedEvent.prototype.containsEvent = function (type) {
+        for (var i = 0, len = this.changes.length; i < len; i++) {
+            var change = this.changes[i];
             if (change.changeType === type) {
                 return true;
             }
         }
         return false;
-    }
-    static merge(a, b) {
-        const changes = [].concat(a.changes).concat(b.changes);
-        const versionId = b.versionId;
-        const isUndoing = (a.isUndoing || b.isUndoing);
-        const isRedoing = (a.isRedoing || b.isRedoing);
+    };
+    ModelRawContentChangedEvent.merge = function (a, b) {
+        var changes = [].concat(a.changes).concat(b.changes);
+        var versionId = b.versionId;
+        var isUndoing = (a.isUndoing || b.isUndoing);
+        var isRedoing = (a.isRedoing || b.isRedoing);
         return new ModelRawContentChangedEvent(changes, versionId, isUndoing, isRedoing);
-    }
-}
+    };
+    return ModelRawContentChangedEvent;
+}());
+export { ModelRawContentChangedEvent };
 /**
  * @internal
  */
-export class InternalModelContentChangeEvent {
-    constructor(rawContentChangedEvent, contentChangedEvent) {
+var InternalModelContentChangeEvent = /** @class */ (function () {
+    function InternalModelContentChangeEvent(rawContentChangedEvent, contentChangedEvent) {
         this.rawContentChangedEvent = rawContentChangedEvent;
         this.contentChangedEvent = contentChangedEvent;
     }
-    merge(other) {
-        const rawContentChangedEvent = ModelRawContentChangedEvent.merge(this.rawContentChangedEvent, other.rawContentChangedEvent);
-        const contentChangedEvent = InternalModelContentChangeEvent._mergeChangeEvents(this.contentChangedEvent, other.contentChangedEvent);
+    InternalModelContentChangeEvent.prototype.merge = function (other) {
+        var rawContentChangedEvent = ModelRawContentChangedEvent.merge(this.rawContentChangedEvent, other.rawContentChangedEvent);
+        var contentChangedEvent = InternalModelContentChangeEvent._mergeChangeEvents(this.contentChangedEvent, other.contentChangedEvent);
         return new InternalModelContentChangeEvent(rawContentChangedEvent, contentChangedEvent);
-    }
-    static _mergeChangeEvents(a, b) {
-        const changes = [].concat(a.changes).concat(b.changes);
-        const eol = b.eol;
-        const versionId = b.versionId;
-        const isUndoing = (a.isUndoing || b.isUndoing);
-        const isRedoing = (a.isRedoing || b.isRedoing);
-        const isFlush = (a.isFlush || b.isFlush);
+    };
+    InternalModelContentChangeEvent._mergeChangeEvents = function (a, b) {
+        var changes = [].concat(a.changes).concat(b.changes);
+        var eol = b.eol;
+        var versionId = b.versionId;
+        var isUndoing = (a.isUndoing || b.isUndoing);
+        var isRedoing = (a.isRedoing || b.isRedoing);
+        var isFlush = (a.isFlush || b.isFlush);
         return {
             changes: changes,
             eol: eol,
@@ -111,5 +122,7 @@ export class InternalModelContentChangeEvent {
             isRedoing: isRedoing,
             isFlush: isFlush
         };
-    }
-}
+    };
+    return InternalModelContentChangeEvent;
+}());
+export { InternalModelContentChangeEvent };

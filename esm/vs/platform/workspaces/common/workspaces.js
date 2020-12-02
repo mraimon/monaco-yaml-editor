@@ -1,5 +1,5 @@
 import { URI } from '../../../base/common/uri.js';
-export const WORKSPACE_EXTENSION = 'code-workspace';
+export var WORKSPACE_EXTENSION = 'code-workspace';
 export function isSingleFolderWorkspaceIdentifier(obj) {
     return obj instanceof URI;
 }

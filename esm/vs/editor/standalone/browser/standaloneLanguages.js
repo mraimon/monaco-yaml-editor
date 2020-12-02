@@ -21,12 +21,12 @@ export function register(language) {
  * Get the information of all the registered languages.
  */
 export function getLanguages() {
-    let result = [];
+    var result = [];
     result = result.concat(ModesRegistry.getLanguages());
     return result;
 }
 export function getEncodedLanguageId(languageId) {
-    let lid = StaticServices.modeService.get().getLanguageIdentifier(languageId);
+    var lid = StaticServices.modeService.get().getLanguageIdentifier(languageId);
     return lid ? lid.id : 0;
 }
 /**
@@ -34,7 +34,7 @@ export function getEncodedLanguageId(languageId) {
  * @event
  */
 export function onLanguage(languageId, callback) {
-    let disposable = StaticServices.modeService.get().onDidCreateMode((mode) => {
+    var disposable = StaticServices.modeService.get().onDidCreateMode(function (mode) {
         if (mode.getId() === languageId) {
             // stop listening
             disposable.dispose();
@@ -48,48 +48,50 @@ export function onLanguage(languageId, callback) {
  * Set the editing configuration for a language.
  */
 export function setLanguageConfiguration(languageId, configuration) {
-    let languageIdentifier = StaticServices.modeService.get().getLanguageIdentifier(languageId);
+    var languageIdentifier = StaticServices.modeService.get().getLanguageIdentifier(languageId);
     if (!languageIdentifier) {
-        throw new Error(`Cannot set configuration for unknown language ${languageId}`);
+        throw new Error("Cannot set configuration for unknown language " + languageId);
     }
     return LanguageConfigurationRegistry.register(languageIdentifier, configuration);
 }
 /**
  * @internal
  */
-export class EncodedTokenizationSupport2Adapter {
-    constructor(actual) {
+var EncodedTokenizationSupport2Adapter = /** @class */ (function () {
+    function EncodedTokenizationSupport2Adapter(actual) {
         this._actual = actual;
     }
-    getInitialState() {
+    EncodedTokenizationSupport2Adapter.prototype.getInitialState = function () {
         return this._actual.getInitialState();
-    }
-    tokenize(line, state, offsetDelta) {
+    };
+    EncodedTokenizationSupport2Adapter.prototype.tokenize = function (line, state, offsetDelta) {
         throw new Error('Not supported!');
-    }
-    tokenize2(line, state) {
-        let result = this._actual.tokenizeEncoded(line, state);
+    };
+    EncodedTokenizationSupport2Adapter.prototype.tokenize2 = function (line, state) {
+        var result = this._actual.tokenizeEncoded(line, state);
         return new TokenizationResult2(result.tokens, result.endState);
-    }
-}
+    };
+    return EncodedTokenizationSupport2Adapter;
+}());
+export { EncodedTokenizationSupport2Adapter };
 /**
  * @internal
  */
-export class TokenizationSupport2Adapter {
-    constructor(standaloneThemeService, languageIdentifier, actual) {
+var TokenizationSupport2Adapter = /** @class */ (function () {
+    function TokenizationSupport2Adapter(standaloneThemeService, languageIdentifier, actual) {
         this._standaloneThemeService = standaloneThemeService;
         this._languageIdentifier = languageIdentifier;
         this._actual = actual;
     }
-    getInitialState() {
+    TokenizationSupport2Adapter.prototype.getInitialState = function () {
         return this._actual.getInitialState();
-    }
-    _toClassicTokens(tokens, language, offsetDelta) {
-        let result = [];
-        let previousStartIndex = 0;
-        for (let i = 0, len = tokens.length; i < len; i++) {
-            const t = tokens[i];
-            let startIndex = t.startIndex;
+    };
+    TokenizationSupport2Adapter.prototype._toClassicTokens = function (tokens, language, offsetDelta) {
+        var result = [];
+        var previousStartIndex = 0;
+        for (var i = 0, len = tokens.length; i < len; i++) {
+            var t = tokens[i];
+            var startIndex = t.startIndex;
             // Prevent issues stemming from a buggy external tokenizer.
             if (i === 0) {
                 // Force first token to start at first index!
@@ -103,11 +105,11 @@ export class TokenizationSupport2Adapter {
             previousStartIndex = startIndex;
         }
         return result;
-    }
-    tokenize(line, state, offsetDelta) {
-        let actualResult = this._actual.tokenize(line, state);
-        let tokens = this._toClassicTokens(actualResult.tokens, this._languageIdentifier.language, offsetDelta);
-        let endState;
+    };
+    TokenizationSupport2Adapter.prototype.tokenize = function (line, state, offsetDelta) {
+        var actualResult = this._actual.tokenize(line, state);
+        var tokens = this._toClassicTokens(actualResult.tokens, this._languageIdentifier.language, offsetDelta);
+        var endState;
         // try to save an object if possible
         if (actualResult.endState.equals(state)) {
             endState = state;
@@ -116,20 +118,20 @@ export class TokenizationSupport2Adapter {
             endState = actualResult.endState;
         }
         return new TokenizationResult(tokens, endState);
-    }
-    _toBinaryTokens(tokens, offsetDelta) {
-        const languageId = this._languageIdentifier.id;
-        const tokenTheme = this._standaloneThemeService.getColorTheme().tokenTheme;
-        let result = [], resultLen = 0;
-        let previousStartIndex = 0;
-        for (let i = 0, len = tokens.length; i < len; i++) {
-            const t = tokens[i];
-            const metadata = tokenTheme.match(languageId, t.scopes);
+    };
+    TokenizationSupport2Adapter.prototype._toBinaryTokens = function (tokens, offsetDelta) {
+        var languageId = this._languageIdentifier.id;
+        var tokenTheme = this._standaloneThemeService.getTheme().tokenTheme;
+        var result = [], resultLen = 0;
+        var previousStartIndex = 0;
+        for (var i = 0, len = tokens.length; i < len; i++) {
+            var t = tokens[i];
+            var metadata = tokenTheme.match(languageId, t.scopes);
             if (resultLen > 0 && result[resultLen - 1] === metadata) {
                 // same metadata
                 continue;
             }
-            let startIndex = t.startIndex;
+            var startIndex = t.startIndex;
             // Prevent issues stemming from a buggy external tokenizer.
             if (i === 0) {
                 // Force first token to start at first index!
@@ -143,16 +145,16 @@ export class TokenizationSupport2Adapter {
             result[resultLen++] = metadata;
             previousStartIndex = startIndex;
         }
-        let actualResult = new Uint32Array(resultLen);
-        for (let i = 0; i < resultLen; i++) {
+        var actualResult = new Uint32Array(resultLen);
+        for (var i = 0; i < resultLen; i++) {
             actualResult[i] = result[i];
         }
         return actualResult;
-    }
-    tokenize2(line, state, offsetDelta) {
-        let actualResult = this._actual.tokenize(line, state);
-        let tokens = this._toBinaryTokens(actualResult.tokens, offsetDelta);
-        let endState;
+    };
+    TokenizationSupport2Adapter.prototype.tokenize2 = function (line, state, offsetDelta) {
+        var actualResult = this._actual.tokenize(line, state);
+        var tokens = this._toBinaryTokens(actualResult.tokens, offsetDelta);
+        var endState;
         // try to save an object if possible
         if (actualResult.endState.equals(state)) {
             endState = state;
@@ -161,8 +163,10 @@ export class TokenizationSupport2Adapter {
             endState = actualResult.endState;
         }
         return new TokenizationResult2(tokens, endState);
-    }
-}
+    };
+    return TokenizationSupport2Adapter;
+}());
+export { TokenizationSupport2Adapter };
 function isEncodedTokensProvider(provider) {
     return 'tokenizeEncoded' in provider;
 }
@@ -173,11 +177,11 @@ function isThenable(obj) {
  * Set the tokens provider for a language (manual implementation).
  */
 export function setTokensProvider(languageId, provider) {
-    let languageIdentifier = StaticServices.modeService.get().getLanguageIdentifier(languageId);
+    var languageIdentifier = StaticServices.modeService.get().getLanguageIdentifier(languageId);
     if (!languageIdentifier) {
-        throw new Error(`Cannot set tokens provider for unknown language ${languageId}`);
+        throw new Error("Cannot set tokens provider for unknown language " + languageId);
     }
-    const create = (provider) => {
+    var create = function (provider) {
         if (isEncodedTokensProvider(provider)) {
             return new EncodedTokenizationSupport2Adapter(provider);
         }
@@ -186,7 +190,7 @@ export function setTokensProvider(languageId, provider) {
         }
     };
     if (isThenable(provider)) {
-        return modes.TokenizationRegistry.registerPromise(languageId, provider.then(provider => create(provider)));
+        return modes.TokenizationRegistry.registerPromise(languageId, provider.then(function (provider) { return create(provider); }));
     }
     return modes.TokenizationRegistry.register(languageId, create(provider));
 }
@@ -194,11 +198,11 @@ export function setTokensProvider(languageId, provider) {
  * Set the tokens provider for a language (monarch implementation).
  */
 export function setMonarchTokensProvider(languageId, languageDef) {
-    const create = (languageDef) => {
+    var create = function (languageDef) {
         return createTokenizationSupport(StaticServices.modeService.get(), StaticServices.standaloneThemeService.get(), languageId, compile(languageId, languageDef));
     };
     if (isThenable(languageDef)) {
-        return modes.TokenizationRegistry.registerPromise(languageId, languageDef.then(languageDef => create(languageDef)));
+        return modes.TokenizationRegistry.registerPromise(languageId, languageDef.then(function (languageDef) { return create(languageDef); }));
     }
     return modes.TokenizationRegistry.register(languageId, create(languageDef));
 }
@@ -225,9 +229,9 @@ export function registerSignatureHelpProvider(languageId, provider) {
  */
 export function registerHoverProvider(languageId, provider) {
     return modes.HoverProviderRegistry.register(languageId, {
-        provideHover: (model, position, token) => {
-            let word = model.getWordAtPosition(position);
-            return Promise.resolve(provider.provideHover(model, position, token)).then((value) => {
+        provideHover: function (model, position, token) {
+            var word = model.getWordAtPosition(position);
+            return Promise.resolve(provider.provideHover(model, position, token)).then(function (value) {
                 if (!value) {
                     return undefined;
                 }
@@ -253,12 +257,6 @@ export function registerDocumentSymbolProvider(languageId, provider) {
  */
 export function registerDocumentHighlightProvider(languageId, provider) {
     return modes.DocumentHighlightProviderRegistry.register(languageId, provider);
-}
-/**
- * Register an on type rename provider.
- */
-export function registerOnTypeRenameProvider(languageId, provider) {
-    return modes.OnTypeRenameProviderRegistry.register(languageId, provider);
 }
 /**
  * Register a definition provider (used by e.g. go to definition).
@@ -289,11 +287,11 @@ export function registerCodeLensProvider(languageId, provider) {
  */
 export function registerCodeActionProvider(languageId, provider) {
     return modes.CodeActionProviderRegistry.register(languageId, {
-        provideCodeActions: (model, range, context, token) => {
-            let markers = StaticServices.markerService.get().read({ resource: model.uri }).filter(m => {
+        provideCodeActions: function (model, range, context, token) {
+            var markers = StaticServices.markerService.get().read({ resource: model.uri }).filter(function (m) {
                 return Range.areIntersectingOrTouching(m, range);
             });
-            return provider.provideCodeActions(model, range, { markers, only: context.only }, token);
+            return provider.provideCodeActions(model, range, { markers: markers, only: context.only }, token);
         }
     });
 }
@@ -383,7 +381,6 @@ export function createMonacoLanguagesAPI() {
         registerHoverProvider: registerHoverProvider,
         registerDocumentSymbolProvider: registerDocumentSymbolProvider,
         registerDocumentHighlightProvider: registerDocumentHighlightProvider,
-        registerOnTypeRenameProvider: registerOnTypeRenameProvider,
         registerDefinitionProvider: registerDefinitionProvider,
         registerImplementationProvider: registerImplementationProvider,
         registerTypeDefinitionProvider: registerTypeDefinitionProvider,

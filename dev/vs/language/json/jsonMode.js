@@ -1,11 +1,10 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco-editor-core"], function (require, exports, monaco_editor_core_1) {
-    "use strict";
+define('vs/language/json/workerManager',["require", "exports"], function (require, exports) {
+    /*---------------------------------------------------------------------------------------------
+     *  Copyright (c) Microsoft Corporation. All rights reserved.
+     *  Licensed under the MIT License. See License.txt in the project root for license information.
+     *--------------------------------------------------------------------------------------------*/
+    'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.WorkerManager = void 0;
     var STOP_WHEN_IDLE_FOR = 2 * 60 * 1000; // 2min
     var WorkerManager = /** @class */ (function () {
         function WorkerManager(defaults) {
@@ -40,7 +39,7 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
         WorkerManager.prototype._getClient = function () {
             this._lastUsedTime = Date.now();
             if (!this._client) {
-                this._worker = monaco_editor_core_1.editor.createWebWorker({
+                this._worker = monaco.editor.createWebWorker({
                     // module that exports the create() method and returns a `JSONWorker` instance
                     moduleId: 'vs/language/json/jsonWorker',
                     label: this._defaults.languageId,
@@ -62,14 +61,11 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
                 resources[_i] = arguments[_i];
             }
             var _client;
-            return this._getClient()
-                .then(function (client) {
+            return this._getClient().then(function (client) {
                 _client = client;
-            })
-                .then(function (_) {
+            }).then(function (_) {
                 return _this._worker.withSyncedResources(resources);
-            })
-                .then(function (_) { return _client; });
+            }).then(function (_) { return _client; });
         };
         return WorkerManager;
     }());
@@ -91,7 +87,6 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
      *--------------------------------------------------------------------------------------------*/
     'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.createScanner = void 0;
     /**
      * Creates a JSON scanner on the given text.
      * If ignoreTrivia is set, whitespaces or comments are ignored.
@@ -468,7 +463,6 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
      *--------------------------------------------------------------------------------------------*/
     'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.isEOL = exports.format = void 0;
     var scanner_1 = require("./scanner");
     function format(documentText, range, options) {
         var initialIndentLevel;
@@ -677,7 +671,6 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
      *--------------------------------------------------------------------------------------------*/
     'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getNodeType = exports.stripComments = exports.visit = exports.findNodeAtOffset = exports.contains = exports.getNodeValue = exports.getNodePath = exports.findNodeAtLocation = exports.parseTree = exports.parse = exports.getLocation = void 0;
     var scanner_1 = require("./scanner");
     var ParseOptions;
     (function (ParseOptions) {
@@ -882,7 +875,6 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
                 currentParent.children.push({ type: 'string', value: name, offset: offset, length: length, parent: currentParent });
             },
             onObjectEnd: function (offset, length) {
-                ensurePropertyComplete(offset + length); // in case of a missing value for a property: make sure property is complete
                 currentParent.length = offset + length - currentParent.offset;
                 currentParent = currentParent.parent;
                 ensurePropertyComplete(offset + length);
@@ -1327,14 +1319,13 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
      *--------------------------------------------------------------------------------------------*/
     'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.isWS = exports.applyEdit = exports.setProperty = exports.removeProperty = void 0;
     var format_1 = require("./format");
     var parser_1 = require("./parser");
-    function removeProperty(text, path, options) {
-        return setProperty(text, path, void 0, options);
+    function removeProperty(text, path, formattingOptions) {
+        return setProperty(text, path, void 0, formattingOptions);
     }
     exports.removeProperty = removeProperty;
-    function setProperty(text, originalPath, value, options) {
+    function setProperty(text, originalPath, value, formattingOptions, getInsertionIndex) {
         var _a;
         var path = originalPath.slice();
         var errors = [];
@@ -1361,7 +1352,7 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
             if (value === void 0) { // delete
                 throw new Error('Can not delete in empty document');
             }
-            return withFormatting(text, { offset: root ? root.offset : 0, length: root ? root.length : 0, content: JSON.stringify(value) }, options);
+            return withFormatting(text, { offset: root ? root.offset : 0, length: root ? root.length : 0, content: JSON.stringify(value) }, formattingOptions);
         }
         else if (parent.type === 'object' && typeof lastSegment === 'string' && Array.isArray(parent.children)) {
             var existing = parser_1.findNodeAtLocation(parent, [lastSegment]);
@@ -1386,11 +1377,11 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
                             removeEnd = next.offset;
                         }
                     }
-                    return withFormatting(text, { offset: removeBegin, length: removeEnd - removeBegin, content: '' }, options);
+                    return withFormatting(text, { offset: removeBegin, length: removeEnd - removeBegin, content: '' }, formattingOptions);
                 }
                 else {
                     // set value of existing property
-                    return withFormatting(text, { offset: existing.offset, length: existing.length, content: JSON.stringify(value) }, options);
+                    return withFormatting(text, { offset: existing.offset, length: existing.length, content: JSON.stringify(value) }, formattingOptions);
                 }
             }
             else {
@@ -1398,7 +1389,7 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
                     return []; // property does not exist, nothing to do
                 }
                 var newProperty = JSON.stringify(lastSegment) + ": " + JSON.stringify(value);
-                var index = options.getInsertionIndex ? options.getInsertionIndex(parent.children.map(function (p) { return p.children[0].value; })) : parent.children.length;
+                var index = getInsertionIndex ? getInsertionIndex(parent.children.map(function (p) { return p.children[0].value; })) : parent.children.length;
                 var edit = void 0;
                 if (index > 0) {
                     var previous = parent.children[index - 1];
@@ -1410,7 +1401,7 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
                 else {
                     edit = { offset: parent.offset + 1, length: 0, content: newProperty + ',' };
                 }
-                return withFormatting(text, edit, options);
+                return withFormatting(text, edit, formattingOptions);
             }
         }
         else if (parent.type === 'array' && typeof lastSegment === 'number' && Array.isArray(parent.children)) {
@@ -1426,48 +1417,33 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
                     var previous = parent.children[parent.children.length - 1];
                     edit = { offset: previous.offset + previous.length, length: 0, content: ',' + newProperty };
                 }
-                return withFormatting(text, edit, options);
-            }
-            else if (value === void 0 && parent.children.length >= 0) {
-                // Removal
-                var removalIndex = lastSegment;
-                var toRemove = parent.children[removalIndex];
-                var edit = void 0;
-                if (parent.children.length === 1) {
-                    // only item
-                    edit = { offset: parent.offset + 1, length: parent.length - 2, content: '' };
-                }
-                else if (parent.children.length - 1 === removalIndex) {
-                    // last item
-                    var previous = parent.children[removalIndex - 1];
-                    var offset = previous.offset + previous.length;
-                    var parentEndOffset = parent.offset + parent.length;
-                    edit = { offset: offset, length: parentEndOffset - 2 - offset, content: '' };
-                }
-                else {
-                    edit = { offset: toRemove.offset, length: parent.children[removalIndex + 1].offset - toRemove.offset, content: '' };
-                }
-                return withFormatting(text, edit, options);
-            }
-            else if (value !== void 0) {
-                var edit = void 0;
-                var newProperty = "" + JSON.stringify(value);
-                if (!options.isArrayInsertion && parent.children.length > lastSegment) {
-                    var toModify = parent.children[lastSegment];
-                    edit = { offset: toModify.offset, length: toModify.length, content: newProperty };
-                }
-                else if (parent.children.length === 0 || lastSegment === 0) {
-                    edit = { offset: parent.offset + 1, length: 0, content: parent.children.length === 0 ? newProperty : newProperty + ',' };
-                }
-                else {
-                    var index = lastSegment > parent.children.length ? parent.children.length : lastSegment;
-                    var previous = parent.children[index - 1];
-                    edit = { offset: previous.offset + previous.length, length: 0, content: ',' + newProperty };
-                }
-                return withFormatting(text, edit, options);
+                return withFormatting(text, edit, formattingOptions);
             }
             else {
-                throw new Error("Can not " + (value === void 0 ? 'remove' : (options.isArrayInsertion ? 'insert' : 'modify')) + " Array index " + insertIndex + " as length is not sufficient");
+                if (value === void 0 && parent.children.length >= 0) {
+                    //Removal
+                    var removalIndex = lastSegment;
+                    var toRemove = parent.children[removalIndex];
+                    var edit = void 0;
+                    if (parent.children.length === 1) {
+                        // only item
+                        edit = { offset: parent.offset + 1, length: parent.length - 2, content: '' };
+                    }
+                    else if (parent.children.length - 1 === removalIndex) {
+                        // last item
+                        var previous = parent.children[removalIndex - 1];
+                        var offset = previous.offset + previous.length;
+                        var parentEndOffset = parent.offset + parent.length;
+                        edit = { offset: offset, length: parentEndOffset - 2 - offset, content: '' };
+                    }
+                    else {
+                        edit = { offset: toRemove.offset, length: parent.children[removalIndex + 1].offset - toRemove.offset, content: '' };
+                    }
+                    return withFormatting(text, edit, formattingOptions);
+                }
+                else {
+                    throw new Error('Array modification not supported yet');
+                }
             }
         }
         else {
@@ -1475,10 +1451,7 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
         }
     }
     exports.setProperty = setProperty;
-    function withFormatting(text, edit, options) {
-        if (!options.formattingOptions) {
-            return [edit];
-        }
+    function withFormatting(text, edit, formattingOptions) {
         // apply the edit
         var newText = applyEdit(text, edit);
         // format the new text
@@ -1492,7 +1465,7 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
                 end++;
             }
         }
-        var edits = format_1.format(newText, { offset: begin, length: end - begin }, options.formattingOptions);
+        var edits = format_1.format(newText, { offset: begin, length: end - begin }, formattingOptions);
         // apply the formatting edits and track the begin and end offsets of the changes
         for (var i = edits.length - 1; i >= 0; i--) {
             var edit_1 = edits[i];
@@ -1530,7 +1503,6 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
      *--------------------------------------------------------------------------------------------*/
     'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.applyEdits = exports.modify = exports.format = exports.printParseErrorCode = exports.stripComments = exports.visit = exports.getNodeValue = exports.getNodePath = exports.findNodeAtOffset = exports.findNodeAtLocation = exports.parseTree = exports.parse = exports.getLocation = exports.createScanner = void 0;
     var formatter = require("./impl/format");
     var edit = require("./impl/edit");
     var scanner = require("./impl/scanner");
@@ -1633,7 +1605,7 @@ define('vs/language/json/workerManager',["require", "exports", "./fillers/monaco
      * To apply edits to an input, you can use `applyEdits`.
      */
     function modify(text, path, value, options) {
-        return edit.setProperty(text, path, value, options);
+        return edit.setProperty(text, path, value, options.formattingOptions, options.getInsertionIndex);
     }
     exports.modify = modify;
     /**
@@ -1665,7 +1637,6 @@ define('jsonc-parser', ['jsonc-parser/main'], function (main) { return main; });
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.isString = exports.isBoolean = exports.isDefined = exports.isNumber = exports.equals = void 0;
     function equals(one, other) {
         if (one === other) {
             return true;
@@ -3472,24 +3443,20 @@ define('vscode-languageserver-types', ['vscode-languageserver-types/main'], func
                 }
                 return diff;
             });
-            var lastModifiedOffset = 0;
-            var spans = [];
-            for (var _i = 0, sortedEdits_1 = sortedEdits; _i < sortedEdits_1.length; _i++) {
-                var e = sortedEdits_1[_i];
+            var lastModifiedOffset = text.length;
+            for (var i = sortedEdits.length - 1; i >= 0; i--) {
+                var e = sortedEdits[i];
                 var startOffset = document.offsetAt(e.range.start);
-                if (startOffset < lastModifiedOffset) {
+                var endOffset = document.offsetAt(e.range.end);
+                if (endOffset <= lastModifiedOffset) {
+                    text = text.substring(0, startOffset) + e.newText + text.substring(endOffset, text.length);
+                }
+                else {
                     throw new Error('Overlapping edit');
                 }
-                else if (startOffset > lastModifiedOffset) {
-                    spans.push(text.substring(lastModifiedOffset, startOffset));
-                }
-                if (e.newText.length) {
-                    spans.push(e.newText);
-                }
-                lastModifiedOffset = document.offsetAt(e.range.end);
+                lastModifiedOffset = startOffset;
             }
-            spans.push(text.substr(lastModifiedOffset));
-            return spans.join('');
+            return text;
         }
         TextDocument.applyEdits = applyEdits;
     })(TextDocument = exports.TextDocument || (exports.TextDocument = {}));
@@ -3558,49 +3525,24 @@ define('vscode-languageserver-types', ['vscode-languageserver-types/main'], func
 
 define('vscode-languageserver-textdocument', ['vscode-languageserver-textdocument/main'], function (main) { return main; });
 
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define('vscode-json-languageservice/jsonLanguageTypes',["require", "exports", "vscode-languageserver-types", "vscode-languageserver-textdocument"], factory);
+        define('vscode-json-languageservice/jsonLanguageTypes',["require", "exports", "vscode-languageserver-types", "vscode-languageserver-textdocument", "vscode-languageserver-types"], factory);
     }
 })(function (require, exports) {
     "use strict";
+    function __export(m) {
+        for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+    }
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ClientCapabilities = exports.ErrorCode = exports.FormattingOptions = exports.MarkedString = exports.Hover = exports.Location = exports.DocumentSymbol = exports.SymbolKind = exports.SymbolInformation = exports.MarkupKind = exports.MarkupContent = exports.InsertTextFormat = exports.Position = exports.CompletionList = exports.CompletionItemKind = exports.CompletionItem = exports.DiagnosticSeverity = exports.Diagnostic = exports.SelectionRange = exports.FoldingRangeKind = exports.FoldingRange = exports.ColorPresentation = exports.ColorInformation = exports.Color = exports.TextEdit = exports.Range = exports.TextDocument = void 0;
     var vscode_languageserver_types_1 = require("vscode-languageserver-types");
-    Object.defineProperty(exports, "Range", { enumerable: true, get: function () { return vscode_languageserver_types_1.Range; } });
-    Object.defineProperty(exports, "TextEdit", { enumerable: true, get: function () { return vscode_languageserver_types_1.TextEdit; } });
-    Object.defineProperty(exports, "Color", { enumerable: true, get: function () { return vscode_languageserver_types_1.Color; } });
-    Object.defineProperty(exports, "ColorInformation", { enumerable: true, get: function () { return vscode_languageserver_types_1.ColorInformation; } });
-    Object.defineProperty(exports, "ColorPresentation", { enumerable: true, get: function () { return vscode_languageserver_types_1.ColorPresentation; } });
-    Object.defineProperty(exports, "FoldingRange", { enumerable: true, get: function () { return vscode_languageserver_types_1.FoldingRange; } });
-    Object.defineProperty(exports, "FoldingRangeKind", { enumerable: true, get: function () { return vscode_languageserver_types_1.FoldingRangeKind; } });
-    Object.defineProperty(exports, "MarkupKind", { enumerable: true, get: function () { return vscode_languageserver_types_1.MarkupKind; } });
-    Object.defineProperty(exports, "SelectionRange", { enumerable: true, get: function () { return vscode_languageserver_types_1.SelectionRange; } });
-    Object.defineProperty(exports, "Diagnostic", { enumerable: true, get: function () { return vscode_languageserver_types_1.Diagnostic; } });
-    Object.defineProperty(exports, "DiagnosticSeverity", { enumerable: true, get: function () { return vscode_languageserver_types_1.DiagnosticSeverity; } });
-    Object.defineProperty(exports, "CompletionItem", { enumerable: true, get: function () { return vscode_languageserver_types_1.CompletionItem; } });
-    Object.defineProperty(exports, "CompletionItemKind", { enumerable: true, get: function () { return vscode_languageserver_types_1.CompletionItemKind; } });
-    Object.defineProperty(exports, "CompletionList", { enumerable: true, get: function () { return vscode_languageserver_types_1.CompletionList; } });
-    Object.defineProperty(exports, "Position", { enumerable: true, get: function () { return vscode_languageserver_types_1.Position; } });
-    Object.defineProperty(exports, "InsertTextFormat", { enumerable: true, get: function () { return vscode_languageserver_types_1.InsertTextFormat; } });
-    Object.defineProperty(exports, "MarkupContent", { enumerable: true, get: function () { return vscode_languageserver_types_1.MarkupContent; } });
-    Object.defineProperty(exports, "SymbolInformation", { enumerable: true, get: function () { return vscode_languageserver_types_1.SymbolInformation; } });
-    Object.defineProperty(exports, "SymbolKind", { enumerable: true, get: function () { return vscode_languageserver_types_1.SymbolKind; } });
-    Object.defineProperty(exports, "DocumentSymbol", { enumerable: true, get: function () { return vscode_languageserver_types_1.DocumentSymbol; } });
-    Object.defineProperty(exports, "Location", { enumerable: true, get: function () { return vscode_languageserver_types_1.Location; } });
-    Object.defineProperty(exports, "Hover", { enumerable: true, get: function () { return vscode_languageserver_types_1.Hover; } });
-    Object.defineProperty(exports, "MarkedString", { enumerable: true, get: function () { return vscode_languageserver_types_1.MarkedString; } });
-    Object.defineProperty(exports, "FormattingOptions", { enumerable: true, get: function () { return vscode_languageserver_types_1.FormattingOptions; } });
     var vscode_languageserver_textdocument_1 = require("vscode-languageserver-textdocument");
-    Object.defineProperty(exports, "TextDocument", { enumerable: true, get: function () { return vscode_languageserver_textdocument_1.TextDocument; } });
+    exports.TextDocument = vscode_languageserver_textdocument_1.TextDocument;
+    __export(require("vscode-languageserver-types"));
     /**
      * Error codes used by diagnostics
      */
@@ -3647,7 +3589,6 @@ define('vscode-languageserver-textdocument', ['vscode-languageserver-textdocumen
 define('vscode-nls/vscode-nls',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.config = exports.loadMessageBundle = void 0;
     function format(message, args) {
         var result;
         if (args.length === 0) {
@@ -3708,7 +3649,6 @@ var __extends = (this && this.__extends) || (function () {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.parse = exports.JSONDocument = exports.contains = exports.getNodePath = exports.getNodeValue = exports.newJSONDocument = exports.ValidationResult = exports.EnumMatch = exports.asSchema = exports.ObjectASTNodeImpl = exports.PropertyASTNodeImpl = exports.StringASTNodeImpl = exports.NumberASTNodeImpl = exports.ArrayASTNodeImpl = exports.BooleanASTNodeImpl = exports.NullASTNodeImpl = exports.ASTNodeImpl = void 0;
     var Json = require("jsonc-parser");
     var objects_1 = require("../utils/objects");
     var jsonLanguageTypes_1 = require("../jsonLanguageTypes");
@@ -3723,7 +3663,6 @@ var __extends = (this && this.__extends) || (function () {
     };
     var ASTNodeImpl = /** @class */ (function () {
         function ASTNodeImpl(parent, offset, length) {
-            if (length === void 0) { length = 0; }
             this.offset = offset;
             this.length = length;
             this.parent = parent;
@@ -3732,7 +3671,7 @@ var __extends = (this && this.__extends) || (function () {
             get: function () {
                 return [];
             },
-            enumerable: false,
+            enumerable: true,
             configurable: true
         });
         ASTNodeImpl.prototype.toString = function () {
@@ -3775,7 +3714,7 @@ var __extends = (this && this.__extends) || (function () {
             get: function () {
                 return this.items;
             },
-            enumerable: false,
+            enumerable: true,
             configurable: true
         });
         return ArrayASTNodeImpl;
@@ -3806,18 +3745,17 @@ var __extends = (this && this.__extends) || (function () {
     exports.StringASTNodeImpl = StringASTNodeImpl;
     var PropertyASTNodeImpl = /** @class */ (function (_super) {
         __extends(PropertyASTNodeImpl, _super);
-        function PropertyASTNodeImpl(parent, offset, keyNode) {
+        function PropertyASTNodeImpl(parent, offset) {
             var _this = _super.call(this, parent, offset) || this;
             _this.type = 'property';
             _this.colonOffset = -1;
-            _this.keyNode = keyNode;
             return _this;
         }
         Object.defineProperty(PropertyASTNodeImpl.prototype, "children", {
             get: function () {
                 return this.valueNode ? [this.keyNode, this.valueNode] : [this.keyNode];
             },
-            enumerable: false,
+            enumerable: true,
             configurable: true
         });
         return PropertyASTNodeImpl;
@@ -3835,7 +3773,7 @@ var __extends = (this && this.__extends) || (function () {
             get: function () {
                 return this.properties;
             },
-            enumerable: false,
+            enumerable: true,
             configurable: true
         });
         return ObjectASTNodeImpl;
@@ -3856,6 +3794,7 @@ var __extends = (this && this.__extends) || (function () {
     var SchemaCollector = /** @class */ (function () {
         function SchemaCollector(focusOffset, exclude) {
             if (focusOffset === void 0) { focusOffset = -1; }
+            if (exclude === void 0) { exclude = null; }
             this.focusOffset = focusOffset;
             this.exclude = exclude;
             this.schemas = [];
@@ -3864,7 +3803,8 @@ var __extends = (this && this.__extends) || (function () {
             this.schemas.push(schema);
         };
         SchemaCollector.prototype.merge = function (other) {
-            Array.prototype.push.apply(this.schemas, other.schemas);
+            var _a;
+            (_a = this.schemas).push.apply(_a, other.schemas);
         };
         SchemaCollector.prototype.include = function (node) {
             return (this.focusOffset === -1 || contains(node, this.focusOffset)) && (node !== this.exclude);
@@ -3879,7 +3819,7 @@ var __extends = (this && this.__extends) || (function () {
         }
         Object.defineProperty(NoOpSchemaCollector.prototype, "schemas", {
             get: function () { return []; },
-            enumerable: false,
+            enumerable: true,
             configurable: true
         });
         NoOpSchemaCollector.prototype.add = function (schema) { };
@@ -3896,7 +3836,7 @@ var __extends = (this && this.__extends) || (function () {
             this.propertiesValueMatches = 0;
             this.primaryValueMatches = 0;
             this.enumValueMatch = false;
-            this.enumValues = undefined;
+            this.enumValues = null;
         }
         ValidationResult.prototype.hasProblems = function () {
             return !!this.problems.length;
@@ -3981,7 +3921,7 @@ var __extends = (this && this.__extends) || (function () {
             if (this.root) {
                 return Json.findNodeAtOffset(this.root, offset, includeRightBound);
             }
-            return undefined;
+            return void 0;
         };
         JSONDocument.prototype.visit = function (visitor) {
             if (this.root) {
@@ -4007,10 +3947,11 @@ var __extends = (this && this.__extends) || (function () {
                     return jsonLanguageTypes_1.Diagnostic.create(range, p.message, p.severity, p.code);
                 });
             }
-            return undefined;
+            return null;
         };
         JSONDocument.prototype.getMatchingSchemas = function (schema, focusOffset, exclude) {
             if (focusOffset === void 0) { focusOffset = -1; }
+            if (exclude === void 0) { exclude = null; }
             var matchingSchemas = new SchemaCollector(focusOffset, exclude);
             if (this.root && schema) {
                 validate(this.root, schema, new ValidationResult(), matchingSchemas);
@@ -4020,11 +3961,10 @@ var __extends = (this && this.__extends) || (function () {
         return JSONDocument;
     }());
     exports.JSONDocument = JSONDocument;
-    function validate(n, schema, validationResult, matchingSchemas) {
-        if (!n || !matchingSchemas.include(n)) {
+    function validate(node, schema, validationResult, matchingSchemas) {
+        if (!node || !matchingSchemas.include(node)) {
             return;
         }
-        var node = n;
         switch (node.type) {
             case 'object':
                 _validateObjectNode(node, schema, validationResult, matchingSchemas);
@@ -4092,7 +4032,7 @@ var __extends = (this && this.__extends) || (function () {
             var testAlternatives = function (alternatives, maxOneMatch) {
                 var matches = [];
                 // remember the best match that is used for error messages
-                var bestMatch = undefined;
+                var bestMatch = null;
                 for (var _i = 0, alternatives_1 = alternatives; _i < alternatives_1.length; _i++) {
                     var subSchemaRef = alternatives_1[_i];
                     var subSchema = asSchema(subSchemaRef);
@@ -4133,7 +4073,7 @@ var __extends = (this && this.__extends) || (function () {
                         message: localize('oneOfWarning', "Matches multiple schemas when only one must validate.")
                     });
                 }
-                if (bestMatch) {
+                if (bestMatch !== null) {
                     validationResult.merge(bestMatch.validationResult);
                     validationResult.propertiesMatches += bestMatch.validationResult.propertiesMatches;
                     validationResult.propertiesValueMatches += bestMatch.validationResult.propertiesValueMatches;
@@ -4222,35 +4162,8 @@ var __extends = (this && this.__extends) || (function () {
         }
         function _validateNumberNode(node, schema, validationResult, matchingSchemas) {
             var val = node.value;
-            function normalizeFloats(float) {
-                var _a;
-                var parts = /^(-?\d+)(?:\.(\d+))?(?:e([-+]\d+))?$/.exec(float.toString());
-                return parts && {
-                    value: Number(parts[1] + (parts[2] || '')),
-                    multiplier: (((_a = parts[2]) === null || _a === void 0 ? void 0 : _a.length) || 0) - (parseInt(parts[3]) || 0)
-                };
-            }
-            ;
             if (objects_1.isNumber(schema.multipleOf)) {
-                var remainder = -1;
-                if (Number.isInteger(schema.multipleOf)) {
-                    remainder = val % schema.multipleOf;
-                }
-                else {
-                    var normMultipleOf = normalizeFloats(schema.multipleOf);
-                    var normValue = normalizeFloats(val);
-                    if (normMultipleOf && normValue) {
-                        var multiplier = Math.pow(10, Math.abs(normValue.multiplier - normMultipleOf.multiplier));
-                        if (normValue.multiplier < normMultipleOf.multiplier) {
-                            normValue.value *= multiplier;
-                        }
-                        else {
-                            normMultipleOf.value *= multiplier;
-                        }
-                        remainder = normValue.value % normMultipleOf.value;
-                    }
-                }
-                if (remainder !== 0) {
+                if (val % schema.multipleOf !== 0) {
                     validationResult.problems.push({
                         location: { offset: node.offset, length: node.length },
                         severity: jsonLanguageTypes_1.DiagnosticSeverity.Warning,
@@ -4265,13 +4178,13 @@ var __extends = (this && this.__extends) || (function () {
                 if (objects_1.isBoolean(exclusive) && exclusive) {
                     return limit;
                 }
-                return undefined;
+                return void 0;
             }
             function getLimit(limit, exclusive) {
                 if (!objects_1.isBoolean(exclusive) || !exclusive) {
                     return limit;
                 }
-                return undefined;
+                return void 0;
             }
             var exclusiveMinimum = getExclusiveLimit(schema.minimum, schema.exclusiveMinimum);
             if (objects_1.isNumber(exclusiveMinimum) && val <= exclusiveMinimum) {
@@ -4650,7 +4563,7 @@ var __extends = (this && this.__extends) || (function () {
         var lastProblemOffset = -1;
         var text = textDocument.getText();
         var scanner = Json.createScanner(text, false);
-        var commentRanges = config && config.collectComments ? [] : undefined;
+        var commentRanges = config && config.collectComments ? [] : void 0;
         function _scanNext() {
             while (true) {
                 var token_1 = scanner.scan();
@@ -4686,7 +4599,7 @@ var __extends = (this && this.__extends) || (function () {
             }
         }
         function _error(message, code, node, skipUntilAfter, skipUntil) {
-            if (node === void 0) { node = undefined; }
+            if (node === void 0) { node = null; }
             if (skipUntilAfter === void 0) { skipUntilAfter = []; }
             if (skipUntil === void 0) { skipUntil = []; }
             var start = scanner.getTokenOffset();
@@ -4749,7 +4662,7 @@ var __extends = (this && this.__extends) || (function () {
         }
         function _parseArray(parent) {
             if (scanner.getToken() !== 3 /* OpenBracketToken */) {
-                return undefined;
+                return null;
             }
             var node = new ArrayASTNodeImpl(parent, scanner.getTokenOffset());
             _scanNext(); // consume OpenBracketToken
@@ -4772,9 +4685,9 @@ var __extends = (this && this.__extends) || (function () {
                 else if (needsComma) {
                     _error(localize('ExpectedComma', 'Expected comma'), jsonLanguageTypes_1.ErrorCode.CommaExpected);
                 }
-                var item = _parseValue(node);
+                var item = _parseValue(node, count++);
                 if (!item) {
-                    _error(localize('PropertyExpected', 'Value expected'), jsonLanguageTypes_1.ErrorCode.ValueExpected, undefined, [], [4 /* CloseBracketToken */, 5 /* CommaToken */]);
+                    _error(localize('PropertyExpected', 'Value expected'), jsonLanguageTypes_1.ErrorCode.ValueExpected, null, [], [4 /* CloseBracketToken */, 5 /* CommaToken */]);
                 }
                 else {
                     node.items.push(item);
@@ -4786,9 +4699,8 @@ var __extends = (this && this.__extends) || (function () {
             }
             return _finalize(node, true);
         }
-        var keyPlaceholder = new StringASTNodeImpl(undefined, 0, 0);
         function _parseProperty(parent, keysSeen) {
-            var node = new PropertyASTNodeImpl(parent, scanner.getTokenOffset(), keyPlaceholder);
+            var node = new PropertyASTNodeImpl(parent, scanner.getTokenOffset());
             var key = _parseString(node);
             if (!key) {
                 if (scanner.getToken() === 16 /* Unknown */) {
@@ -4800,7 +4712,7 @@ var __extends = (this && this.__extends) || (function () {
                     _scanNext(); // consume Unknown
                 }
                 else {
-                    return undefined;
+                    return null;
                 }
             }
             node.keyNode = key;
@@ -4826,7 +4738,7 @@ var __extends = (this && this.__extends) || (function () {
                     return node;
                 }
             }
-            var value = _parseValue(node);
+            var value = _parseValue(node, key.value);
             if (!value) {
                 return _error(localize('ValueExpected', 'Value expected'), jsonLanguageTypes_1.ErrorCode.ValueExpected, node, [], [2 /* CloseBraceToken */, 5 /* CommaToken */]);
             }
@@ -4836,7 +4748,7 @@ var __extends = (this && this.__extends) || (function () {
         }
         function _parseObject(parent) {
             if (scanner.getToken() !== 1 /* OpenBraceToken */) {
-                return undefined;
+                return null;
             }
             var node = new ObjectASTNodeImpl(parent, scanner.getTokenOffset());
             var keysSeen = Object.create(null);
@@ -4861,7 +4773,7 @@ var __extends = (this && this.__extends) || (function () {
                 }
                 var property = _parseProperty(node, keysSeen);
                 if (!property) {
-                    _error(localize('PropertyExpected', 'Property expected'), jsonLanguageTypes_1.ErrorCode.PropertyExpected, undefined, [], [2 /* CloseBraceToken */, 5 /* CommaToken */]);
+                    _error(localize('PropertyExpected', 'Property expected'), jsonLanguageTypes_1.ErrorCode.PropertyExpected, null, [], [2 /* CloseBraceToken */, 5 /* CommaToken */]);
                 }
                 else {
                     node.properties.push(property);
@@ -4875,7 +4787,7 @@ var __extends = (this && this.__extends) || (function () {
         }
         function _parseString(parent) {
             if (scanner.getToken() !== 10 /* StringLiteral */) {
-                return undefined;
+                return null;
             }
             var node = new StringASTNodeImpl(parent, scanner.getTokenOffset());
             node.value = scanner.getTokenValue();
@@ -4883,7 +4795,7 @@ var __extends = (this && this.__extends) || (function () {
         }
         function _parseNumber(parent) {
             if (scanner.getToken() !== 11 /* NumericLiteral */) {
-                return undefined;
+                return null;
             }
             var node = new NumberASTNodeImpl(parent, scanner.getTokenOffset());
             if (scanner.getTokenError() === 0 /* None */) {
@@ -4912,16 +4824,16 @@ var __extends = (this && this.__extends) || (function () {
                 case 9 /* FalseKeyword */:
                     return _finalize(new BooleanASTNodeImpl(parent, false, scanner.getTokenOffset()), true);
                 default:
-                    return undefined;
+                    return null;
             }
         }
-        function _parseValue(parent) {
+        function _parseValue(parent, name) {
             return _parseArray(parent) || _parseObject(parent) || _parseString(parent) || _parseNumber(parent) || _parseLiteral(parent);
         }
-        var _root = undefined;
+        var _root = null;
         var token = _scanNext();
         if (token !== 17 /* EOF */) {
-            _root = _parseValue(_root);
+            _root = _parseValue(null, null);
             if (!_root) {
                 _error(localize('Invalid symbol', 'Expected a JSON object, array or literal.'), jsonLanguageTypes_1.ErrorCode.Undefined);
             }
@@ -4949,7 +4861,6 @@ var __extends = (this && this.__extends) || (function () {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.stringifyObject = void 0;
     function stringifyObject(obj, indent, stringifyLiteral) {
         if (obj !== null && typeof obj === 'object') {
             var newIndent = indent + '\t';
@@ -5006,7 +4917,6 @@ var __extends = (this && this.__extends) || (function () {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.repeat = exports.convertSimple2RegExpPattern = exports.endsWith = exports.startsWith = void 0;
     function startsWith(haystack, needle) {
         if (haystack.length < needle.length) {
             return false;
@@ -5068,7 +4978,6 @@ var __extends = (this && this.__extends) || (function () {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.JSONCompletion = void 0;
     var Parser = require("../parser/jsonParser");
     var Json = require("jsonc-parser");
     var json_1 = require("../utils/json");
@@ -5088,12 +4997,12 @@ var __extends = (this && this.__extends) || (function () {
             this.contributions = contributions;
             this.promiseConstructor = promiseConstructor;
             this.clientCapabilities = clientCapabilities;
+            this.templateVarIdCounter = 0;
         }
         JSONCompletion.prototype.doResolve = function (item) {
             for (var i = this.contributions.length - 1; i >= 0; i--) {
-                var resolveCompletion = this.contributions[i].resolveCompletion;
-                if (resolveCompletion) {
-                    var resolver = resolveCompletion(item);
+                if (this.contributions[i].resolveCompletion) {
+                    var resolver = this.contributions[i].resolveCompletion(item);
                     if (resolver) {
                         return resolver;
                     }
@@ -5121,7 +5030,7 @@ var __extends = (this && this.__extends) || (function () {
                 }
             }
             var currentWord = this.getCurrentWord(document, offset);
-            var overwriteRange;
+            var overwriteRange = null;
             if (node && (node.type === 'string' || node.type === 'number' || node.type === 'boolean' || node.type === 'null')) {
                 overwriteRange = jsonLanguageTypes_1.Range.create(document.positionAt(node.offset), document.positionAt(node.offset + node.length));
             }
@@ -5146,7 +5055,7 @@ var __extends = (this && this.__extends) || (function () {
                                 label = shortendedLabel;
                             }
                         }
-                        if (overwriteRange && suggestion.insertText !== undefined) {
+                        if (overwriteRange) {
                             suggestion.textEdit = jsonLanguageTypes_1.TextEdit.replace(overwriteRange, suggestion.insertText);
                         }
                         if (supportsCommitCharacters) {
@@ -5177,7 +5086,7 @@ var __extends = (this && this.__extends) || (function () {
                 var collectionPromises = [];
                 var addValue = true;
                 var currentKey = '';
-                var currentProperty = undefined;
+                var currentProperty = null;
                 if (node) {
                     if (node.type === 'string') {
                         var parent = node.parent;
@@ -5227,7 +5136,7 @@ var __extends = (this && this.__extends) || (function () {
                         collector.add({
                             kind: jsonLanguageTypes_1.CompletionItemKind.Property,
                             label: _this.getLabelForValue(currentWord),
-                            insertText: _this.getInsertTextForProperty(currentWord, undefined, false, separatorAfter_1),
+                            insertText: _this.getInsertTextForProperty(currentWord, null, false, separatorAfter_1),
                             insertTextFormat: jsonLanguageTypes_1.InsertTextFormat.Snippet, documentation: '',
                         });
                         collector.setAsIncomplete();
@@ -5277,10 +5186,7 @@ var __extends = (this && this.__extends) || (function () {
                                     filterText: _this.getFilterTextForValue(key),
                                     documentation: _this.fromMarkup(propertySchema.markdownDescription) || propertySchema.description || '',
                                 };
-                                if (propertySchema.suggestSortText !== undefined) {
-                                    proposal.sortText = propertySchema.suggestSortText;
-                                }
-                                if (proposal.insertText && strings_1.endsWith(proposal.insertText, "$1" + separatorAfter)) {
+                                if (strings_1.endsWith(proposal.insertText, "$1" + separatorAfter)) {
                                     proposal.command = {
                                         title: 'Suggest',
                                         command: 'editor.action.triggerSuggest'
@@ -5289,45 +5195,6 @@ var __extends = (this && this.__extends) || (function () {
                                 collector.add(proposal);
                             }
                         });
-                    }
-                    var schemaPropertyNames_1 = s.schema.propertyNames;
-                    if (typeof schemaPropertyNames_1 === 'object' && !schemaPropertyNames_1.deprecationMessage && !schemaPropertyNames_1.doNotSuggest) {
-                        var propertyNameCompletionItem = function (name, enumDescription) {
-                            if (enumDescription === void 0) { enumDescription = undefined; }
-                            var proposal = {
-                                kind: jsonLanguageTypes_1.CompletionItemKind.Property,
-                                label: name,
-                                insertText: _this.getInsertTextForProperty(name, undefined, addValue, separatorAfter),
-                                insertTextFormat: jsonLanguageTypes_1.InsertTextFormat.Snippet,
-                                filterText: _this.getFilterTextForValue(name),
-                                documentation: enumDescription || _this.fromMarkup(schemaPropertyNames_1.markdownDescription) || schemaPropertyNames_1.description || '',
-                            };
-                            if (schemaPropertyNames_1.suggestSortText !== undefined) {
-                                proposal.sortText = schemaPropertyNames_1.suggestSortText;
-                            }
-                            if (proposal.insertText && strings_1.endsWith(proposal.insertText, "$1" + separatorAfter)) {
-                                proposal.command = {
-                                    title: 'Suggest',
-                                    command: 'editor.action.triggerSuggest'
-                                };
-                            }
-                            collector.add(proposal);
-                        };
-                        if (schemaPropertyNames_1.enum) {
-                            for (var i = 0; i < schemaPropertyNames_1.enum.length; i++) {
-                                var enumDescription = undefined;
-                                if (schemaPropertyNames_1.markdownEnumDescriptions && i < schemaPropertyNames_1.markdownEnumDescriptions.length) {
-                                    enumDescription = _this.fromMarkup(schemaPropertyNames_1.markdownEnumDescriptions[i]);
-                                }
-                                else if (schemaPropertyNames_1.enumDescriptions && i < schemaPropertyNames_1.enumDescriptions.length) {
-                                    enumDescription = schemaPropertyNames_1.enumDescriptions[i];
-                                }
-                                propertyNameCompletionItem(schemaPropertyNames_1.enum[i], enumDescription);
-                            }
-                        }
-                        if (schemaPropertyNames_1.const) {
-                            propertyNameCompletionItem(schemaPropertyNames_1.const);
-                        }
                     }
                 }
             });
@@ -5371,7 +5238,7 @@ var __extends = (this && this.__extends) || (function () {
                 collector.add({
                     kind: jsonLanguageTypes_1.CompletionItemKind.Property,
                     label: '$schema',
-                    insertText: this.getInsertTextForProperty('$schema', undefined, true, ''),
+                    insertText: this.getInsertTextForProperty('$schema', null, true, ''),
                     insertTextFormat: jsonLanguageTypes_1.InsertTextFormat.Snippet, documentation: '',
                     filterText: this.getFilterTextForValue("$schema")
                 });
@@ -5403,7 +5270,7 @@ var __extends = (this && this.__extends) || (function () {
             }
             var separatorAfter = this.evaluateSeparatorAfter(document, offsetForSeparator);
             var collectSuggestionsForValues = function (value) {
-                if (value.parent && !Parser.contains(value.parent, offset, true)) {
+                if (!Parser.contains(value.parent, offset, true)) {
                     collector.add({
                         kind: _this.getSuggestionKind(value.type),
                         label: _this.getLabelTextForMatchingNode(value, document),
@@ -5416,7 +5283,7 @@ var __extends = (this && this.__extends) || (function () {
                 }
             };
             if (node.type === 'property') {
-                if (offset > (node.colonOffset || 0)) {
+                if (offset > node.colonOffset) {
                     var valueNode = node.valueNode;
                     if (valueNode && (offset > (valueNode.offset + valueNode.length) || valueNode.type === 'object' || valueNode.type === 'array')) {
                         return;
@@ -5452,9 +5319,10 @@ var __extends = (this && this.__extends) || (function () {
             }
         };
         JSONCompletion.prototype.getValueCompletions = function (schema, doc, node, offset, document, collector, types) {
+            var _this = this;
             var offsetForSeparator = offset;
-            var parentKey = undefined;
-            var valueNode = undefined;
+            var parentKey = null;
+            var valueNode = null;
             if (node && (node.type === 'string' || node.type === 'number' || node.type === 'boolean' || node.type === 'null')) {
                 offsetForSeparator = node.offset + node.length;
                 valueNode = node;
@@ -5464,7 +5332,7 @@ var __extends = (this && this.__extends) || (function () {
                 this.addSchemaValueCompletions(schema.schema, '', collector, types);
                 return;
             }
-            if ((node.type === 'property') && offset > (node.colonOffset || 0)) {
+            if ((node.type === 'property') && offset > node.colonOffset) {
                 var valueNode_1 = node.valueNode;
                 if (valueNode_1 && offset > (valueNode_1.offset + valueNode_1.length)) {
                     return; // we are past the value node
@@ -5472,59 +5340,39 @@ var __extends = (this && this.__extends) || (function () {
                 parentKey = node.keyNode.value;
                 node = node.parent;
             }
-            if (node && (parentKey !== undefined || node.type === 'array')) {
-                var separatorAfter = this.evaluateSeparatorAfter(document, offsetForSeparator);
+            if (node && (parentKey !== null || node.type === 'array')) {
+                var separatorAfter_2 = this.evaluateSeparatorAfter(document, offsetForSeparator);
                 var matchingSchemas = doc.getMatchingSchemas(schema.schema, node.offset, valueNode);
-                for (var _i = 0, matchingSchemas_1 = matchingSchemas; _i < matchingSchemas_1.length; _i++) {
-                    var s = matchingSchemas_1[_i];
+                matchingSchemas.forEach(function (s) {
                     if (s.node === node && !s.inverted && s.schema) {
                         if (node.type === 'array' && s.schema.items) {
                             if (Array.isArray(s.schema.items)) {
-                                var index = this.findItemAtOffset(node, document, offset);
+                                var index = _this.findItemAtOffset(node, document, offset);
                                 if (index < s.schema.items.length) {
-                                    this.addSchemaValueCompletions(s.schema.items[index], separatorAfter, collector, types);
+                                    _this.addSchemaValueCompletions(s.schema.items[index], separatorAfter_2, collector, types);
                                 }
                             }
                             else {
-                                this.addSchemaValueCompletions(s.schema.items, separatorAfter, collector, types);
+                                _this.addSchemaValueCompletions(s.schema.items, separatorAfter_2, collector, types);
                             }
                         }
-                        if (parentKey !== undefined) {
-                            var propertyMatched = false;
-                            if (s.schema.properties) {
-                                var propertySchema = s.schema.properties[parentKey];
-                                if (propertySchema) {
-                                    propertyMatched = true;
-                                    this.addSchemaValueCompletions(propertySchema, separatorAfter, collector, types);
-                                }
-                            }
-                            if (s.schema.patternProperties && !propertyMatched) {
-                                for (var _a = 0, _b = Object.keys(s.schema.patternProperties); _a < _b.length; _a++) {
-                                    var pattern = _b[_a];
-                                    var regex = new RegExp(pattern);
-                                    if (regex.test(parentKey)) {
-                                        propertyMatched = true;
-                                        var propertySchema = s.schema.patternProperties[pattern];
-                                        this.addSchemaValueCompletions(propertySchema, separatorAfter, collector, types);
-                                    }
-                                }
-                            }
-                            if (s.schema.additionalProperties && !propertyMatched) {
-                                var propertySchema = s.schema.additionalProperties;
-                                this.addSchemaValueCompletions(propertySchema, separatorAfter, collector, types);
+                        if (s.schema.properties) {
+                            var propertySchema = s.schema.properties[parentKey];
+                            if (propertySchema) {
+                                _this.addSchemaValueCompletions(propertySchema, separatorAfter_2, collector, types);
                             }
                         }
                     }
-                }
+                });
                 if (parentKey === '$schema' && !node.parent) {
-                    this.addDollarSchemaCompletions(separatorAfter, collector);
+                    this.addDollarSchemaCompletions(separatorAfter_2, collector);
                 }
                 if (types['boolean']) {
-                    this.addBooleanValueCompletion(true, separatorAfter, collector);
-                    this.addBooleanValueCompletion(false, separatorAfter, collector);
+                    this.addBooleanValueCompletion(true, separatorAfter_2, collector);
+                    this.addBooleanValueCompletion(false, separatorAfter_2, collector);
                 }
                 if (types['null']) {
-                    this.addNullValueCompletion(separatorAfter, collector);
+                    this.addNullValueCompletion(separatorAfter_2, collector);
                 }
             }
         };
@@ -5541,10 +5389,10 @@ var __extends = (this && this.__extends) || (function () {
                 if (node.type === 'string' || node.type === 'number' || node.type === 'boolean' || node.type === 'null') {
                     node = node.parent;
                 }
-                if (node && (node.type === 'property') && offset > (node.colonOffset || 0)) {
+                if ((node.type === 'property') && offset > node.colonOffset) {
                     var parentKey_4 = node.keyNode.value;
                     var valueNode = node.valueNode;
-                    if ((!valueNode || offset <= (valueNode.offset + valueNode.length)) && node.parent) {
+                    if (!valueNode || offset <= (valueNode.offset + valueNode.length)) {
                         var location_2 = Parser.getNodePath(node.parent);
                         this.contributions.forEach(function (contribution) {
                             var collectPromise = contribution.collectValueCompletions(document.uri, location_2, parentKey_4, collector);
@@ -5639,9 +5487,6 @@ var __extends = (this && this.__extends) || (function () {
                         label = label || insertText,
                             filterText = insertText.replace(/[\n]/g, ''); // remove new lines
                     }
-                    else {
-                        return;
-                    }
                     collector.add({
                         kind: _this.getSuggestionKind(type),
                         label: label,
@@ -5653,7 +5498,7 @@ var __extends = (this && this.__extends) || (function () {
                     hasProposals = true;
                 });
             }
-            if (!hasProposals && typeof schema.items === 'object' && !Array.isArray(schema.items) && arrayDepth < 5 /* beware of recursion */) {
+            if (!hasProposals && typeof schema.items === 'object' && !Array.isArray(schema.items)) {
                 this.addDefaultValueCompletions(schema.items, separatorAfter, collector, arrayDepth + 1);
             }
         };
@@ -5695,7 +5540,7 @@ var __extends = (this && this.__extends) || (function () {
             if (Array.isArray(type)) {
                 type.forEach(function (t) { return types[t] = true; });
             }
-            else if (type) {
+            else {
                 types[type] = true;
             }
         };
@@ -5808,7 +5653,7 @@ var __extends = (this && this.__extends) || (function () {
         JSONCompletion.prototype.getSuggestionKind = function (type) {
             if (Array.isArray(type)) {
                 var array = type;
-                type = array.length > 0 ? array[0] : undefined;
+                type = array.length > 0 ? array[0] : null;
             }
             if (!type) {
                 return jsonLanguageTypes_1.CompletionItemKind.Value;
@@ -6011,7 +5856,6 @@ var __extends = (this && this.__extends) || (function () {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.JSONHover = void 0;
     var Parser = require("../parser/jsonParser");
     var jsonLanguageTypes_1 = require("../jsonLanguageTypes");
     var JSONHover = /** @class */ (function () {
@@ -6055,11 +5899,11 @@ var __extends = (this && this.__extends) || (function () {
                 }
             }
             return this.schemaService.getSchemaForResource(document.uri, doc).then(function (schema) {
-                if (schema && node) {
+                if (schema) {
                     var matchingSchemas = doc.getMatchingSchemas(schema.schema, node.offset);
-                    var title_1 = undefined;
-                    var markdownDescription_1 = undefined;
-                    var markdownEnumValueDescription_1 = undefined, enumValue_1 = undefined;
+                    var title_1 = null;
+                    var markdownDescription_1 = null;
+                    var markdownEnumValueDescription_1 = null, enumValue_1 = null;
                     matchingSchemas.every(function (s) {
                         if (s.node === node && !s.inverted && s.schema) {
                             title_1 = title_1 || s.schema.title;
@@ -6111,7 +5955,7 @@ var __extends = (this && this.__extends) || (function () {
             var res = plain.replace(/([^\n\r])(\r?\n)([^\n\r])/gm, '$1\n\n$3'); // single new lines to \n\n (Markdown paragraph)
             return res.replace(/[\\`*_{}[\]()#+\-.!]/g, "\\$&"); // escape markdown syntax tokens: http://daringfireball.net/projects/markdown/syntax#backslash
         }
-        return undefined;
+        return void 0;
     }
     function toMarkdownCodeBlock(content) {
         // see https://daringfireball.net/projects/markdown/syntax#precode
@@ -6248,7 +6092,6 @@ var __extends = (this && this.__extends) || (function () {
      * (http://tools.ietf.org/html/rfc3986#section-3) with minimal validation
      * and encoding.
      *
-     * ```txt
      *       foo://example.com:8042/over/there?name=ferret#nose
      *       \_/   \______________/\_________/ \_________/ \__/
      *        |           |            |            |        |
@@ -6256,7 +6099,6 @@ var __extends = (this && this.__extends) || (function () {
      *        |   _____________________|__
      *       / \ /                        \
      *       urn:example:animal:ferret:nose
-     * ```
      */
     var URI = /** @class */ (function () {
         /**
@@ -6329,7 +6171,7 @@ var __extends = (this && this.__extends) || (function () {
                 // if (this.scheme !== 'file') {
                 // 	console.warn(`[UriError] calling fsPath with scheme ${this.scheme}`);
                 // }
-                return uriToFsPath(this, false);
+                return _makeFsPath(this);
             },
             enumerable: true,
             configurable: true
@@ -6392,7 +6234,7 @@ var __extends = (this && this.__extends) || (function () {
             if (!match) {
                 return new _URI(_empty, _empty, _empty, _empty, _empty);
             }
-            return new _URI(match[2] || _empty, percentDecode(match[4] || _empty), percentDecode(match[5] || _empty), percentDecode(match[7] || _empty), percentDecode(match[9] || _empty), _strict);
+            return new _URI(match[2] || _empty, decodeURIComponent(match[4] || _empty), decodeURIComponent(match[5] || _empty), decodeURIComponent(match[7] || _empty), decodeURIComponent(match[9] || _empty), _strict);
         };
         /**
          * Creates a new URI from a file system path, e.g. `c:\my\files`,
@@ -6441,25 +6283,6 @@ var __extends = (this && this.__extends) || (function () {
         URI.from = function (components) {
             return new _URI(components.scheme, components.authority, components.path, components.query, components.fragment);
         };
-        // /**
-        //  * Join a URI path with path fragments and normalizes the resulting path.
-        //  *
-        //  * @param uri The input URI.
-        //  * @param pathFragment The path fragment to add to the URI path.
-        //  * @returns The resulting URI.
-        //  */
-        // static joinPath(uri: URI, ...pathFragment: string[]): URI {
-        // 	if (!uri.path) {
-        // 		throw new Error(`[UriError]: cannot call joinPaths on URI without path`);
-        // 	}
-        // 	let newPath: string;
-        // 	if (isWindows && uri.scheme === 'file') {
-        // 		newPath = URI.file(paths.win32.join(uriToFsPath(uri, true), ...pathFragment)).path;
-        // 	} else {
-        // 		newPath = paths.posix.join(uri.path, ...pathFragment);
-        // 	}
-        // 	return uri.with({ path: newPath });
-        // }
         // ---- printing/externalize ---------------------------
         /**
          * Creates a string representation for this URI. It's guaranteed that calling
@@ -6497,7 +6320,7 @@ var __extends = (this && this.__extends) || (function () {
     }());
     exports.URI = URI;
     var _pathSepMarker = isWindows ? 1 : undefined;
-    // eslint-disable-next-line @typescript-eslint/class-name-casing
+    // tslint:disable-next-line:class-name
     var _URI = /** @class */ (function (_super) {
         __extends(_URI, _super);
         function _URI() {
@@ -6509,7 +6332,7 @@ var __extends = (this && this.__extends) || (function () {
         Object.defineProperty(_URI.prototype, "fsPath", {
             get: function () {
                 if (!this._fsPath) {
-                    this._fsPath = uriToFsPath(this, false);
+                    this._fsPath = _makeFsPath(this);
                 }
                 return this._fsPath;
             },
@@ -6655,7 +6478,7 @@ var __extends = (this && this.__extends) || (function () {
     /**
      * Compute `fsPath` for the given uri
      */
-    function uriToFsPath(uri, keepDriveLetterCasing) {
+    function _makeFsPath(uri) {
         var value;
         if (uri.authority && uri.path.length > 1 && uri.scheme === 'file') {
             // unc path: file://shares/c$/far/boo
@@ -6664,13 +6487,8 @@ var __extends = (this && this.__extends) || (function () {
         else if (uri.path.charCodeAt(0) === 47 /* Slash */
             && (uri.path.charCodeAt(1) >= 65 /* A */ && uri.path.charCodeAt(1) <= 90 /* Z */ || uri.path.charCodeAt(1) >= 97 /* a */ && uri.path.charCodeAt(1) <= 122 /* z */)
             && uri.path.charCodeAt(2) === 58 /* Colon */) {
-            if (!keepDriveLetterCasing) {
-                // windows drive letter: file:///c:/far/boo
-                value = uri.path[1].toLowerCase() + uri.path.substr(2);
-            }
-            else {
-                value = uri.path.substr(1);
-            }
+            // windows drive letter: file:///c:/far/boo
+            value = uri.path[1].toLowerCase() + uri.path.substr(2);
         }
         else {
             // other path
@@ -6681,7 +6499,6 @@ var __extends = (this && this.__extends) || (function () {
         }
         return value;
     }
-    exports.uriToFsPath = uriToFsPath;
     /**
      * Create the external version of a uri
      */
@@ -6755,27 +6572,6 @@ var __extends = (this && this.__extends) || (function () {
         }
         return res;
     }
-    // --- decode
-    function decodeURIComponentGraceful(str) {
-        try {
-            return decodeURIComponent(str);
-        }
-        catch (_a) {
-            if (str.length > 3) {
-                return str.substr(0, 3) + decodeURIComponentGraceful(str.substr(3));
-            }
-            else {
-                return str;
-            }
-        }
-    }
-    var _rEncodedAsHex = /(%[0-9A-Za-z][0-9A-Za-z])+/g;
-    function percentDecode(str) {
-        if (!str.match(_rEncodedAsHex)) {
-            return str;
-        }
-        return str.replace(_rEncodedAsHex, function (match) { return decodeURIComponentGraceful(match); });
-    }
 });
 
 define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
@@ -6795,7 +6591,6 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.JSONSchemaService = exports.ResolvedSchema = exports.UnresolvedSchema = void 0;
     var Json = require("jsonc-parser");
     var vscode_uri_1 = require("vscode-uri");
     var Strings = require("../utils/strings");
@@ -6803,40 +6598,24 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
     var nls = require("vscode-nls");
     var localize = nls.loadMessageBundle();
     var FilePatternAssociation = /** @class */ (function () {
-        function FilePatternAssociation(pattern, uris) {
-            this.patternRegExps = [];
-            this.isInclude = [];
+        function FilePatternAssociation(pattern) {
             try {
-                for (var _i = 0, pattern_1 = pattern; _i < pattern_1.length; _i++) {
-                    var p = pattern_1[_i];
-                    var include = p[0] !== '!';
-                    if (!include) {
-                        p = p.substring(1);
-                    }
-                    this.patternRegExps.push(new RegExp(Strings.convertSimple2RegExpPattern(p) + '$'));
-                    this.isInclude.push(include);
-                }
-                this.uris = uris;
+                this.patternRegExp = new RegExp(Strings.convertSimple2RegExpPattern(pattern) + '$');
             }
             catch (e) {
                 // invalid pattern
-                this.patternRegExps.length = 0;
-                this.isInclude.length = 0;
-                this.uris = [];
+                this.patternRegExp = null;
             }
+            this.schemas = [];
         }
-        FilePatternAssociation.prototype.matchesPattern = function (fileName) {
-            var match = false;
-            for (var i = 0; i < this.patternRegExps.length; i++) {
-                var regExp = this.patternRegExps[i];
-                if (regExp.test(fileName)) {
-                    match = this.isInclude[i];
-                }
-            }
-            return match;
+        FilePatternAssociation.prototype.addSchema = function (id) {
+            this.schemas.push(id);
         };
-        FilePatternAssociation.prototype.getURIs = function () {
-            return this.uris;
+        FilePatternAssociation.prototype.matchesPattern = function (fileName) {
+            return this.patternRegExp && this.patternRegExp.test(fileName);
+        };
+        FilePatternAssociation.prototype.getSchemas = function () {
+            return this.schemas;
         };
         return FilePatternAssociation;
     }());
@@ -6865,8 +6644,8 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
             return this.resolvedSchema;
         };
         SchemaHandle.prototype.clearSchema = function () {
-            this.resolvedSchema = undefined;
-            this.unresolvedSchema = undefined;
+            this.resolvedSchema = null;
+            this.unresolvedSchema = null;
             this.dependencies = {};
         };
         return SchemaHandle;
@@ -6887,11 +6666,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
             this.errors = errors;
         }
         ResolvedSchema.prototype.getSection = function (path) {
-            var schemaRef = this.getSectionRecursive(path, this.schema);
-            if (schemaRef) {
-                return Parser.asSchema(schemaRef);
-            }
-            return undefined;
+            return Parser.asSchema(this.getSectionRecursive(path, this.schema));
         };
         ResolvedSchema.prototype.getSectionRecursive = function (path, schema) {
             if (!schema || typeof schema === 'boolean' || path.length === 0) {
@@ -6924,7 +6699,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                     return this.getSectionRecursive(path, schema.items);
                 }
             }
-            return undefined;
+            return null;
         };
         return ResolvedSchema;
     }());
@@ -6936,9 +6711,10 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
             this.promiseConstructor = promiseConstructor || Promise;
             this.callOnDispose = [];
             this.contributionSchemas = {};
-            this.contributionAssociations = [];
+            this.contributionAssociations = {};
             this.schemasById = {};
             this.filePatternAssociations = [];
+            this.filePatternAssociationById = {};
             this.registeredSchemasIds = {};
         }
         JSONSchemaService.prototype.getRegisteredSchemaIds = function (filter) {
@@ -6951,7 +6727,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
             get: function () {
                 return this.promiseConstructor;
             },
-            enumerable: false,
+            enumerable: true,
             configurable: true
         });
         JSONSchemaService.prototype.dispose = function () {
@@ -6962,7 +6738,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
         JSONSchemaService.prototype.onResourceChange = function (uri) {
             var _this = this;
             var hasChanges = false;
-            uri = normalizeId(uri);
+            uri = this.normalizeId(uri);
             var toWalk = [uri];
             var all = Object.keys(this.schemasById).map(function (key) { return _this.schemasById[key]; });
             while (toWalk.length) {
@@ -6981,21 +6757,34 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
             }
             return hasChanges;
         };
+        JSONSchemaService.prototype.normalizeId = function (id) {
+            // remove trailing '#', normalize drive capitalization
+            try {
+                return vscode_uri_1.URI.parse(id).toString();
+            }
+            catch (e) {
+                return id;
+            }
+        };
         JSONSchemaService.prototype.setSchemaContributions = function (schemaContributions) {
             if (schemaContributions.schemas) {
                 var schemas = schemaContributions.schemas;
                 for (var id in schemas) {
-                    var normalizedId = normalizeId(id);
+                    var normalizedId = this.normalizeId(id);
                     this.contributionSchemas[normalizedId] = this.addSchemaHandle(normalizedId, schemas[id]);
                 }
             }
-            if (Array.isArray(schemaContributions.schemaAssociations)) {
+            if (schemaContributions.schemaAssociations) {
                 var schemaAssociations = schemaContributions.schemaAssociations;
-                for (var _i = 0, schemaAssociations_1 = schemaAssociations; _i < schemaAssociations_1.length; _i++) {
-                    var schemaAssociation = schemaAssociations_1[_i];
-                    var uris = schemaAssociation.uris.map(normalizeId);
-                    var association = this.addFilePatternAssociation(schemaAssociation.pattern, uris);
-                    this.contributionAssociations.push(association);
+                for (var pattern in schemaAssociations) {
+                    var associations = schemaAssociations[pattern];
+                    this.contributionAssociations[pattern] = associations;
+                    var fpa = this.getOrAddFilePatternAssociation(pattern);
+                    for (var _i = 0, associations_1 = associations; _i < associations_1.length; _i++) {
+                        var schemaId = associations_1[_i];
+                        var id = this.normalizeId(schemaId);
+                        fpa.addSchema(id);
+                    }
                 }
             }
         };
@@ -7007,41 +6796,52 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
         JSONSchemaService.prototype.getOrAddSchemaHandle = function (id, unresolvedSchemaContent) {
             return this.schemasById[id] || this.addSchemaHandle(id, unresolvedSchemaContent);
         };
-        JSONSchemaService.prototype.addFilePatternAssociation = function (pattern, uris) {
-            var fpa = new FilePatternAssociation(pattern, uris);
-            this.filePatternAssociations.push(fpa);
+        JSONSchemaService.prototype.getOrAddFilePatternAssociation = function (pattern) {
+            var fpa = this.filePatternAssociationById[pattern];
+            if (!fpa) {
+                fpa = new FilePatternAssociation(pattern);
+                this.filePatternAssociationById[pattern] = fpa;
+                this.filePatternAssociations.push(fpa);
+            }
             return fpa;
         };
         JSONSchemaService.prototype.registerExternalSchema = function (uri, filePatterns, unresolvedSchemaContent) {
-            var id = normalizeId(uri);
+            if (filePatterns === void 0) { filePatterns = null; }
+            var id = this.normalizeId(uri);
             this.registeredSchemasIds[id] = true;
-            this.cachedSchemaForResource = undefined;
             if (filePatterns) {
-                this.addFilePatternAssociation(filePatterns, [uri]);
+                for (var _i = 0, filePatterns_1 = filePatterns; _i < filePatterns_1.length; _i++) {
+                    var pattern = filePatterns_1[_i];
+                    this.getOrAddFilePatternAssociation(pattern).addSchema(id);
+                }
             }
             return unresolvedSchemaContent ? this.addSchemaHandle(id, unresolvedSchemaContent) : this.getOrAddSchemaHandle(id);
         };
         JSONSchemaService.prototype.clearExternalSchemas = function () {
             this.schemasById = {};
             this.filePatternAssociations = [];
+            this.filePatternAssociationById = {};
             this.registeredSchemasIds = {};
-            this.cachedSchemaForResource = undefined;
             for (var id in this.contributionSchemas) {
                 this.schemasById[id] = this.contributionSchemas[id];
                 this.registeredSchemasIds[id] = true;
             }
-            for (var _i = 0, _a = this.contributionAssociations; _i < _a.length; _i++) {
-                var contributionAssociation = _a[_i];
-                this.filePatternAssociations.push(contributionAssociation);
+            for (var pattern in this.contributionAssociations) {
+                var fpa = this.getOrAddFilePatternAssociation(pattern);
+                for (var _i = 0, _a = this.contributionAssociations[pattern]; _i < _a.length; _i++) {
+                    var schemaId = _a[_i];
+                    var id = this.normalizeId(schemaId);
+                    fpa.addSchema(id);
+                }
             }
         };
         JSONSchemaService.prototype.getResolvedSchema = function (schemaId) {
-            var id = normalizeId(schemaId);
+            var id = this.normalizeId(schemaId);
             var schemaHandle = this.schemasById[id];
             if (schemaHandle) {
                 return schemaHandle.getResolvedSchema();
             }
-            return this.promise.resolve(undefined);
+            return this.promise.resolve(null);
         };
         JSONSchemaService.prototype.loadSchema = function (url) {
             if (!this.requestService) {
@@ -7076,12 +6876,12 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
             var resolveErrors = schemaToResolve.errors.slice(0);
             var schema = schemaToResolve.schema;
             if (schema.$schema) {
-                var id = normalizeId(schema.$schema);
+                var id = this.normalizeId(schema.$schema);
                 if (id === 'http://json-schema.org/draft-03/schema') {
                     return this.promise.resolve(new ResolvedSchema({}, [localize('json.schema.draft03.notsupported', "Draft-03 schemas are not supported.")]));
                 }
                 else if (id === 'https://json-schema.org/draft/2019-09/schema') {
-                    resolveErrors.push(localize('json.schema.draft201909.notsupported', "Draft 2019-09 schemas are not yet fully supported."));
+                    schemaToResolve.errors.push(localize('json.schema.draft201909.notsupported', "Draft 2019-09 schemas are not yet fully supported."));
                 }
             }
             var contextService = this.contextService;
@@ -7099,8 +6899,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                 });
                 return current;
             };
-            var merge = function (target, sourceRoot, sourceURI, refSegment) {
-                var path = refSegment ? decodeURIComponent(refSegment) : undefined;
+            var merge = function (target, sourceRoot, sourceURI, path) {
                 var section = findSection(sourceRoot, path);
                 if (section) {
                     for (var key in section) {
@@ -7113,19 +6912,19 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                     resolveErrors.push(localize('json.schema.invalidref', '$ref \'{0}\' in \'{1}\' can not be resolved.', path, sourceURI));
                 }
             };
-            var resolveExternalLink = function (node, uri, refSegment, parentSchemaURL, parentSchemaDependencies) {
+            var resolveExternalLink = function (node, uri, linkPath, parentSchemaURL, parentSchemaDependencies) {
                 if (contextService && !/^\w+:\/\/.*/.test(uri)) {
                     uri = contextService.resolveRelativePath(uri, parentSchemaURL);
                 }
-                uri = normalizeId(uri);
+                uri = _this.normalizeId(uri);
                 var referencedHandle = _this.getOrAddSchemaHandle(uri);
                 return referencedHandle.getUnresolvedSchema().then(function (unresolvedSchema) {
                     parentSchemaDependencies[uri] = true;
                     if (unresolvedSchema.errors.length) {
-                        var loc = refSegment ? uri + '#' + refSegment : uri;
+                        var loc = linkPath ? uri + '#' + linkPath : uri;
                         resolveErrors.push(localize('json.schema.problemloadingref', 'Problems loading reference \'{0}\': {1}', loc, unresolvedSchema.errors[0]));
                     }
-                    merge(node, unresolvedSchema.schema, uri, refSegment);
+                    merge(node, unresolvedSchema.schema, uri, linkPath);
                     return resolveRefs(node, unresolvedSchema.schema, uri, referencedHandle.dependencies);
                 });
             };
@@ -7156,8 +6955,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                     for (var _a = 0, maps_1 = maps; _a < maps_1.length; _a++) {
                         var map = maps_1[_a];
                         if (typeof map === 'object') {
-                            for (var k in map) {
-                                var key = k;
+                            for (var key in map) {
                                 var entry = map[key];
                                 if (typeof entry === 'object') {
                                     toWalk.push(entry);
@@ -7200,7 +6998,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                             }
                         }
                     }
-                    collectEntries(next.items, next.additionalItems, next.additionalProperties, next.not, next.contains, next.propertyNames, next.if, next.then, next.else);
+                    collectEntries(next.items, next.additionalProperties, next.not, next.contains, next.propertyNames, next.if, next.then, next.else);
                     collectMapEntries(next.definitions, next.properties, next.patternProperties, next.dependencies);
                     collectArrayEntries(next.anyOf, next.allOf, next.oneOf, next.items);
                 };
@@ -7221,28 +7019,22 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
             if (document && document.root && document.root.type === 'object') {
                 var schemaProperties = document.root.properties.filter(function (p) { return (p.keyNode.value === '$schema') && p.valueNode && p.valueNode.type === 'string'; });
                 if (schemaProperties.length > 0) {
-                    var valueNode = schemaProperties[0].valueNode;
-                    if (valueNode && valueNode.type === 'string') {
-                        var schemeId = Parser.getNodeValue(valueNode);
-                        if (schemeId && Strings.startsWith(schemeId, '.') && this.contextService) {
-                            schemeId = this.contextService.resolveRelativePath(schemeId, resource);
-                        }
-                        if (schemeId) {
-                            var id = normalizeId(schemeId);
-                            return this.getOrAddSchemaHandle(id).getResolvedSchema();
-                        }
+                    var schemeId = Parser.getNodeValue(schemaProperties[0].valueNode);
+                    if (schemeId && Strings.startsWith(schemeId, '.') && this.contextService) {
+                        schemeId = this.contextService.resolveRelativePath(schemeId, resource);
+                    }
+                    if (schemeId) {
+                        var id = this.normalizeId(schemeId);
+                        return this.getOrAddSchemaHandle(id).getResolvedSchema();
                     }
                 }
-            }
-            if (this.cachedSchemaForResource && this.cachedSchemaForResource.resource === resource) {
-                return this.cachedSchemaForResource.resolvedSchema;
             }
             var seen = Object.create(null);
             var schemas = [];
             for (var _i = 0, _a = this.filePatternAssociations; _i < _a.length; _i++) {
                 var entry = _a[_i];
                 if (entry.matchesPattern(resource)) {
-                    for (var _b = 0, _c = entry.getURIs(); _b < _c.length; _b++) {
+                    for (var _b = 0, _c = entry.getSchemas(); _b < _c.length; _b++) {
                         var schemaId = _c[_b];
                         if (!seen[schemaId]) {
                             schemas.push(schemaId);
@@ -7251,9 +7043,10 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                     }
                 }
             }
-            var resolvedSchema = schemas.length > 0 ? this.createCombinedSchema(resource, schemas).getResolvedSchema() : this.promise.resolve(undefined);
-            this.cachedSchemaForResource = { resource: resource, resolvedSchema: resolvedSchema };
-            return resolvedSchema;
+            if (schemas.length > 0) {
+                return this.createCombinedSchema(resource, schemas).getResolvedSchema();
+            }
+            return this.promise.resolve(null);
         };
         JSONSchemaService.prototype.createCombinedSchema = function (resource, schemaIds) {
             if (schemaIds.length === 1) {
@@ -7267,33 +7060,9 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                 return this.addSchemaHandle(combinedSchemaId, combinedSchema);
             }
         };
-        JSONSchemaService.prototype.getMatchingSchemas = function (document, jsonDocument, schema) {
-            if (schema) {
-                var id = schema.id || ('schemaservice://untitled/matchingSchemas/' + idCounter++);
-                return this.resolveSchemaContent(new UnresolvedSchema(schema), id, {}).then(function (resolvedSchema) {
-                    return jsonDocument.getMatchingSchemas(resolvedSchema.schema).filter(function (s) { return !s.inverted; });
-                });
-            }
-            return this.getSchemaForResource(document.uri, jsonDocument).then(function (schema) {
-                if (schema) {
-                    return jsonDocument.getMatchingSchemas(schema.schema).filter(function (s) { return !s.inverted; });
-                }
-                return [];
-            });
-        };
         return JSONSchemaService;
     }());
     exports.JSONSchemaService = JSONSchemaService;
-    var idCounter = 0;
-    function normalizeId(id) {
-        // remove trailing '#', normalize drive capitalization
-        try {
-            return vscode_uri_1.URI.parse(id).toString();
-        }
-        catch (e) {
-            return id;
-        }
-    }
     function toDisplayString(url) {
         try {
             var uri = vscode_uri_1.URI.parse(url);
@@ -7323,7 +7092,6 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.JSONValidation = void 0;
     var jsonSchemaService_1 = require("./jsonSchemaService");
     var jsonLanguageTypes_1 = require("../jsonLanguageTypes");
     var nls = require("vscode-nls");
@@ -7338,7 +7106,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
         JSONValidation.prototype.configure = function (raw) {
             if (raw) {
                 this.validationEnabled = raw.validate;
-                this.commentSeverity = raw.allowComments ? undefined : jsonLanguageTypes_1.DiagnosticSeverity.Error;
+                this.commentSeverity = raw.allowComments ? void 0 : jsonLanguageTypes_1.DiagnosticSeverity.Error;
             }
         };
         JSONValidation.prototype.doValidation = function (textDocument, jsonDocument, documentSettings, schema) {
@@ -7362,7 +7130,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                 if (schema) {
                     if (schema.errors.length && jsonDocument.root) {
                         var astRoot = jsonDocument.root;
-                        var property = astRoot.type === 'object' ? astRoot.properties[0] : undefined;
+                        var property = astRoot.type === 'object' ? astRoot.properties[0] : null;
                         if (property && property.keyNode.value === '$schema') {
                             var node = property.valueNode || property;
                             var range = jsonLanguageTypes_1.Range.create(textDocument.positionAt(node.offset), textDocument.positionAt(node.offset + node.length));
@@ -7380,10 +7148,10 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                         }
                     }
                     if (schemaAllowsComments(schema.schema)) {
-                        commentSeverity = undefined;
+                        commentSeverity = void 0;
                     }
                     if (schemaAllowsTrailingCommas(schema.schema)) {
-                        trailingCommaSeverity = undefined;
+                        trailingCommaSeverity = void 0;
                     }
                 }
                 for (var _i = 0, _a = jsonDocument.syntaxErrors; _i < _a.length; _i++) {
@@ -7440,9 +7208,8 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
             if (objects_1.isBoolean(schemaRef.allowTrailingCommas)) {
                 return schemaRef.allowTrailingCommas;
             }
-            var deprSchemaRef = schemaRef;
-            if (objects_1.isBoolean(deprSchemaRef['allowsTrailingCommas'])) { // deprecated
-                return deprSchemaRef['allowsTrailingCommas'];
+            if (objects_1.isBoolean(schemaRef['allowsTrailingCommas'])) { // deprecated
+                return schemaRef['allowsTrailingCommas'];
             }
             if (schemaRef.allOf) {
                 for (var _i = 0, _a = schemaRef.allOf; _i < _a.length; _i++) {
@@ -7460,9 +7227,9 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
         switch (severityLevel) {
             case 'error': return jsonLanguageTypes_1.DiagnosticSeverity.Error;
             case 'warning': return jsonLanguageTypes_1.DiagnosticSeverity.Warning;
-            case 'ignore': return undefined;
+            case 'ignore': return void 0;
         }
-        return undefined;
+        return void 0;
     }
 });
 
@@ -7481,7 +7248,6 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.colorFrom256RGB = exports.colorFromHex = exports.hexDigit = void 0;
     var Digit0 = 48;
     var Digit9 = 57;
     var A = 65;
@@ -7505,7 +7271,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
     exports.hexDigit = hexDigit;
     function colorFromHex(text) {
         if (text[0] !== '#') {
-            return undefined;
+            return null;
         }
         switch (text.length) {
             case 4:
@@ -7537,7 +7303,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                     alpha: (hexDigit(text.charCodeAt(7)) * 0x10 + hexDigit(text.charCodeAt(8))) / 255.0
                 };
         }
-        return undefined;
+        return null;
     }
     exports.colorFromHex = colorFromHex;
     function colorFrom256RGB(red, green, blue, alpha) {
@@ -7567,7 +7333,6 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.JSONDocumentSymbols = void 0;
     var Parser = require("../parser/jsonParser");
     var Strings = require("../utils/strings");
     var colors_1 = require("../utils/colors");
@@ -7581,9 +7346,9 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
             if (context === void 0) { context = { resultLimit: Number.MAX_VALUE }; }
             var root = doc.root;
             if (!root) {
-                return [];
+                return null;
             }
-            var limit = context.resultLimit || Number.MAX_VALUE;
+            var limit = context.resultLimit;
             // special handling for key bindings
             var resourceString = document.uri;
             if ((resourceString === 'vscode://defaultsettings/keybindings.json') || Strings.endsWith(resourceString.toLowerCase(), '/user/keybindings.json')) {
@@ -7658,9 +7423,9 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
             if (context === void 0) { context = { resultLimit: Number.MAX_VALUE }; }
             var root = doc.root;
             if (!root) {
-                return [];
+                return null;
             }
-            var limit = context.resultLimit || Number.MAX_VALUE;
+            var limit = context.resultLimit;
             // special handling for key bindings
             var resourceString = document.uri;
             if ((resourceString === 'vscode://defaultsettings/keybindings.json') || Strings.endsWith(resourceString.toLowerCase(), '/user/keybindings.json')) {
@@ -7841,16 +7606,11 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.schemaContributions = void 0;
     var nls = require("vscode-nls");
     var localize = nls.loadMessageBundle();
     exports.schemaContributions = {
-        schemaAssociations: [],
+        schemaAssociations: {},
         schemas: {
-            // refer to the latest schema
-            'http://json-schema.org/schema#': {
-                $ref: 'http://json-schema.org/draft-07/schema#'
-            },
             // bundle the schema-schema to include (localized) descriptions
             'http://json-schema.org/draft-04/schema#': {
                 'title': localize('schema.json', 'Describes a JSON file using a schema. See json-schema.org for more info.'),
@@ -8356,7 +8116,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
         var schema = exports.schemaContributions.schemas[schemaName];
         for (var property in schema.properties) {
             var propertyObject = schema.properties[property];
-            if (typeof propertyObject === 'boolean') {
+            if (propertyObject === true) {
                 propertyObject = schema.properties[property] = {};
             }
             var description = descriptions[property];
@@ -8385,7 +8145,6 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getFoldingRanges = void 0;
     var jsonc_parser_1 = require("jsonc-parser");
     var jsonLanguageTypes_1 = require("../jsonLanguageTypes");
     function getFoldingRanges(document, context) {
@@ -8521,7 +8280,6 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getSelectionRanges = void 0;
     var jsonLanguageTypes_1 = require("../jsonLanguageTypes");
     var jsonc_parser_1 = require("jsonc-parser");
     function getSelectionRanges(document, positions, doc) {
@@ -8592,120 +8350,14 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define('vscode-json-languageservice/services/jsonDefinition',["require", "exports", "../jsonLanguageTypes"], factory);
+        define('vscode-json-languageservice/jsonLanguageService',["require", "exports", "./services/jsonCompletion", "./services/jsonHover", "./services/jsonValidation", "./services/jsonDocumentSymbols", "./parser/jsonParser", "./services/configuration", "./services/jsonSchemaService", "./services/jsonFolding", "./services/jsonSelectionRanges", "jsonc-parser", "./jsonLanguageTypes", "./jsonLanguageTypes"], factory);
     }
 })(function (require, exports) {
     "use strict";
+    function __export(m) {
+        for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+    }
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.findDefinition = void 0;
-    var jsonLanguageTypes_1 = require("../jsonLanguageTypes");
-    function findDefinition(document, position, doc) {
-        var offset = document.offsetAt(position);
-        var node = doc.getNodeFromOffset(offset, true);
-        if (!node || !isRef(node)) {
-            return Promise.resolve([]);
-        }
-        var propertyNode = node.parent;
-        var valueNode = propertyNode.valueNode;
-        var path = valueNode.value;
-        var targetNode = findTargetNode(doc, path);
-        if (!targetNode) {
-            return Promise.resolve([]);
-        }
-        var definition = {
-            targetUri: document.uri,
-            originSelectionRange: createRange(document, valueNode),
-            targetRange: createRange(document, targetNode),
-            targetSelectionRange: createRange(document, targetNode)
-        };
-        return Promise.resolve([definition]);
-    }
-    exports.findDefinition = findDefinition;
-    function createRange(document, node) {
-        return jsonLanguageTypes_1.Range.create(document.positionAt(node.offset), document.positionAt(node.offset + node.length));
-    }
-    function isRef(node) {
-        return node.type === 'string' &&
-            node.parent &&
-            node.parent.type === 'property' &&
-            node.parent.valueNode === node &&
-            node.parent.keyNode.value === "$ref" ||
-            false;
-    }
-    function findTargetNode(doc, path) {
-        var tokens = parseJSONPointer(path);
-        if (!tokens) {
-            return null;
-        }
-        return findNode(tokens, doc.root);
-    }
-    function findNode(pointer, node) {
-        if (!node) {
-            return null;
-        }
-        if (pointer.length === 0) {
-            return node;
-        }
-        var token = pointer.shift();
-        if (node && node.type === 'object') {
-            var propertyNode = node.properties.find(function (propertyNode) { return propertyNode.keyNode.value === token; });
-            if (!propertyNode) {
-                return null;
-            }
-            return findNode(pointer, propertyNode.valueNode);
-        }
-        else if (node && node.type === 'array') {
-            if (token.match(/^(0|[1-9][0-9]*)$/)) {
-                var index = Number.parseInt(token);
-                var arrayItem = node.items[index];
-                if (!arrayItem) {
-                    return null;
-                }
-                return findNode(pointer, arrayItem);
-            }
-        }
-        return null;
-    }
-    function parseJSONPointer(path) {
-        if (path === "#") {
-            return [];
-        }
-        if (path[0] !== '#' || path[1] !== '/') {
-            return null;
-        }
-        return path.substring(2).split(/\//).map(unescape);
-    }
-    function unescape(str) {
-        return str.replace(/~1/g, '/').replace(/~0/g, '~');
-    }
-});
-
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !exports.hasOwnProperty(p)) __createBinding(exports, m, p);
-};
-(function (factory) {
-    if (typeof module === "object" && typeof module.exports === "object") {
-        var v = factory(require, exports);
-        if (v !== undefined) module.exports = v;
-    }
-    else if (typeof define === "function" && define.amd) {
-        define('vscode-json-languageservice/jsonLanguageService',["require", "exports", "./services/jsonCompletion", "./services/jsonHover", "./services/jsonValidation", "./services/jsonDocumentSymbols", "./parser/jsonParser", "./services/configuration", "./services/jsonSchemaService", "./services/jsonFolding", "./services/jsonSelectionRanges", "jsonc-parser", "./jsonLanguageTypes", "./services/jsonDefinition", "./jsonLanguageTypes"], factory);
-    }
-})(function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getLanguageService = void 0;
     var jsonCompletion_1 = require("./services/jsonCompletion");
     var jsonHover_1 = require("./services/jsonHover");
     var jsonValidation_1 = require("./services/jsonValidation");
@@ -8717,8 +8369,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     var jsonSelectionRanges_1 = require("./services/jsonSelectionRanges");
     var jsonc_parser_1 = require("jsonc-parser");
     var jsonLanguageTypes_1 = require("./jsonLanguageTypes");
-    var jsonDefinition_1 = require("./services/jsonDefinition");
-    __exportStar(require("./jsonLanguageTypes"), exports);
+    __export(require("./jsonLanguageTypes"));
     function getLanguageService(params) {
         var promise = params.promiseConstructor || Promise;
         var jsonSchemaService = new jsonSchemaService_1.JSONSchemaService(params.schemaRequestService, params.workspaceContext, promise);
@@ -8741,7 +8392,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
             doValidation: jsonValidation.doValidation.bind(jsonValidation),
             parseJSONDocument: function (document) { return jsonParser_1.parse(document, { collectComments: true }); },
             newJSONDocument: function (root, diagnostics) { return jsonParser_1.newJSONDocument(root, diagnostics); },
-            getMatchingSchemas: jsonSchemaService.getMatchingSchemas.bind(jsonSchemaService),
             doResolve: jsonCompletion.doResolve.bind(jsonCompletion),
             doComplete: jsonCompletion.doComplete.bind(jsonCompletion),
             findDocumentSymbols: jsonDocumentSymbols.findDocumentSymbols.bind(jsonDocumentSymbols),
@@ -8752,9 +8402,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
             doHover: jsonHover.doHover.bind(jsonHover),
             getFoldingRanges: jsonFolding_1.getFoldingRanges,
             getSelectionRanges: jsonSelectionRanges_1.getSelectionRanges,
-            findDefinition: jsonDefinition_1.findDefinition,
             format: function (d, r, o) {
-                var range = undefined;
+                var range = void 0;
                 if (r) {
                     var offset = d.offsetAt(r.start);
                     var length = d.offsetAt(r.end) - offset;
@@ -8772,14 +8421,15 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 
 define('vscode-json-languageservice', ['vscode-json-languageservice/jsonLanguageService'], function (main) { return main; });
 
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-define('vs/language/json/languageFeatures',["require", "exports", "./fillers/monaco-editor-core", "vscode-json-languageservice"], function (require, exports, monaco_editor_core_1, jsonService) {
-    "use strict";
+define('vs/language/json/languageFeatures',["require", "exports", "vscode-json-languageservice"], function (require, exports, jsonService) {
+    /*---------------------------------------------------------------------------------------------
+     *  Copyright (c) Microsoft Corporation. All rights reserved.
+     *  Licensed under the MIT License. See License.txt in the project root for license information.
+     *--------------------------------------------------------------------------------------------*/
+    'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.SelectionRangeAdapter = exports.FoldingRangeAdapter = exports.DocumentColorAdapter = exports.DocumentRangeFormattingEditProvider = exports.DocumentFormattingEditProvider = exports.DocumentSymbolAdapter = exports.HoverAdapter = exports.CompletionAdapter = exports.DiagnosticsAdapter = void 0;
+    var Uri = monaco.Uri;
+    var Range = monaco.Range;
     // --- diagnostics --- ---
     var DiagnosticsAdapter = /** @class */ (function () {
         function DiagnosticsAdapter(_languageId, _worker, defaults) {
@@ -8801,7 +8451,7 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
                 _this._doValidate(model.uri, modeId);
             };
             var onModelRemoved = function (model) {
-                monaco_editor_core_1.editor.setModelMarkers(model, _this._languageId, []);
+                monaco.editor.setModelMarkers(model, _this._languageId, []);
                 var uriStr = model.uri.toString();
                 var listener = _this._listener[uriStr];
                 if (listener) {
@@ -8809,18 +8459,18 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
                     delete _this._listener[uriStr];
                 }
             };
-            this._disposables.push(monaco_editor_core_1.editor.onDidCreateModel(onModelAdd));
-            this._disposables.push(monaco_editor_core_1.editor.onWillDisposeModel(function (model) {
+            this._disposables.push(monaco.editor.onDidCreateModel(onModelAdd));
+            this._disposables.push(monaco.editor.onWillDisposeModel(function (model) {
                 onModelRemoved(model);
                 _this._resetSchema(model.uri);
             }));
-            this._disposables.push(monaco_editor_core_1.editor.onDidChangeModelLanguage(function (event) {
+            this._disposables.push(monaco.editor.onDidChangeModelLanguage(function (event) {
                 onModelRemoved(event.model);
                 onModelAdd(event.model);
                 _this._resetSchema(event.model.uri);
             }));
             this._disposables.push(defaults.onDidChange(function (_) {
-                monaco_editor_core_1.editor.getModels().forEach(function (model) {
+                monaco.editor.getModels().forEach(function (model) {
                     if (model.getModeId() === _this._languageId) {
                         onModelRemoved(model);
                         onModelAdd(model);
@@ -8829,13 +8479,13 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
             }));
             this._disposables.push({
                 dispose: function () {
-                    monaco_editor_core_1.editor.getModels().forEach(onModelRemoved);
+                    monaco.editor.getModels().forEach(onModelRemoved);
                     for (var key in _this._listener) {
                         _this._listener[key].dispose();
                     }
                 }
             });
-            monaco_editor_core_1.editor.getModels().forEach(onModelAdd);
+            monaco.editor.getModels().forEach(onModelAdd);
         }
         DiagnosticsAdapter.prototype.dispose = function () {
             this._disposables.forEach(function (d) { return d && d.dispose(); });
@@ -8847,17 +8497,15 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
             });
         };
         DiagnosticsAdapter.prototype._doValidate = function (resource, languageId) {
-            this._worker(resource)
-                .then(function (worker) {
+            this._worker(resource).then(function (worker) {
                 return worker.doValidation(resource.toString()).then(function (diagnostics) {
                     var markers = diagnostics.map(function (d) { return toDiagnostics(resource, d); });
-                    var model = monaco_editor_core_1.editor.getModel(resource);
+                    var model = monaco.editor.getModel(resource);
                     if (model && model.getModeId() === languageId) {
-                        monaco_editor_core_1.editor.setModelMarkers(model, languageId, markers);
+                        monaco.editor.setModelMarkers(model, languageId, markers);
                     }
                 });
-            })
-                .then(undefined, function (err) {
+            }).then(undefined, function (err) {
                 console.error(err);
             });
         };
@@ -8866,16 +8514,12 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
     exports.DiagnosticsAdapter = DiagnosticsAdapter;
     function toSeverity(lsSeverity) {
         switch (lsSeverity) {
-            case jsonService.DiagnosticSeverity.Error:
-                return monaco_editor_core_1.MarkerSeverity.Error;
-            case jsonService.DiagnosticSeverity.Warning:
-                return monaco_editor_core_1.MarkerSeverity.Warning;
-            case jsonService.DiagnosticSeverity.Information:
-                return monaco_editor_core_1.MarkerSeverity.Info;
-            case jsonService.DiagnosticSeverity.Hint:
-                return monaco_editor_core_1.MarkerSeverity.Hint;
+            case jsonService.DiagnosticSeverity.Error: return monaco.MarkerSeverity.Error;
+            case jsonService.DiagnosticSeverity.Warning: return monaco.MarkerSeverity.Warning;
+            case jsonService.DiagnosticSeverity.Information: return monaco.MarkerSeverity.Info;
+            case jsonService.DiagnosticSeverity.Hint: return monaco.MarkerSeverity.Hint;
             default:
-                return monaco_editor_core_1.MarkerSeverity.Info;
+                return monaco.MarkerSeverity.Info;
         }
     }
     function toDiagnostics(resource, diag) {
@@ -8902,105 +8546,59 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
         if (!range) {
             return void 0;
         }
-        return {
-            start: {
-                line: range.startLineNumber - 1,
-                character: range.startColumn - 1
-            },
-            end: { line: range.endLineNumber - 1, character: range.endColumn - 1 }
-        };
+        return { start: { line: range.startLineNumber - 1, character: range.startColumn - 1 }, end: { line: range.endLineNumber - 1, character: range.endColumn - 1 } };
     }
     function toRange(range) {
         if (!range) {
             return void 0;
         }
-        return new monaco_editor_core_1.Range(range.start.line + 1, range.start.character + 1, range.end.line + 1, range.end.character + 1);
-    }
-    function isInsertReplaceEdit(edit) {
-        return (typeof edit.insert !== 'undefined' &&
-            typeof edit.replace !== 'undefined');
+        return new Range(range.start.line + 1, range.start.character + 1, range.end.line + 1, range.end.character + 1);
     }
     function toCompletionItemKind(kind) {
-        var mItemKind = monaco_editor_core_1.languages.CompletionItemKind;
+        var mItemKind = monaco.languages.CompletionItemKind;
         switch (kind) {
-            case jsonService.CompletionItemKind.Text:
-                return mItemKind.Text;
-            case jsonService.CompletionItemKind.Method:
-                return mItemKind.Method;
-            case jsonService.CompletionItemKind.Function:
-                return mItemKind.Function;
-            case jsonService.CompletionItemKind.Constructor:
-                return mItemKind.Constructor;
-            case jsonService.CompletionItemKind.Field:
-                return mItemKind.Field;
-            case jsonService.CompletionItemKind.Variable:
-                return mItemKind.Variable;
-            case jsonService.CompletionItemKind.Class:
-                return mItemKind.Class;
-            case jsonService.CompletionItemKind.Interface:
-                return mItemKind.Interface;
-            case jsonService.CompletionItemKind.Module:
-                return mItemKind.Module;
-            case jsonService.CompletionItemKind.Property:
-                return mItemKind.Property;
-            case jsonService.CompletionItemKind.Unit:
-                return mItemKind.Unit;
-            case jsonService.CompletionItemKind.Value:
-                return mItemKind.Value;
-            case jsonService.CompletionItemKind.Enum:
-                return mItemKind.Enum;
-            case jsonService.CompletionItemKind.Keyword:
-                return mItemKind.Keyword;
-            case jsonService.CompletionItemKind.Snippet:
-                return mItemKind.Snippet;
-            case jsonService.CompletionItemKind.Color:
-                return mItemKind.Color;
-            case jsonService.CompletionItemKind.File:
-                return mItemKind.File;
-            case jsonService.CompletionItemKind.Reference:
-                return mItemKind.Reference;
+            case jsonService.CompletionItemKind.Text: return mItemKind.Text;
+            case jsonService.CompletionItemKind.Method: return mItemKind.Method;
+            case jsonService.CompletionItemKind.Function: return mItemKind.Function;
+            case jsonService.CompletionItemKind.Constructor: return mItemKind.Constructor;
+            case jsonService.CompletionItemKind.Field: return mItemKind.Field;
+            case jsonService.CompletionItemKind.Variable: return mItemKind.Variable;
+            case jsonService.CompletionItemKind.Class: return mItemKind.Class;
+            case jsonService.CompletionItemKind.Interface: return mItemKind.Interface;
+            case jsonService.CompletionItemKind.Module: return mItemKind.Module;
+            case jsonService.CompletionItemKind.Property: return mItemKind.Property;
+            case jsonService.CompletionItemKind.Unit: return mItemKind.Unit;
+            case jsonService.CompletionItemKind.Value: return mItemKind.Value;
+            case jsonService.CompletionItemKind.Enum: return mItemKind.Enum;
+            case jsonService.CompletionItemKind.Keyword: return mItemKind.Keyword;
+            case jsonService.CompletionItemKind.Snippet: return mItemKind.Snippet;
+            case jsonService.CompletionItemKind.Color: return mItemKind.Color;
+            case jsonService.CompletionItemKind.File: return mItemKind.File;
+            case jsonService.CompletionItemKind.Reference: return mItemKind.Reference;
         }
         return mItemKind.Property;
     }
     function fromCompletionItemKind(kind) {
-        var mItemKind = monaco_editor_core_1.languages.CompletionItemKind;
+        var mItemKind = monaco.languages.CompletionItemKind;
         switch (kind) {
-            case mItemKind.Text:
-                return jsonService.CompletionItemKind.Text;
-            case mItemKind.Method:
-                return jsonService.CompletionItemKind.Method;
-            case mItemKind.Function:
-                return jsonService.CompletionItemKind.Function;
-            case mItemKind.Constructor:
-                return jsonService.CompletionItemKind.Constructor;
-            case mItemKind.Field:
-                return jsonService.CompletionItemKind.Field;
-            case mItemKind.Variable:
-                return jsonService.CompletionItemKind.Variable;
-            case mItemKind.Class:
-                return jsonService.CompletionItemKind.Class;
-            case mItemKind.Interface:
-                return jsonService.CompletionItemKind.Interface;
-            case mItemKind.Module:
-                return jsonService.CompletionItemKind.Module;
-            case mItemKind.Property:
-                return jsonService.CompletionItemKind.Property;
-            case mItemKind.Unit:
-                return jsonService.CompletionItemKind.Unit;
-            case mItemKind.Value:
-                return jsonService.CompletionItemKind.Value;
-            case mItemKind.Enum:
-                return jsonService.CompletionItemKind.Enum;
-            case mItemKind.Keyword:
-                return jsonService.CompletionItemKind.Keyword;
-            case mItemKind.Snippet:
-                return jsonService.CompletionItemKind.Snippet;
-            case mItemKind.Color:
-                return jsonService.CompletionItemKind.Color;
-            case mItemKind.File:
-                return jsonService.CompletionItemKind.File;
-            case mItemKind.Reference:
-                return jsonService.CompletionItemKind.Reference;
+            case mItemKind.Text: return jsonService.CompletionItemKind.Text;
+            case mItemKind.Method: return jsonService.CompletionItemKind.Method;
+            case mItemKind.Function: return jsonService.CompletionItemKind.Function;
+            case mItemKind.Constructor: return jsonService.CompletionItemKind.Constructor;
+            case mItemKind.Field: return jsonService.CompletionItemKind.Field;
+            case mItemKind.Variable: return jsonService.CompletionItemKind.Variable;
+            case mItemKind.Class: return jsonService.CompletionItemKind.Class;
+            case mItemKind.Interface: return jsonService.CompletionItemKind.Interface;
+            case mItemKind.Module: return jsonService.CompletionItemKind.Module;
+            case mItemKind.Property: return jsonService.CompletionItemKind.Property;
+            case mItemKind.Unit: return jsonService.CompletionItemKind.Unit;
+            case mItemKind.Value: return jsonService.CompletionItemKind.Value;
+            case mItemKind.Enum: return jsonService.CompletionItemKind.Enum;
+            case mItemKind.Keyword: return jsonService.CompletionItemKind.Keyword;
+            case mItemKind.Snippet: return jsonService.CompletionItemKind.Snippet;
+            case mItemKind.Color: return jsonService.CompletionItemKind.Color;
+            case mItemKind.File: return jsonService.CompletionItemKind.File;
+            case mItemKind.Reference: return jsonService.CompletionItemKind.Reference;
         }
         return jsonService.CompletionItemKind.Property;
     }
@@ -9021,21 +8619,19 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
             get: function () {
                 return [' ', ':'];
             },
-            enumerable: false,
+            enumerable: true,
             configurable: true
         });
         CompletionAdapter.prototype.provideCompletionItems = function (model, position, context, token) {
             var resource = model.uri;
-            return this._worker(resource)
-                .then(function (worker) {
+            return this._worker(resource).then(function (worker) {
                 return worker.doComplete(resource.toString(), fromPosition(position));
-            })
-                .then(function (info) {
+            }).then(function (info) {
                 if (!info) {
                     return;
                 }
                 var wordInfo = model.getWordUntilPosition(position);
-                var wordRange = new monaco_editor_core_1.Range(position.lineNumber, wordInfo.startColumn, position.lineNumber, wordInfo.endColumn);
+                var wordRange = new Range(position.lineNumber, wordInfo.startColumn, position.lineNumber, wordInfo.endColumn);
                 var items = info.items.map(function (entry) {
                     var item = {
                         label: entry.label,
@@ -9045,25 +8641,17 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
                         documentation: entry.documentation,
                         detail: entry.detail,
                         range: wordRange,
-                        kind: toCompletionItemKind(entry.kind)
+                        kind: toCompletionItemKind(entry.kind),
                     };
                     if (entry.textEdit) {
-                        if (isInsertReplaceEdit(entry.textEdit)) {
-                            item.range = {
-                                insert: toRange(entry.textEdit.insert),
-                                replace: toRange(entry.textEdit.replace)
-                            };
-                        }
-                        else {
-                            item.range = toRange(entry.textEdit.range);
-                        }
+                        item.range = toRange(entry.textEdit.range);
                         item.insertText = entry.textEdit.newText;
                     }
                     if (entry.additionalTextEdits) {
                         item.additionalTextEdits = entry.additionalTextEdits.map(toTextEdit);
                     }
                     if (entry.insertTextFormat === jsonService.InsertTextFormat.Snippet) {
-                        item.insertTextRules = monaco_editor_core_1.languages.CompletionItemInsertTextRule.InsertAsSnippet;
+                        item.insertTextRules = monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet;
                     }
                     return item;
                 });
@@ -9077,9 +8665,7 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
     }());
     exports.CompletionAdapter = CompletionAdapter;
     function isMarkupContent(thing) {
-        return (thing &&
-            typeof thing === 'object' &&
-            typeof thing.kind === 'string');
+        return thing && typeof thing === 'object' && typeof thing.kind === 'string';
     }
     function toMarkdownString(entry) {
         if (typeof entry === 'string') {
@@ -9115,11 +8701,9 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
         }
         HoverAdapter.prototype.provideHover = function (model, position, token) {
             var resource = model.uri;
-            return this._worker(resource)
-                .then(function (worker) {
+            return this._worker(resource).then(function (worker) {
                 return worker.doHover(resource.toString(), fromPosition(position));
-            })
-                .then(function (info) {
+            }).then(function (info) {
                 if (!info) {
                     return;
                 }
@@ -9135,50 +8719,32 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
     // --- definition ------
     function toLocation(location) {
         return {
-            uri: monaco_editor_core_1.Uri.parse(location.uri),
+            uri: Uri.parse(location.uri),
             range: toRange(location.range)
         };
     }
     // --- document symbols ------
     function toSymbolKind(kind) {
-        var mKind = monaco_editor_core_1.languages.SymbolKind;
+        var mKind = monaco.languages.SymbolKind;
         switch (kind) {
-            case jsonService.SymbolKind.File:
-                return mKind.Array;
-            case jsonService.SymbolKind.Module:
-                return mKind.Module;
-            case jsonService.SymbolKind.Namespace:
-                return mKind.Namespace;
-            case jsonService.SymbolKind.Package:
-                return mKind.Package;
-            case jsonService.SymbolKind.Class:
-                return mKind.Class;
-            case jsonService.SymbolKind.Method:
-                return mKind.Method;
-            case jsonService.SymbolKind.Property:
-                return mKind.Property;
-            case jsonService.SymbolKind.Field:
-                return mKind.Field;
-            case jsonService.SymbolKind.Constructor:
-                return mKind.Constructor;
-            case jsonService.SymbolKind.Enum:
-                return mKind.Enum;
-            case jsonService.SymbolKind.Interface:
-                return mKind.Interface;
-            case jsonService.SymbolKind.Function:
-                return mKind.Function;
-            case jsonService.SymbolKind.Variable:
-                return mKind.Variable;
-            case jsonService.SymbolKind.Constant:
-                return mKind.Constant;
-            case jsonService.SymbolKind.String:
-                return mKind.String;
-            case jsonService.SymbolKind.Number:
-                return mKind.Number;
-            case jsonService.SymbolKind.Boolean:
-                return mKind.Boolean;
-            case jsonService.SymbolKind.Array:
-                return mKind.Array;
+            case jsonService.SymbolKind.File: return mKind.Array;
+            case jsonService.SymbolKind.Module: return mKind.Module;
+            case jsonService.SymbolKind.Namespace: return mKind.Namespace;
+            case jsonService.SymbolKind.Package: return mKind.Package;
+            case jsonService.SymbolKind.Class: return mKind.Class;
+            case jsonService.SymbolKind.Method: return mKind.Method;
+            case jsonService.SymbolKind.Property: return mKind.Property;
+            case jsonService.SymbolKind.Field: return mKind.Field;
+            case jsonService.SymbolKind.Constructor: return mKind.Constructor;
+            case jsonService.SymbolKind.Enum: return mKind.Enum;
+            case jsonService.SymbolKind.Interface: return mKind.Interface;
+            case jsonService.SymbolKind.Function: return mKind.Function;
+            case jsonService.SymbolKind.Variable: return mKind.Variable;
+            case jsonService.SymbolKind.Constant: return mKind.Constant;
+            case jsonService.SymbolKind.String: return mKind.String;
+            case jsonService.SymbolKind.Number: return mKind.Number;
+            case jsonService.SymbolKind.Boolean: return mKind.Boolean;
+            case jsonService.SymbolKind.Array: return mKind.Array;
         }
         return mKind.Function;
     }
@@ -9188,9 +8754,7 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
         }
         DocumentSymbolAdapter.prototype.provideDocumentSymbols = function (model, token) {
             var resource = model.uri;
-            return this._worker(resource)
-                .then(function (worker) { return worker.findDocumentSymbols(resource.toString()); })
-                .then(function (items) {
+            return this._worker(resource).then(function (worker) { return worker.findDocumentSymbols(resource.toString()); }).then(function (items) {
                 if (!items) {
                     return;
                 }
@@ -9221,9 +8785,7 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
         DocumentFormattingEditProvider.prototype.provideDocumentFormattingEdits = function (model, options, token) {
             var resource = model.uri;
             return this._worker(resource).then(function (worker) {
-                return worker
-                    .format(resource.toString(), null, fromFormattingOptions(options))
-                    .then(function (edits) {
+                return worker.format(resource.toString(), null, fromFormattingOptions(options)).then(function (edits) {
                     if (!edits || edits.length === 0) {
                         return;
                     }
@@ -9241,9 +8803,7 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
         DocumentRangeFormattingEditProvider.prototype.provideDocumentRangeFormattingEdits = function (model, range, options, token) {
             var resource = model.uri;
             return this._worker(resource).then(function (worker) {
-                return worker
-                    .format(resource.toString(), fromRange(range), fromFormattingOptions(options))
-                    .then(function (edits) {
+                return worker.format(resource.toString(), fromRange(range), fromFormattingOptions(options)).then(function (edits) {
                     if (!edits || edits.length === 0) {
                         return;
                     }
@@ -9260,9 +8820,7 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
         }
         DocumentColorAdapter.prototype.provideDocumentColors = function (model, token) {
             var resource = model.uri;
-            return this._worker(resource)
-                .then(function (worker) { return worker.findDocumentColors(resource.toString()); })
-                .then(function (infos) {
+            return this._worker(resource).then(function (worker) { return worker.findDocumentColors(resource.toString()); }).then(function (infos) {
                 if (!infos) {
                     return;
                 }
@@ -9274,17 +8832,13 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
         };
         DocumentColorAdapter.prototype.provideColorPresentations = function (model, info, token) {
             var resource = model.uri;
-            return this._worker(resource)
-                .then(function (worker) {
-                return worker.getColorPresentations(resource.toString(), info.color, fromRange(info.range));
-            })
-                .then(function (presentations) {
+            return this._worker(resource).then(function (worker) { return worker.getColorPresentations(resource.toString(), info.color, fromRange(info.range)); }).then(function (presentations) {
                 if (!presentations) {
                     return;
                 }
                 return presentations.map(function (presentation) {
                     var item = {
-                        label: presentation.label
+                        label: presentation.label,
                     };
                     if (presentation.textEdit) {
                         item.textEdit = toTextEdit(presentation.textEdit);
@@ -9305,9 +8859,7 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
         }
         FoldingRangeAdapter.prototype.provideFoldingRanges = function (model, context, token) {
             var resource = model.uri;
-            return this._worker(resource)
-                .then(function (worker) { return worker.getFoldingRanges(resource.toString(), context); })
-                .then(function (ranges) {
+            return this._worker(resource).then(function (worker) { return worker.getFoldingRanges(resource.toString(), context); }).then(function (ranges) {
                 if (!ranges) {
                     return;
                 }
@@ -9328,12 +8880,9 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
     exports.FoldingRangeAdapter = FoldingRangeAdapter;
     function toFoldingRangeKind(kind) {
         switch (kind) {
-            case jsonService.FoldingRangeKind.Comment:
-                return monaco_editor_core_1.languages.FoldingRangeKind.Comment;
-            case jsonService.FoldingRangeKind.Imports:
-                return monaco_editor_core_1.languages.FoldingRangeKind.Imports;
-            case jsonService.FoldingRangeKind.Region:
-                return monaco_editor_core_1.languages.FoldingRangeKind.Region;
+            case jsonService.FoldingRangeKind.Comment: return monaco.languages.FoldingRangeKind.Comment;
+            case jsonService.FoldingRangeKind.Imports: return monaco.languages.FoldingRangeKind.Imports;
+            case jsonService.FoldingRangeKind.Region: return monaco.languages.FoldingRangeKind.Region;
         }
         return void 0;
     }
@@ -9343,9 +8892,7 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
         }
         SelectionRangeAdapter.prototype.provideSelectionRanges = function (model, positions, token) {
             var resource = model.uri;
-            return this._worker(resource)
-                .then(function (worker) { return worker.getSelectionRanges(resource.toString(), positions.map(fromPosition)); })
-                .then(function (selectionRanges) {
+            return this._worker(resource).then(function (worker) { return worker.getSelectionRanges(resource.toString(), positions.map(fromPosition)); }).then(function (selectionRanges) {
                 if (!selectionRanges) {
                     return;
                 }
@@ -9364,20 +8911,17 @@ define('vs/language/json/languageFeatures',["require", "exports", "./fillers/mon
     exports.SelectionRangeAdapter = SelectionRangeAdapter;
 });
 
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 define('vs/language/json/tokenization',["require", "exports", "jsonc-parser"], function (require, exports, json) {
-    "use strict";
+    /*---------------------------------------------------------------------------------------------
+     *  Copyright (c) Microsoft Corporation. All rights reserved.
+     *  Licensed under the MIT License. See License.txt in the project root for license information.
+     *--------------------------------------------------------------------------------------------*/
+    'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TOKEN_COMMENT_LINE = exports.TOKEN_COMMENT_BLOCK = exports.TOKEN_PROPERTY_NAME = exports.TOKEN_VALUE_NUMBER = exports.TOKEN_VALUE_STRING = exports.TOKEN_VALUE_NULL = exports.TOKEN_VALUE_BOOLEAN = exports.TOKEN_DELIM_COMMA = exports.TOKEN_DELIM_COLON = exports.TOKEN_DELIM_ARRAY = exports.TOKEN_DELIM_OBJECT = exports.createTokenizationSupport = void 0;
     function createTokenizationSupport(supportComments) {
         return {
-            getInitialState: function () { return new JSONState(null, null, false, null); },
-            tokenize: function (line, state, offsetDelta, stopAtOffset) {
-                return tokenize(supportComments, line, state, offsetDelta, stopAtOffset);
-            }
+            getInitialState: function () { return new JSONState(null, null, false); },
+            tokenize: function (line, state, offsetDelta, stopAtOffset) { return tokenize(supportComments, line, state, offsetDelta, stopAtOffset); }
         };
     }
     exports.createTokenizationSupport = createTokenizationSupport;
@@ -9392,50 +8936,14 @@ define('vs/language/json/tokenization',["require", "exports", "jsonc-parser"], f
     exports.TOKEN_PROPERTY_NAME = 'string.key.json';
     exports.TOKEN_COMMENT_BLOCK = 'comment.block.json';
     exports.TOKEN_COMMENT_LINE = 'comment.line.json';
-    var ParentsStack = /** @class */ (function () {
-        function ParentsStack(parent, type) {
-            this.parent = parent;
-            this.type = type;
-        }
-        ParentsStack.pop = function (parents) {
-            if (parents) {
-                return parents.parent;
-            }
-            return null;
-        };
-        ParentsStack.push = function (parents, type) {
-            return new ParentsStack(parents, type);
-        };
-        ParentsStack.equals = function (a, b) {
-            if (!a && !b) {
-                return true;
-            }
-            if (!a || !b) {
-                return false;
-            }
-            while (a && b) {
-                if (a === b) {
-                    return true;
-                }
-                if (a.type !== b.type) {
-                    return false;
-                }
-                a = a.parent;
-                b = b.parent;
-            }
-            return true;
-        };
-        return ParentsStack;
-    }());
     var JSONState = /** @class */ (function () {
-        function JSONState(state, scanError, lastWasColon, parents) {
+        function JSONState(state, scanError, lastWasColon) {
             this._state = state;
             this.scanError = scanError;
             this.lastWasColon = lastWasColon;
-            this.parents = parents;
         }
         JSONState.prototype.clone = function () {
-            return new JSONState(this._state, this.scanError, this.lastWasColon, this.parents);
+            return new JSONState(this._state, this.scanError, this.lastWasColon);
         };
         JSONState.prototype.equals = function (other) {
             if (other === this) {
@@ -9444,9 +8952,8 @@ define('vs/language/json/tokenization',["require", "exports", "jsonc-parser"], f
             if (!other || !(other instanceof JSONState)) {
                 return false;
             }
-            return (this.scanError === other.scanError &&
-                this.lastWasColon === other.lastWasColon &&
-                ParentsStack.equals(this.parents, other.parents));
+            return this.scanError === other.scanError &&
+                this.lastWasColon === other.lastWasColon;
         };
         JSONState.prototype.getStateData = function () {
             return this._state;
@@ -9459,8 +8966,7 @@ define('vs/language/json/tokenization',["require", "exports", "jsonc-parser"], f
     function tokenize(comments, line, state, offsetDelta, stopAtOffset) {
         if (offsetDelta === void 0) { offsetDelta = 0; }
         // handle multiline strings and block comments
-        var numberOfInsertedCharacters = 0;
-        var adjustOffset = false;
+        var numberOfInsertedCharacters = 0, adjustOffset = false;
         switch (state.scanError) {
             case 2 /* UnexpectedEndOfString */:
                 line = '"' + line;
@@ -9471,17 +8977,14 @@ define('vs/language/json/tokenization',["require", "exports", "jsonc-parser"], f
                 numberOfInsertedCharacters = 2;
                 break;
         }
-        var scanner = json.createScanner(line);
-        var lastWasColon = state.lastWasColon;
-        var parents = state.parents;
-        var ret = {
+        var scanner = json.createScanner(line), kind, ret, lastWasColon = state.lastWasColon;
+        ret = {
             tokens: [],
             endState: state.clone()
         };
         while (true) {
-            var offset = offsetDelta + scanner.getPosition();
-            var type = '';
-            var kind = scanner.scan();
+            var offset = offsetDelta + scanner.getPosition(), type = '';
+            kind = scanner.scan();
             if (kind === 17 /* EOF */) {
                 break;
             }
@@ -9498,22 +9001,18 @@ define('vs/language/json/tokenization',["require", "exports", "jsonc-parser"], f
             // brackets and type
             switch (kind) {
                 case 1 /* OpenBraceToken */:
-                    parents = ParentsStack.push(parents, 0 /* Object */);
                     type = exports.TOKEN_DELIM_OBJECT;
                     lastWasColon = false;
                     break;
                 case 2 /* CloseBraceToken */:
-                    parents = ParentsStack.pop(parents);
                     type = exports.TOKEN_DELIM_OBJECT;
                     lastWasColon = false;
                     break;
                 case 3 /* OpenBracketToken */:
-                    parents = ParentsStack.push(parents, 1 /* Array */);
                     type = exports.TOKEN_DELIM_ARRAY;
                     lastWasColon = false;
                     break;
                 case 4 /* CloseBracketToken */:
-                    parents = ParentsStack.pop(parents);
                     type = exports.TOKEN_DELIM_ARRAY;
                     lastWasColon = false;
                     break;
@@ -9535,10 +9034,7 @@ define('vs/language/json/tokenization',["require", "exports", "jsonc-parser"], f
                     lastWasColon = false;
                     break;
                 case 10 /* StringLiteral */:
-                    var currentParent = parents ? parents.type : 0 /* Object */;
-                    var inArray = currentParent === 1 /* Array */;
-                    type =
-                        lastWasColon || inArray ? exports.TOKEN_VALUE_STRING : exports.TOKEN_PROPERTY_NAME;
+                    type = lastWasColon ? exports.TOKEN_VALUE_STRING : exports.TOKEN_PROPERTY_NAME;
                     lastWasColon = false;
                     break;
                 case 11 /* NumericLiteral */:
@@ -9557,7 +9053,7 @@ define('vs/language/json/tokenization',["require", "exports", "jsonc-parser"], f
                         break;
                 }
             }
-            ret.endState = new JSONState(state.getStateData(), scanner.getTokenError(), lastWasColon, parents);
+            ret.endState = new JSONState(state.getStateData(), scanner.getTokenError(), lastWasColon);
             ret.tokens.push({
                 startIndex: offset,
                 scopes: type
@@ -9567,14 +9063,13 @@ define('vs/language/json/tokenization',["require", "exports", "jsonc-parser"], f
     }
 });
 
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-define('vs/language/json/jsonMode',["require", "exports", "./workerManager", "./languageFeatures", "./tokenization", "./fillers/monaco-editor-core"], function (require, exports, workerManager_1, languageFeatures, tokenization_1, monaco_editor_core_1) {
-    "use strict";
+define('vs/language/json/jsonMode',["require", "exports", "./workerManager", "./languageFeatures", "./tokenization"], function (require, exports, workerManager_1, languageFeatures, tokenization_1) {
+    /*---------------------------------------------------------------------------------------------
+     *  Copyright (c) Microsoft Corporation. All rights reserved.
+     *  Licensed under the MIT License. See License.txt in the project root for license information.
+     *--------------------------------------------------------------------------------------------*/
+    'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.setupMode = void 0;
     function setupMode(defaults) {
         var disposables = [];
         var providers = [];
@@ -9591,38 +9086,38 @@ define('vs/language/json/jsonMode',["require", "exports", "./workerManager", "./
             var languageId = defaults.languageId, modeConfiguration = defaults.modeConfiguration;
             disposeAll(providers);
             if (modeConfiguration.documentFormattingEdits) {
-                providers.push(monaco_editor_core_1.languages.registerDocumentFormattingEditProvider(languageId, new languageFeatures.DocumentFormattingEditProvider(worker)));
+                providers.push(monaco.languages.registerDocumentFormattingEditProvider(languageId, new languageFeatures.DocumentFormattingEditProvider(worker)));
             }
             if (modeConfiguration.documentRangeFormattingEdits) {
-                providers.push(monaco_editor_core_1.languages.registerDocumentRangeFormattingEditProvider(languageId, new languageFeatures.DocumentRangeFormattingEditProvider(worker)));
+                providers.push(monaco.languages.registerDocumentRangeFormattingEditProvider(languageId, new languageFeatures.DocumentRangeFormattingEditProvider(worker)));
             }
             if (modeConfiguration.completionItems) {
-                providers.push(monaco_editor_core_1.languages.registerCompletionItemProvider(languageId, new languageFeatures.CompletionAdapter(worker)));
+                providers.push(monaco.languages.registerCompletionItemProvider(languageId, new languageFeatures.CompletionAdapter(worker)));
             }
             if (modeConfiguration.hovers) {
-                providers.push(monaco_editor_core_1.languages.registerHoverProvider(languageId, new languageFeatures.HoverAdapter(worker)));
+                providers.push(monaco.languages.registerHoverProvider(languageId, new languageFeatures.HoverAdapter(worker)));
             }
             if (modeConfiguration.documentSymbols) {
-                providers.push(monaco_editor_core_1.languages.registerDocumentSymbolProvider(languageId, new languageFeatures.DocumentSymbolAdapter(worker)));
+                providers.push(monaco.languages.registerDocumentSymbolProvider(languageId, new languageFeatures.DocumentSymbolAdapter(worker)));
             }
             if (modeConfiguration.tokens) {
-                providers.push(monaco_editor_core_1.languages.setTokensProvider(languageId, tokenization_1.createTokenizationSupport(true)));
+                providers.push(monaco.languages.setTokensProvider(languageId, tokenization_1.createTokenizationSupport(true)));
             }
             if (modeConfiguration.colors) {
-                providers.push(monaco_editor_core_1.languages.registerColorProvider(languageId, new languageFeatures.DocumentColorAdapter(worker)));
+                providers.push(monaco.languages.registerColorProvider(languageId, new languageFeatures.DocumentColorAdapter(worker)));
             }
             if (modeConfiguration.foldingRanges) {
-                providers.push(monaco_editor_core_1.languages.registerFoldingRangeProvider(languageId, new languageFeatures.FoldingRangeAdapter(worker)));
+                providers.push(monaco.languages.registerFoldingRangeProvider(languageId, new languageFeatures.FoldingRangeAdapter(worker)));
             }
             if (modeConfiguration.diagnostics) {
                 providers.push(new languageFeatures.DiagnosticsAdapter(languageId, worker, defaults));
             }
             if (modeConfiguration.selectionRanges) {
-                providers.push(monaco_editor_core_1.languages.registerSelectionRangeProvider(languageId, new languageFeatures.SelectionRangeAdapter(worker)));
+                providers.push(monaco.languages.registerSelectionRangeProvider(languageId, new languageFeatures.SelectionRangeAdapter(worker)));
             }
         }
         registerProviders();
-        disposables.push(monaco_editor_core_1.languages.setLanguageConfiguration(defaults.languageId, richEditConfiguration));
+        disposables.push(monaco.languages.setLanguageConfiguration(defaults.languageId, richEditConfiguration));
         var modeConfiguration = defaults.modeConfiguration;
         defaults.onDidChange(function (newDefaults) {
             if (newDefaults.modeConfiguration !== modeConfiguration) {

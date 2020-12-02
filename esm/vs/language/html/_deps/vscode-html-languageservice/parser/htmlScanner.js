@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as nls from '../../../fillers/vscode-nls.js';
+import * as nls from './../../../fillers/vscode-nls.js';
 import { TokenType, ScannerState } from '../htmlLanguageTypes.js';
 var localize = nls.loadMessageBundle();
 var MultiLineStream = /** @class */ (function () {
@@ -133,10 +133,9 @@ var _TAB = '\t'.charCodeAt(0);
 var htmlScriptContents = {
     'text/x-handlebars-template': true
 };
-export function createScanner(input, initialOffset, initialState, emitPseudoCloseTags) {
+export function createScanner(input, initialOffset, initialState) {
     if (initialOffset === void 0) { initialOffset = 0; }
     if (initialState === void 0) { initialState = ScannerState.WithinContent; }
-    if (emitPseudoCloseTags === void 0) { emitPseudoCloseTags = false; }
     var stream = new MultiLineStream(input, initialOffset);
     var state = initialState;
     var tokenOffset = 0;
@@ -150,7 +149,7 @@ export function createScanner(input, initialOffset, initialState, emitPseudoClos
         return stream.advanceIfRegExp(/^[_:\w][_:\w-.\d]*/).toLowerCase();
     }
     function nextAttributeName() {
-        return stream.advanceIfRegExp(/^[^\s"'></=\x00-\x0F\x7F\x80-\x9F]*/).toLowerCase();
+        return stream.advanceIfRegExp(/^[^\s"'>/=\x00-\x0F\x7F\x80-\x9F]*/).toLowerCase();
     }
     function finishToken(offset, type, errorMessage) {
         tokenType = type;
@@ -162,7 +161,7 @@ export function createScanner(input, initialOffset, initialState, emitPseudoClos
         var offset = stream.pos();
         var oldState = state;
         var token = internalScan();
-        if (token !== TokenType.EOS && offset === stream.pos() && !(emitPseudoCloseTags && (token === TokenType.StartTagClose || token === TokenType.EndTagClose))) {
+        if (token !== TokenType.EOS && offset === stream.pos()) {
             console.log('Scanner.scan has not advanced at offset ' + offset + ', state before: ' + oldState + ' after: ' + state);
             stream.advance(1);
             return finishToken(offset, TokenType.Unknown);
@@ -234,11 +233,7 @@ export function createScanner(input, initialOffset, initialState, emitPseudoClos
                     state = ScannerState.WithinContent;
                     return finishToken(offset, TokenType.EndTagClose);
                 }
-                if (emitPseudoCloseTags && stream.peekChar() === _LAN) { // <
-                    state = ScannerState.WithinContent;
-                    return finishToken(offset, TokenType.EndTagClose, localize('error.closingBracketMissing', 'Closing bracket missing.'));
-                }
-                errorMessage = localize('error.closingBracketExpected', 'Closing bracket expected.');
+                errorMessage = localize('error.tagNameExpected', 'Closing bracket expected.');
                 break;
             case ScannerState.AfterOpeningStartTag:
                 lastTag = nextElementName();
@@ -292,10 +287,6 @@ export function createScanner(input, initialOffset, initialState, emitPseudoClos
                         state = ScannerState.WithinContent;
                     }
                     return finishToken(offset, TokenType.StartTagClose);
-                }
-                if (emitPseudoCloseTags && stream.peekChar() === _LAN) { // <
-                    state = ScannerState.WithinContent;
-                    return finishToken(offset, TokenType.StartTagClose, localize('error.closingBracketMissing', 'Closing bracket missing.'));
                 }
                 stream.advance(1);
                 return finishToken(offset, TokenType.Unknown, localize('error.unexpectedCharacterInTag', 'Unexpected character in tag.'));

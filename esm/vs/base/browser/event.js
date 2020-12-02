@@ -3,20 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { Event as BaseEvent, Emitter } from '../common/event.js';
-export const domEvent = (element, type, useCapture) => {
-    const fn = (e) => emitter.fire(e);
-    const emitter = new Emitter({
-        onFirstListenerAdd: () => {
+export var domEvent = function (element, type, useCapture) {
+    var fn = function (e) { return emitter.fire(e); };
+    var emitter = new Emitter({
+        onFirstListenerAdd: function () {
             element.addEventListener(type, fn, useCapture);
         },
-        onLastListenerRemove: () => {
+        onLastListenerRemove: function () {
             element.removeEventListener(type, fn, useCapture);
         }
     });
     return emitter.event;
 };
 export function stop(event) {
-    return BaseEvent.map(event, e => {
+    return BaseEvent.map(event, function (e) {
         e.preventDefault();
         e.stopPropagation();
         return e;

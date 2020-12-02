@@ -3,7 +3,8 @@
  * @param array The array.
  * @param n Which element from the end (default is zero).
  */
-export function tail(array, n = 0) {
+export function tail(array, n) {
+    if (n === void 0) { n = 0; }
     return array[array.length - (1 + n)];
 }
 export function tail2(arr) {
@@ -12,7 +13,8 @@ export function tail2(arr) {
     }
     return [arr.slice(0, arr.length - 1), arr[arr.length - 1]];
 }
-export function equals(one, other, itemEquals = (a, b) => a === b) {
+export function equals(one, other, itemEquals) {
+    if (itemEquals === void 0) { itemEquals = function (a, b) { return a === b; }; }
     if (one === other) {
         return true;
     }
@@ -22,7 +24,7 @@ export function equals(one, other, itemEquals = (a, b) => a === b) {
     if (one.length !== other.length) {
         return false;
     }
-    for (let i = 0, len = one.length; i < len; i++) {
+    for (var i = 0, len = one.length; i < len; i++) {
         if (!itemEquals(one[i], other[i])) {
             return false;
         }
@@ -30,10 +32,10 @@ export function equals(one, other, itemEquals = (a, b) => a === b) {
     return true;
 }
 export function binarySearch(array, key, comparator) {
-    let low = 0, high = array.length - 1;
+    var low = 0, high = array.length - 1;
     while (low <= high) {
-        const mid = ((low + high) / 2) | 0;
-        const comp = comparator(array[mid], key);
+        var mid = ((low + high) / 2) | 0;
+        var comp = comparator(array[mid], key);
         if (comp < 0) {
             low = mid + 1;
         }
@@ -52,12 +54,12 @@ export function binarySearch(array, key, comparator) {
  * @returns the least x for which p(x) is true or array.length if no element fullfills the given function.
  */
 export function findFirstInSorted(array, p) {
-    let low = 0, high = array.length;
+    var low = 0, high = array.length;
     if (high === 0) {
         return 0; // no children
     }
     while (low < high) {
-        const mid = Math.floor((low + high) / 2);
+        var mid = Math.floor((low + high) / 2);
         if (p(array[mid])) {
             high = mid;
         }
@@ -76,11 +78,11 @@ export function mergeSort(data, compare) {
     return data;
 }
 function _merge(a, compare, lo, mid, hi, aux) {
-    let leftIdx = lo, rightIdx = mid + 1;
-    for (let i = lo; i <= hi; i++) {
+    var leftIdx = lo, rightIdx = mid + 1;
+    for (var i = lo; i <= hi; i++) {
         aux[i] = a[i];
     }
-    for (let i = lo; i <= hi; i++) {
+    for (var i = lo; i <= hi; i++) {
         if (leftIdx > mid) {
             // left side consumed
             a[i] = aux[rightIdx++];
@@ -103,7 +105,7 @@ function _sort(a, compare, lo, hi, aux) {
     if (hi <= lo) {
         return;
     }
-    const mid = lo + ((hi - lo) / 2) | 0;
+    var mid = lo + ((hi - lo) / 2) | 0;
     _sort(a, compare, lo, mid, aux);
     _sort(a, compare, mid + 1, hi, aux);
     if (compare(a[mid], a[mid + 1]) <= 0) {
@@ -115,9 +117,10 @@ function _sort(a, compare, lo, hi, aux) {
     _merge(a, compare, lo, mid, hi, aux);
 }
 export function groupBy(data, compare) {
-    const result = [];
-    let currentGroup = undefined;
-    for (const element of mergeSort(data.slice(0), compare)) {
+    var result = [];
+    var currentGroup = undefined;
+    for (var _i = 0, _a = mergeSort(data.slice(0), compare); _i < _a.length; _i++) {
+        var element = _a[_i];
         if (!currentGroup || compare(currentGroup[0], element) !== 0) {
             currentGroup = [element];
             result.push(currentGroup);
@@ -132,7 +135,7 @@ export function groupBy(data, compare) {
  * @returns New array with all falsy values removed. The original array IS NOT modified.
  */
 export function coalesce(array) {
-    return array.filter(e => !!e);
+    return array.filter(function (e) { return !!e; });
 }
 /**
  * @returns false if the provided object is an array and not empty.
@@ -149,13 +152,13 @@ export function isNonEmptyArray(obj) {
  */
 export function distinct(array, keyFn) {
     if (!keyFn) {
-        return array.filter((element, position) => {
+        return array.filter(function (element, position) {
             return array.indexOf(element) === position;
         });
     }
-    const seen = Object.create(null);
-    return array.filter((elem) => {
-        const key = keyFn(elem);
+    var seen = Object.create(null);
+    return array.filter(function (elem) {
+        var key = keyFn(elem);
         if (seen[key]) {
             return false;
         }
@@ -164,8 +167,8 @@ export function distinct(array, keyFn) {
     });
 }
 export function distinctES6(array) {
-    const seen = new Set();
-    return array.filter(element => {
+    var seen = new Set();
+    return array.filter(function (element) {
         if (seen.has(element)) {
             return false;
         }
@@ -173,30 +176,34 @@ export function distinctES6(array) {
         return true;
     });
 }
-/**
- * @deprecated ES6: use `Array.findIndex`
- */
+export function fromSet(set) {
+    var result = [];
+    set.forEach(function (o) { return result.push(o); });
+    return result;
+}
 export function firstIndex(array, fn) {
-    for (let i = 0; i < array.length; i++) {
-        const element = array[i];
+    for (var i = 0; i < array.length; i++) {
+        var element = array[i];
         if (fn(element)) {
             return i;
         }
     }
     return -1;
 }
-export function first(array, fn, notFoundValue = undefined) {
-    const index = firstIndex(array, fn);
+export function first(array, fn, notFoundValue) {
+    if (notFoundValue === void 0) { notFoundValue = undefined; }
+    var index = firstIndex(array, fn);
     return index < 0 ? notFoundValue : array[index];
 }
 export function firstOrDefault(array, notFoundValue) {
     return array.length > 0 ? array[0] : notFoundValue;
 }
 export function flatten(arr) {
-    return [].concat(...arr);
+    var _a;
+    return (_a = []).concat.apply(_a, arr);
 }
 export function range(arg, to) {
-    let from = typeof to === 'number' ? arg : 0;
+    var from = typeof to === 'number' ? arg : 0;
     if (typeof to === 'number') {
         from = arg;
     }
@@ -204,14 +211,14 @@ export function range(arg, to) {
         from = 0;
         to = arg;
     }
-    const result = [];
+    var result = [];
     if (from <= to) {
-        for (let i = from; i < to; i++) {
+        for (var i = from; i < to; i++) {
             result.push(i);
         }
     }
     else {
-        for (let i = from; i > to; i--) {
+        for (var i = from; i > to; i--) {
             result.push(i);
         }
     }
@@ -222,15 +229,15 @@ export function range(arg, to) {
  * Please don't touch unless you understand https://jsperf.com/inserting-an-array-within-an-array
  */
 export function arrayInsert(target, insertIndex, insertArr) {
-    const before = target.slice(0, insertIndex);
-    const after = target.slice(insertIndex);
+    var before = target.slice(0, insertIndex);
+    var after = target.slice(insertIndex);
     return before.concat(insertArr, after);
 }
 /**
  * Pushes an element to the start of the array, if found.
  */
 export function pushToStart(arr, value) {
-    const index = arr.indexOf(value);
+    var index = arr.indexOf(value);
     if (index > -1) {
         arr.splice(index, 1);
         arr.unshift(value);
@@ -240,11 +247,20 @@ export function pushToStart(arr, value) {
  * Pushes an element to the end of the array, if found.
  */
 export function pushToEnd(arr, value) {
-    const index = arr.indexOf(value);
+    var index = arr.indexOf(value);
     if (index > -1) {
         arr.splice(index, 1);
         arr.push(value);
     }
+}
+export function find(arr, predicate) {
+    for (var i = 0; i < arr.length; i++) {
+        var element = arr[i];
+        if (predicate(element, i, arr)) {
+            return element;
+        }
+    }
+    return undefined;
 }
 export function asArray(x) {
     return Array.isArray(x) ? x : [x];

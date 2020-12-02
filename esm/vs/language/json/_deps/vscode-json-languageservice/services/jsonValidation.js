@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import { UnresolvedSchema } from './jsonSchemaService.js';
 import { ErrorCode, Diagnostic, DiagnosticSeverity, Range } from '../jsonLanguageTypes.js';
-import * as nls from '../../../fillers/vscode-nls.js';
+import * as nls from './../../../fillers/vscode-nls.js';
 import { isBoolean } from '../utils/objects.js';
 var localize = nls.loadMessageBundle();
 var JSONValidation = /** @class */ (function () {
@@ -16,7 +16,7 @@ var JSONValidation = /** @class */ (function () {
     JSONValidation.prototype.configure = function (raw) {
         if (raw) {
             this.validationEnabled = raw.validate;
-            this.commentSeverity = raw.allowComments ? undefined : DiagnosticSeverity.Error;
+            this.commentSeverity = raw.allowComments ? void 0 : DiagnosticSeverity.Error;
         }
     };
     JSONValidation.prototype.doValidation = function (textDocument, jsonDocument, documentSettings, schema) {
@@ -40,7 +40,7 @@ var JSONValidation = /** @class */ (function () {
             if (schema) {
                 if (schema.errors.length && jsonDocument.root) {
                     var astRoot = jsonDocument.root;
-                    var property = astRoot.type === 'object' ? astRoot.properties[0] : undefined;
+                    var property = astRoot.type === 'object' ? astRoot.properties[0] : null;
                     if (property && property.keyNode.value === '$schema') {
                         var node = property.valueNode || property;
                         var range = Range.create(textDocument.positionAt(node.offset), textDocument.positionAt(node.offset + node.length));
@@ -58,10 +58,10 @@ var JSONValidation = /** @class */ (function () {
                     }
                 }
                 if (schemaAllowsComments(schema.schema)) {
-                    commentSeverity = undefined;
+                    commentSeverity = void 0;
                 }
                 if (schemaAllowsTrailingCommas(schema.schema)) {
-                    trailingCommaSeverity = undefined;
+                    trailingCommaSeverity = void 0;
                 }
             }
             for (var _i = 0, _a = jsonDocument.syntaxErrors; _i < _a.length; _i++) {
@@ -118,9 +118,8 @@ function schemaAllowsTrailingCommas(schemaRef) {
         if (isBoolean(schemaRef.allowTrailingCommas)) {
             return schemaRef.allowTrailingCommas;
         }
-        var deprSchemaRef = schemaRef;
-        if (isBoolean(deprSchemaRef['allowsTrailingCommas'])) { // deprecated
-            return deprSchemaRef['allowsTrailingCommas'];
+        if (isBoolean(schemaRef['allowsTrailingCommas'])) { // deprecated
+            return schemaRef['allowsTrailingCommas'];
         }
         if (schemaRef.allOf) {
             for (var _i = 0, _a = schemaRef.allOf; _i < _a.length; _i++) {
@@ -138,7 +137,7 @@ function toDiagnosticSeverity(severityLevel) {
     switch (severityLevel) {
         case 'error': return DiagnosticSeverity.Error;
         case 'warning': return DiagnosticSeverity.Warning;
-        case 'ignore': return undefined;
+        case 'ignore': return void 0;
     }
-    return undefined;
+    return void 0;
 }

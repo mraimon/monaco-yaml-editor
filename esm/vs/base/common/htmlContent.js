@@ -4,14 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 import { equals } from './arrays.js';
 import { escapeCodicons } from './codicons.js';
-import { illegalArgument } from './errors.js';
-export class MarkdownString {
-    constructor(_value = '', isTrustedOrOptions = false) {
+var MarkdownString = /** @class */ (function () {
+    function MarkdownString(_value, isTrustedOrOptions) {
+        if (_value === void 0) { _value = ''; }
+        if (isTrustedOrOptions === void 0) { isTrustedOrOptions = false; }
         var _a, _b;
         this._value = _value;
-        if (typeof this._value !== 'string') {
-            throw illegalArgument('value');
-        }
         if (typeof isTrustedOrOptions === 'boolean') {
             this._isTrusted = isTrustedOrOptions;
             this._supportThemeIcons = false;
@@ -21,29 +19,43 @@ export class MarkdownString {
             this._supportThemeIcons = (_b = isTrustedOrOptions.supportThemeIcons) !== null && _b !== void 0 ? _b : false;
         }
     }
-    get value() { return this._value; }
-    get isTrusted() { return this._isTrusted; }
-    get supportThemeIcons() { return this._supportThemeIcons; }
-    appendText(value) {
+    Object.defineProperty(MarkdownString.prototype, "value", {
+        get: function () { return this._value; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MarkdownString.prototype, "isTrusted", {
+        get: function () { return this._isTrusted; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MarkdownString.prototype, "supportThemeIcons", {
+        get: function () { return this._supportThemeIcons; },
+        enumerable: true,
+        configurable: true
+    });
+    MarkdownString.prototype.appendText = function (value) {
         // escape markdown syntax tokens: http://daringfireball.net/projects/markdown/syntax#backslash
         this._value += (this._supportThemeIcons ? escapeCodicons(value) : value)
             .replace(/[\\`*_{}[\]()#+\-.!]/g, '\\$&')
-            .replace(/\n/g, '\n\n');
+            .replace('\n', '\n\n');
         return this;
-    }
-    appendMarkdown(value) {
+    };
+    MarkdownString.prototype.appendMarkdown = function (value) {
         this._value += value;
         return this;
-    }
-    appendCodeblock(langId, code) {
+    };
+    MarkdownString.prototype.appendCodeblock = function (langId, code) {
         this._value += '\n```';
         this._value += langId;
         this._value += '\n';
         this._value += code;
         this._value += '\n```\n';
         return this;
-    }
-}
+    };
+    return MarkdownString;
+}());
+export { MarkdownString };
 export function isEmptyMarkdownString(oneOrMany) {
     if (isMarkdownString(oneOrMany)) {
         return !oneOrMany.value;
@@ -101,23 +113,23 @@ export function removeMarkdownEscapes(text) {
     return text.replace(/\\([\\`*_{}[\]()#+\-.!])/g, '$1');
 }
 export function parseHrefAndDimensions(href) {
-    const dimensions = [];
-    const splitted = href.split('|').map(s => s.trim());
+    var dimensions = [];
+    var splitted = href.split('|').map(function (s) { return s.trim(); });
     href = splitted[0];
-    const parameters = splitted[1];
+    var parameters = splitted[1];
     if (parameters) {
-        const heightFromParams = /height=(\d+)/.exec(parameters);
-        const widthFromParams = /width=(\d+)/.exec(parameters);
-        const height = heightFromParams ? heightFromParams[1] : '';
-        const width = widthFromParams ? widthFromParams[1] : '';
-        const widthIsFinite = isFinite(parseInt(width));
-        const heightIsFinite = isFinite(parseInt(height));
+        var heightFromParams = /height=(\d+)/.exec(parameters);
+        var widthFromParams = /width=(\d+)/.exec(parameters);
+        var height = heightFromParams ? heightFromParams[1] : '';
+        var width = widthFromParams ? widthFromParams[1] : '';
+        var widthIsFinite = isFinite(parseInt(width));
+        var heightIsFinite = isFinite(parseInt(height));
         if (widthIsFinite) {
-            dimensions.push(`width="${width}"`);
+            dimensions.push("width=\"" + width + "\"");
         }
         if (heightIsFinite) {
-            dimensions.push(`height="${height}"`);
+            dimensions.push("height=\"" + height + "\"");
         }
     }
-    return { href, dimensions };
+    return { href: href, dimensions: dimensions };
 }

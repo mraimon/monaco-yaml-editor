@@ -22,25 +22,21 @@ function getWorker(workerId, label) {
     // 		return new Worker(workerUrl, { name: label });
     // 	}
     // ESM-comment-end
-    throw new Error(`You must define a function MonacoEnvironment.getWorkerUrl or MonacoEnvironment.getWorker`);
+    throw new Error("You must define a function MonacoEnvironment.getWorkerUrl or MonacoEnvironment.getWorker");
 }
 // ESM-comment-begin
-// export function getWorkerBootstrapUrl(scriptPath: string, label: string, forceDataUri: boolean = false): string {
-// 	if (forceDataUri || /^((http:)|(https:)|(file:))/.test(scriptPath)) {
+// export function getWorkerBootstrapUrl(scriptPath: string, label: string): string {
+// 	if (/^(http:)|(https:)|(file:)/.test(scriptPath)) {
 // 		const currentUrl = String(window.location);
 // 		const currentOrigin = currentUrl.substr(0, currentUrl.length - window.location.hash.length - window.location.search.length - window.location.pathname.length);
-// 		if (forceDataUri || scriptPath.substring(0, currentOrigin.length) !== currentOrigin) {
+// 		if (scriptPath.substring(0, currentOrigin.length) !== currentOrigin) {
 // 			// this is the cross-origin case
 // 			// i.e. the webpage is running at a different origin than where the scripts are loaded from
 // 			const myPath = 'vs/base/worker/defaultWorkerFactory.js';
 // 			const workerBaseUrl = require.toUrl(myPath).slice(0, -myPath.length);
 // 			const js = `/*${label}*/self.MonacoEnvironment={baseUrl: '${workerBaseUrl}'};importScripts('${scriptPath}');/*${label}*/`;
-// 			if (forceDataUri) {
-// 				const url = `data:text/javascript;charset=utf-8,${encodeURIComponent(js)}`;
-// 				return url;
-// 			}
-// 			const blob = new Blob([js], { type: 'application/javascript' });
-// 			return URL.createObjectURL(blob);
+// 			const url = `data:text/javascript;charset=utf-8,${encodeURIComponent(js)}`;
+// 			return url;
 // 		}
 // 	}
 // 	return scriptPath + '#' + label;
@@ -56,10 +52,10 @@ function isPromiseLike(obj) {
  * A worker that uses HTML5 web workers so that is has
  * its own global scope and its own thread.
  */
-class WebWorker {
-    constructor(moduleId, id, label, onMessageCallback, onErrorCallback) {
+var WebWorker = /** @class */ (function () {
+    function WebWorker(moduleId, id, label, onMessageCallback, onErrorCallback) {
         this.id = id;
-        const workerOrPromise = getWorker('workerMain.js', label);
+        var workerOrPromise = getWorker('workerMain.js', label);
         if (isPromiseLike(workerOrPromise)) {
             this.worker = workerOrPromise;
         }
@@ -67,7 +63,7 @@ class WebWorker {
             this.worker = Promise.resolve(workerOrPromise);
         }
         this.postMessage(moduleId, []);
-        this.worker.then((w) => {
+        this.worker.then(function (w) {
             w.onmessage = function (ev) {
                 onMessageCallback(ev.data);
             };
@@ -77,36 +73,40 @@ class WebWorker {
             }
         });
     }
-    getId() {
+    WebWorker.prototype.getId = function () {
         return this.id;
-    }
-    postMessage(message, transfer) {
+    };
+    WebWorker.prototype.postMessage = function (message, transfer) {
         if (this.worker) {
-            this.worker.then(w => w.postMessage(message, transfer));
+            this.worker.then(function (w) { return w.postMessage(message, transfer); });
         }
-    }
-    dispose() {
+    };
+    WebWorker.prototype.dispose = function () {
         if (this.worker) {
-            this.worker.then(w => w.terminate());
+            this.worker.then(function (w) { return w.terminate(); });
         }
         this.worker = null;
-    }
-}
-export class DefaultWorkerFactory {
-    constructor(label) {
+    };
+    return WebWorker;
+}());
+var DefaultWorkerFactory = /** @class */ (function () {
+    function DefaultWorkerFactory(label) {
         this._label = label;
         this._webWorkerFailedBeforeError = false;
     }
-    create(moduleId, onMessageCallback, onErrorCallback) {
-        let workerId = (++DefaultWorkerFactory.LAST_WORKER_ID);
+    DefaultWorkerFactory.prototype.create = function (moduleId, onMessageCallback, onErrorCallback) {
+        var _this = this;
+        var workerId = (++DefaultWorkerFactory.LAST_WORKER_ID);
         if (this._webWorkerFailedBeforeError) {
             throw this._webWorkerFailedBeforeError;
         }
-        return new WebWorker(moduleId, workerId, this._label || 'anonymous' + workerId, onMessageCallback, (err) => {
+        return new WebWorker(moduleId, workerId, this._label || 'anonymous' + workerId, onMessageCallback, function (err) {
             logOnceWebWorkerWarning(err);
-            this._webWorkerFailedBeforeError = err;
+            _this._webWorkerFailedBeforeError = err;
             onErrorCallback(err);
         });
-    }
-}
-DefaultWorkerFactory.LAST_WORKER_ID = 0;
+    };
+    DefaultWorkerFactory.LAST_WORKER_ID = 0;
+    return DefaultWorkerFactory;
+}());
+export { DefaultWorkerFactory };

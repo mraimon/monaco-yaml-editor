@@ -11,9 +11,8 @@ import { schemaContributions } from './services/configuration.js';
 import { JSONSchemaService } from './services/jsonSchemaService.js';
 import { getFoldingRanges } from './services/jsonFolding.js';
 import { getSelectionRanges } from './services/jsonSelectionRanges.js';
-import { format as formatJSON } from '../jsonc-parser/main.js';
+import { format as formatJSON } from './../jsonc-parser/main.js';
 import { Range, TextEdit } from './jsonLanguageTypes.js';
-import { findDefinition } from './services/jsonDefinition.js';
 export * from './jsonLanguageTypes.js';
 export function getLanguageService(params) {
     var promise = params.promiseConstructor || Promise;
@@ -37,7 +36,6 @@ export function getLanguageService(params) {
         doValidation: jsonValidation.doValidation.bind(jsonValidation),
         parseJSONDocument: function (document) { return parseJSON(document, { collectComments: true }); },
         newJSONDocument: function (root, diagnostics) { return newJSONDocument(root, diagnostics); },
-        getMatchingSchemas: jsonSchemaService.getMatchingSchemas.bind(jsonSchemaService),
         doResolve: jsonCompletion.doResolve.bind(jsonCompletion),
         doComplete: jsonCompletion.doComplete.bind(jsonCompletion),
         findDocumentSymbols: jsonDocumentSymbols.findDocumentSymbols.bind(jsonDocumentSymbols),
@@ -48,9 +46,8 @@ export function getLanguageService(params) {
         doHover: jsonHover.doHover.bind(jsonHover),
         getFoldingRanges: getFoldingRanges,
         getSelectionRanges: getSelectionRanges,
-        findDefinition: findDefinition,
         format: function (d, r, o) {
-            var range = undefined;
+            var range = void 0;
             if (r) {
                 var offset = d.offsetAt(r.start);
                 var length = d.offsetAt(r.end) - offset;

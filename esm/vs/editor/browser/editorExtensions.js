@@ -2,29 +2,42 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as nls from '../../nls.js';
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 import { illegalArgument } from '../../base/common/errors.js';
 import { URI } from '../../base/common/uri.js';
 import { ICodeEditorService } from './services/codeEditorService.js';
 import { Position } from '../common/core/position.js';
 import { IModelService } from '../common/services/modelService.js';
 import { ITextModelService } from '../common/services/resolverService.js';
-import { MenuId, MenuRegistry } from '../../platform/actions/common/actions.js';
+import { MenuRegistry } from '../../platform/actions/common/actions.js';
 import { CommandsRegistry } from '../../platform/commands/common/commands.js';
 import { ContextKeyExpr, IContextKeyService } from '../../platform/contextkey/common/contextkey.js';
 import { KeybindingsRegistry } from '../../platform/keybinding/common/keybindingsRegistry.js';
 import { Registry } from '../../platform/registry/common/platform.js';
 import { ITelemetryService } from '../../platform/telemetry/common/telemetry.js';
 import { withNullAsUndefined, assertType } from '../../base/common/types.js';
-export class Command {
-    constructor(opts) {
+var Command = /** @class */ (function () {
+    function Command(opts) {
         this.id = opts.id;
         this.precondition = opts.precondition;
         this._kbOpts = opts.kbOpts;
         this._menuOpts = opts.menuOpts;
         this._description = opts.description;
     }
-    register() {
+    Command.prototype.register = function () {
+        var _this = this;
         if (Array.isArray(this._menuOpts)) {
             this._menuOpts.forEach(this._registerMenuItem, this);
         }
@@ -32,7 +45,7 @@ export class Command {
             this._registerMenuItem(this._menuOpts);
         }
         if (this._kbOpts) {
-            let kbWhen = this._kbOpts.kbExpr;
+            var kbWhen = this._kbOpts.kbExpr;
             if (this.precondition) {
                 if (kbWhen) {
                     kbWhen = ContextKeyExpr.and(kbWhen, this.precondition);
@@ -43,9 +56,8 @@ export class Command {
             }
             KeybindingsRegistry.registerCommandAndKeybindingRule({
                 id: this.id,
-                handler: (accessor, args) => this.runCommand(accessor, args),
+                handler: function (accessor, args) { return _this.runCommand(accessor, args); },
                 weight: this._kbOpts.weight,
-                args: this._kbOpts.args,
                 when: kbWhen,
                 primary: this._kbOpts.primary,
                 secondary: this._kbOpts.secondary,
@@ -58,114 +70,81 @@ export class Command {
         else {
             CommandsRegistry.registerCommand({
                 id: this.id,
-                handler: (accessor, args) => this.runCommand(accessor, args),
+                handler: function (accessor, args) { return _this.runCommand(accessor, args); },
                 description: this._description
             });
         }
-    }
-    _registerMenuItem(item) {
+    };
+    Command.prototype._registerMenuItem = function (item) {
         MenuRegistry.appendMenuItem(item.menuId, {
             group: item.group,
             command: {
                 id: this.id,
                 title: item.title,
-                icon: item.icon
-                // precondition: this.precondition
             },
             when: item.when,
             order: item.order
         });
+    };
+    return Command;
+}());
+export { Command };
+var EditorCommand = /** @class */ (function (_super) {
+    __extends(EditorCommand, _super);
+    function EditorCommand() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-export class MultiCommand extends Command {
-    constructor() {
-        super(...arguments);
-        this._implementations = [];
-    }
-    /**
-     * A higher priority gets to be looked at first
-     */
-    addImplementation(priority, implementation) {
-        this._implementations.push([priority, implementation]);
-        this._implementations.sort((a, b) => b[0] - a[0]);
-        return {
-            dispose: () => {
-                for (let i = 0; i < this._implementations.length; i++) {
-                    if (this._implementations[i][1] === implementation) {
-                        this._implementations.splice(i, 1);
-                        return;
-                    }
-                }
-            }
-        };
-    }
-    runCommand(accessor, args) {
-        for (const impl of this._implementations) {
-            if (impl[1](accessor, args)) {
-                return;
-            }
-        }
-    }
-}
-//#endregion
-/**
- * A command that delegates to another command's implementation.
- *
- * This lets different commands be registered but share the same implementation
- */
-export class ProxyCommand extends Command {
-    constructor(command, opts) {
-        super(opts);
-        this.command = command;
-    }
-    runCommand(accessor, args) {
-        return this.command.runCommand(accessor, args);
-    }
-}
-export class EditorCommand extends Command {
     /**
      * Create a command class that is bound to a certain editor contribution.
      */
-    static bindToContribution(controllerGetter) {
-        return class EditorControllerCommandImpl extends EditorCommand {
-            constructor(opts) {
-                super(opts);
-                this._callback = opts.handler;
+    EditorCommand.bindToContribution = function (controllerGetter) {
+        return /** @class */ (function (_super) {
+            __extends(EditorControllerCommandImpl, _super);
+            function EditorControllerCommandImpl(opts) {
+                var _this = _super.call(this, opts) || this;
+                _this._callback = opts.handler;
+                return _this;
             }
-            runEditorCommand(accessor, editor, args) {
-                const controller = controllerGetter(editor);
+            EditorControllerCommandImpl.prototype.runEditorCommand = function (accessor, editor, args) {
+                var controller = controllerGetter(editor);
                 if (controller) {
                     this._callback(controllerGetter(editor), args);
                 }
-            }
-        };
-    }
-    runCommand(accessor, args) {
-        const codeEditorService = accessor.get(ICodeEditorService);
+            };
+            return EditorControllerCommandImpl;
+        }(EditorCommand));
+    };
+    EditorCommand.prototype.runCommand = function (accessor, args) {
+        var _this = this;
+        var codeEditorService = accessor.get(ICodeEditorService);
         // Find the editor with text focus or active
-        const editor = codeEditorService.getFocusedCodeEditor() || codeEditorService.getActiveCodeEditor();
+        var editor = codeEditorService.getFocusedCodeEditor() || codeEditorService.getActiveCodeEditor();
         if (!editor) {
             // well, at least we tried...
             return;
         }
-        return editor.invokeWithinContext((editorAccessor) => {
-            const kbService = editorAccessor.get(IContextKeyService);
-            if (!kbService.contextMatchesRules(withNullAsUndefined(this.precondition))) {
+        return editor.invokeWithinContext(function (editorAccessor) {
+            var kbService = editorAccessor.get(IContextKeyService);
+            if (!kbService.contextMatchesRules(withNullAsUndefined(_this.precondition))) {
                 // precondition does not hold
                 return;
             }
-            return this.runEditorCommand(editorAccessor, editor, args);
+            return _this.runEditorCommand(editorAccessor, editor, args);
         });
+    };
+    return EditorCommand;
+}(Command));
+export { EditorCommand };
+var EditorAction = /** @class */ (function (_super) {
+    __extends(EditorAction, _super);
+    function EditorAction(opts) {
+        var _this = _super.call(this, EditorAction.convertOptions(opts)) || this;
+        _this.label = opts.label;
+        _this.alias = opts.alias;
+        return _this;
     }
-}
-export class EditorAction extends EditorCommand {
-    constructor(opts) {
-        super(EditorAction.convertOptions(opts));
-        this.label = opts.label;
-        this.alias = opts.alias;
-    }
-    static convertOptions(opts) {
-        let menuOpts;
+    EditorAction.convertOptions = function (opts) {
+        var menuOpts;
         if (Array.isArray(opts.menuOpts)) {
             menuOpts = opts.menuOpts;
         }
@@ -177,7 +156,7 @@ export class EditorAction extends EditorCommand {
         }
         function withDefaults(item) {
             if (!item.menuId) {
-                item.menuId = MenuId.EditorContext;
+                item.menuId = 7 /* EditorContext */;
             }
             if (!item.title) {
                 item.title = opts.label;
@@ -186,114 +165,109 @@ export class EditorAction extends EditorCommand {
             return item;
         }
         if (Array.isArray(opts.contextMenuOpts)) {
-            menuOpts.push(...opts.contextMenuOpts.map(withDefaults));
+            menuOpts.push.apply(menuOpts, opts.contextMenuOpts.map(withDefaults));
         }
         else if (opts.contextMenuOpts) {
             menuOpts.push(withDefaults(opts.contextMenuOpts));
         }
         opts.menuOpts = menuOpts;
         return opts;
-    }
-    runEditorCommand(accessor, editor, args) {
+    };
+    EditorAction.prototype.runEditorCommand = function (accessor, editor, args) {
         this.reportTelemetry(accessor, editor);
         return this.run(accessor, editor, args || {});
-    }
-    reportTelemetry(accessor, editor) {
+    };
+    EditorAction.prototype.reportTelemetry = function (accessor, editor) {
         accessor.get(ITelemetryService).publicLog2('editorActionInvoked', { name: this.label, id: this.id });
-    }
-}
-export class MultiEditorAction extends EditorAction {
-    constructor(opts) {
-        super(opts);
-        this._implementations = [];
-    }
-    runEditorCommand(accessor, editor, args) {
-        this.reportTelemetry(accessor, editor);
-        for (const impl of this._implementations) {
-            if (impl[1](accessor, args)) {
-                return;
-            }
-        }
-        return this.run(accessor, editor, args || {});
-    }
-}
-//#endregion
+    };
+    return EditorAction;
+}(EditorCommand));
+export { EditorAction };
+//#endregion EditorAction
 // --- Registration of commands and actions
 export function registerLanguageCommand(id, handler) {
-    CommandsRegistry.registerCommand(id, (accessor, args) => handler(accessor, args || {}));
+    CommandsRegistry.registerCommand(id, function (accessor, args) { return handler(accessor, args || {}); });
 }
 export function registerDefaultLanguageCommand(id, handler) {
     registerLanguageCommand(id, function (accessor, args) {
-        const { resource, position } = args;
+        var resource = args.resource, position = args.position;
         if (!(resource instanceof URI)) {
             throw illegalArgument('resource');
         }
         if (!Position.isIPosition(position)) {
             throw illegalArgument('position');
         }
-        const model = accessor.get(IModelService).getModel(resource);
+        var model = accessor.get(IModelService).getModel(resource);
         if (model) {
-            const editorPosition = Position.lift(position);
+            var editorPosition = Position.lift(position);
             return handler(model, editorPosition, args);
         }
-        return accessor.get(ITextModelService).createModelReference(resource).then(reference => {
-            return new Promise((resolve, reject) => {
+        return accessor.get(ITextModelService).createModelReference(resource).then(function (reference) {
+            return new Promise(function (resolve, reject) {
                 try {
-                    const result = handler(reference.object.textEditorModel, Position.lift(position), args);
+                    var result = handler(reference.object.textEditorModel, Position.lift(position), args);
                     resolve(result);
                 }
                 catch (err) {
                     reject(err);
                 }
-            }).finally(() => {
+            }).finally(function () {
                 reference.dispose();
             });
         });
     });
 }
 export function registerModelAndPositionCommand(id, handler) {
-    CommandsRegistry.registerCommand(id, function (accessor, ...args) {
-        const [resource, position] = args;
+    CommandsRegistry.registerCommand(id, function (accessor) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        var resource = args[0], position = args[1];
         assertType(URI.isUri(resource));
         assertType(Position.isIPosition(position));
-        const model = accessor.get(IModelService).getModel(resource);
+        var model = accessor.get(IModelService).getModel(resource);
         if (model) {
-            const editorPosition = Position.lift(position);
-            return handler(model, editorPosition, ...args.slice(2));
+            var editorPosition = Position.lift(position);
+            return handler(model, editorPosition, args.slice(2));
         }
-        return accessor.get(ITextModelService).createModelReference(resource).then(reference => {
-            return new Promise((resolve, reject) => {
+        return accessor.get(ITextModelService).createModelReference(resource).then(function (reference) {
+            return new Promise(function (resolve, reject) {
                 try {
-                    const result = handler(reference.object.textEditorModel, Position.lift(position), args.slice(2));
+                    var result = handler(reference.object.textEditorModel, Position.lift(position), args.slice(2));
                     resolve(result);
                 }
                 catch (err) {
                     reject(err);
                 }
-            }).finally(() => {
+            }).finally(function () {
                 reference.dispose();
             });
         });
     });
 }
 export function registerModelCommand(id, handler) {
-    CommandsRegistry.registerCommand(id, function (accessor, ...args) {
-        const [resource] = args;
-        assertType(URI.isUri(resource));
-        const model = accessor.get(IModelService).getModel(resource);
-        if (model) {
-            return handler(model, ...args.slice(1));
+    CommandsRegistry.registerCommand(id, function (accessor) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
         }
-        return accessor.get(ITextModelService).createModelReference(resource).then(reference => {
-            return new Promise((resolve, reject) => {
+        var resource = args[0];
+        assertType(URI.isUri(resource));
+        var model = accessor.get(IModelService).getModel(resource);
+        if (model) {
+            return handler(model, args.slice(1));
+        }
+        return accessor.get(ITextModelService).createModelReference(resource).then(function (reference) {
+            return new Promise(function (resolve, reject) {
                 try {
-                    const result = handler(reference.object.textEditorModel, args.slice(1));
+                    var result = handler(reference.object.textEditorModel, args.slice(1));
                     resolve(result);
                 }
                 catch (err) {
                     reject(err);
                 }
-            }).finally(() => {
+            }).finally(function () {
                 reference.dispose();
             });
         });
@@ -304,13 +278,7 @@ export function registerEditorCommand(editorCommand) {
     return editorCommand;
 }
 export function registerEditorAction(ctor) {
-    const action = new ctor();
-    EditorContributionRegistry.INSTANCE.registerEditorAction(action);
-    return action;
-}
-export function registerMultiEditorAction(action) {
-    EditorContributionRegistry.INSTANCE.registerEditorAction(action);
-    return action;
+    EditorContributionRegistry.INSTANCE.registerEditorAction(new ctor());
 }
 export function registerInstantiatedEditorAction(editorAction) {
     EditorContributionRegistry.INSTANCE.registerEditorAction(editorAction);
@@ -333,7 +301,7 @@ export var EditorExtensionsRegistry;
     }
     EditorExtensionsRegistry.getEditorContributions = getEditorContributions;
     function getSomeEditorContributions(ids) {
-        return EditorContributionRegistry.INSTANCE.getEditorContributions().filter(c => ids.indexOf(c.id) >= 0);
+        return EditorContributionRegistry.INSTANCE.getEditorContributions().filter(function (c) { return ids.indexOf(c.id) >= 0; });
     }
     EditorExtensionsRegistry.getSomeEditorContributions = getSomeEditorContributions;
     function getDiffEditorContributions() {
@@ -342,105 +310,40 @@ export var EditorExtensionsRegistry;
     EditorExtensionsRegistry.getDiffEditorContributions = getDiffEditorContributions;
 })(EditorExtensionsRegistry || (EditorExtensionsRegistry = {}));
 // Editor extension points
-const Extensions = {
+var Extensions = {
     EditorCommonContributions: 'editor.contributions'
 };
-class EditorContributionRegistry {
-    constructor() {
+var EditorContributionRegistry = /** @class */ (function () {
+    function EditorContributionRegistry() {
         this.editorContributions = [];
         this.diffEditorContributions = [];
         this.editorActions = [];
         this.editorCommands = Object.create(null);
     }
-    registerEditorContribution(id, ctor) {
-        this.editorContributions.push({ id, ctor: ctor });
-    }
-    getEditorContributions() {
+    EditorContributionRegistry.prototype.registerEditorContribution = function (id, ctor) {
+        this.editorContributions.push({ id: id, ctor: ctor });
+    };
+    EditorContributionRegistry.prototype.getEditorContributions = function () {
         return this.editorContributions.slice(0);
-    }
-    getDiffEditorContributions() {
+    };
+    EditorContributionRegistry.prototype.getDiffEditorContributions = function () {
         return this.diffEditorContributions.slice(0);
-    }
-    registerEditorAction(action) {
+    };
+    EditorContributionRegistry.prototype.registerEditorAction = function (action) {
         action.register();
         this.editorActions.push(action);
-    }
-    getEditorActions() {
+    };
+    EditorContributionRegistry.prototype.getEditorActions = function () {
         return this.editorActions.slice(0);
-    }
-    registerEditorCommand(editorCommand) {
+    };
+    EditorContributionRegistry.prototype.registerEditorCommand = function (editorCommand) {
         editorCommand.register();
         this.editorCommands[editorCommand.id] = editorCommand;
-    }
-    getEditorCommand(commandId) {
+    };
+    EditorContributionRegistry.prototype.getEditorCommand = function (commandId) {
         return (this.editorCommands[commandId] || null);
-    }
-}
-EditorContributionRegistry.INSTANCE = new EditorContributionRegistry();
+    };
+    EditorContributionRegistry.INSTANCE = new EditorContributionRegistry();
+    return EditorContributionRegistry;
+}());
 Registry.add(Extensions.EditorCommonContributions, EditorContributionRegistry.INSTANCE);
-function registerCommand(command) {
-    command.register();
-    return command;
-}
-export const UndoCommand = registerCommand(new MultiCommand({
-    id: 'undo',
-    precondition: undefined,
-    kbOpts: {
-        weight: 0 /* EditorCore */,
-        primary: 2048 /* CtrlCmd */ | 56 /* KEY_Z */
-    },
-    menuOpts: [{
-            menuId: MenuId.MenubarEditMenu,
-            group: '1_do',
-            title: nls.localize({ key: 'miUndo', comment: ['&& denotes a mnemonic'] }, "&&Undo"),
-            order: 1
-        }, {
-            menuId: MenuId.CommandPalette,
-            group: '',
-            title: nls.localize('undo', "Undo"),
-            order: 1
-        }]
-}));
-registerCommand(new ProxyCommand(UndoCommand, { id: 'default:undo', precondition: undefined }));
-export const RedoCommand = registerCommand(new MultiCommand({
-    id: 'redo',
-    precondition: undefined,
-    kbOpts: {
-        weight: 0 /* EditorCore */,
-        primary: 2048 /* CtrlCmd */ | 55 /* KEY_Y */,
-        secondary: [2048 /* CtrlCmd */ | 1024 /* Shift */ | 56 /* KEY_Z */],
-        mac: { primary: 2048 /* CtrlCmd */ | 1024 /* Shift */ | 56 /* KEY_Z */ }
-    },
-    menuOpts: [{
-            menuId: MenuId.MenubarEditMenu,
-            group: '1_do',
-            title: nls.localize({ key: 'miRedo', comment: ['&& denotes a mnemonic'] }, "&&Redo"),
-            order: 2
-        }, {
-            menuId: MenuId.CommandPalette,
-            group: '',
-            title: nls.localize('redo', "Redo"),
-            order: 1
-        }]
-}));
-registerCommand(new ProxyCommand(RedoCommand, { id: 'default:redo', precondition: undefined }));
-export const SelectAllCommand = registerCommand(new MultiCommand({
-    id: 'editor.action.selectAll',
-    precondition: undefined,
-    kbOpts: {
-        weight: 0 /* EditorCore */,
-        kbExpr: null,
-        primary: 2048 /* CtrlCmd */ | 31 /* KEY_A */
-    },
-    menuOpts: [{
-            menuId: MenuId.MenubarSelectionMenu,
-            group: '1_basic',
-            title: nls.localize({ key: 'miSelectAll', comment: ['&& denotes a mnemonic'] }, "&&Select All"),
-            order: 1
-        }, {
-            menuId: MenuId.CommandPalette,
-            group: '',
-            title: nls.localize('selectAll', "Select All"),
-            order: 1
-        }]
-}));

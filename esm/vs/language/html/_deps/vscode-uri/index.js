@@ -114,7 +114,6 @@ var _regexp = /^(([^:/?#]+?):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
  * (http://tools.ietf.org/html/rfc3986#section-3) with minimal validation
  * and encoding.
  *
- * ```txt
  *       foo://example.com:8042/over/there?name=ferret#nose
  *       \_/   \______________/\_________/ \_________/ \__/
  *        |           |            |            |        |
@@ -122,7 +121,6 @@ var _regexp = /^(([^:/?#]+?):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
  *        |   _____________________|__
  *       / \ /                        \
  *       urn:example:animal:ferret:nose
- * ```
  */
 var URI = /** @class */ (function () {
     /**
@@ -195,7 +193,7 @@ var URI = /** @class */ (function () {
             // if (this.scheme !== 'file') {
             // 	console.warn(`[UriError] calling fsPath with scheme ${this.scheme}`);
             // }
-            return uriToFsPath(this, false);
+            return _makeFsPath(this);
         },
         enumerable: true,
         configurable: true
@@ -258,7 +256,7 @@ var URI = /** @class */ (function () {
         if (!match) {
             return new _URI(_empty, _empty, _empty, _empty, _empty);
         }
-        return new _URI(match[2] || _empty, percentDecode(match[4] || _empty), percentDecode(match[5] || _empty), percentDecode(match[7] || _empty), percentDecode(match[9] || _empty), _strict);
+        return new _URI(match[2] || _empty, decodeURIComponent(match[4] || _empty), decodeURIComponent(match[5] || _empty), decodeURIComponent(match[7] || _empty), decodeURIComponent(match[9] || _empty), _strict);
     };
     /**
      * Creates a new URI from a file system path, e.g. `c:\my\files`,
@@ -307,25 +305,6 @@ var URI = /** @class */ (function () {
     URI.from = function (components) {
         return new _URI(components.scheme, components.authority, components.path, components.query, components.fragment);
     };
-    // /**
-    //  * Join a URI path with path fragments and normalizes the resulting path.
-    //  *
-    //  * @param uri The input URI.
-    //  * @param pathFragment The path fragment to add to the URI path.
-    //  * @returns The resulting URI.
-    //  */
-    // static joinPath(uri: URI, ...pathFragment: string[]): URI {
-    // 	if (!uri.path) {
-    // 		throw new Error(`[UriError]: cannot call joinPaths on URI without path`);
-    // 	}
-    // 	let newPath: string;
-    // 	if (isWindows && uri.scheme === 'file') {
-    // 		newPath = URI.file(paths.win32.join(uriToFsPath(uri, true), ...pathFragment)).path;
-    // 	} else {
-    // 		newPath = paths.posix.join(uri.path, ...pathFragment);
-    // 	}
-    // 	return uri.with({ path: newPath });
-    // }
     // ---- printing/externalize ---------------------------
     /**
      * Creates a string representation for this URI. It's guaranteed that calling
@@ -363,7 +342,7 @@ var URI = /** @class */ (function () {
 }());
 export { URI };
 var _pathSepMarker = isWindows ? 1 : undefined;
-// eslint-disable-next-line @typescript-eslint/class-name-casing
+// tslint:disable-next-line:class-name
 var _URI = /** @class */ (function (_super) {
     __extends(_URI, _super);
     function _URI() {
@@ -375,7 +354,7 @@ var _URI = /** @class */ (function (_super) {
     Object.defineProperty(_URI.prototype, "fsPath", {
         get: function () {
             if (!this._fsPath) {
-                this._fsPath = uriToFsPath(this, false);
+                this._fsPath = _makeFsPath(this);
             }
             return this._fsPath;
         },
@@ -521,7 +500,7 @@ function encodeURIComponentMinimal(path) {
 /**
  * Compute `fsPath` for the given uri
  */
-export function uriToFsPath(uri, keepDriveLetterCasing) {
+function _makeFsPath(uri) {
     var value;
     if (uri.authority && uri.path.length > 1 && uri.scheme === 'file') {
         // unc path: file://shares/c$/far/boo
@@ -530,13 +509,8 @@ export function uriToFsPath(uri, keepDriveLetterCasing) {
     else if (uri.path.charCodeAt(0) === 47 /* Slash */
         && (uri.path.charCodeAt(1) >= 65 /* A */ && uri.path.charCodeAt(1) <= 90 /* Z */ || uri.path.charCodeAt(1) >= 97 /* a */ && uri.path.charCodeAt(1) <= 122 /* z */)
         && uri.path.charCodeAt(2) === 58 /* Colon */) {
-        if (!keepDriveLetterCasing) {
-            // windows drive letter: file:///c:/far/boo
-            value = uri.path[1].toLowerCase() + uri.path.substr(2);
-        }
-        else {
-            value = uri.path.substr(1);
-        }
+        // windows drive letter: file:///c:/far/boo
+        value = uri.path[1].toLowerCase() + uri.path.substr(2);
     }
     else {
         // other path
@@ -619,25 +593,4 @@ function _asFormatted(uri, skipEncoding) {
         res += !skipEncoding ? encodeURIComponentFast(fragment, false) : fragment;
     }
     return res;
-}
-// --- decode
-function decodeURIComponentGraceful(str) {
-    try {
-        return decodeURIComponent(str);
-    }
-    catch (_a) {
-        if (str.length > 3) {
-            return str.substr(0, 3) + decodeURIComponentGraceful(str.substr(3));
-        }
-        else {
-            return str;
-        }
-    }
-}
-var _rEncodedAsHex = /(%[0-9A-Za-z][0-9A-Za-z])+/g;
-function percentDecode(str) {
-    if (!str.match(_rEncodedAsHex)) {
-        return str;
-    }
-    return str.replace(_rEncodedAsHex, function (match) { return decodeURIComponentGraceful(match); });
 }

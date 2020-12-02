@@ -1,1 +1,1 @@
-export const InputFocusedContextKey = 'inputFocus';
+export var InputFocusedContextKey = 'inputFocus';

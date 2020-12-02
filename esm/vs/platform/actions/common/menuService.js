@@ -13,28 +13,29 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { Emitter, Event } from '../../../base/common/event.js';
 import { DisposableStore } from '../../../base/common/lifecycle.js';
-import { IMenuService, isIMenuItem, MenuItemAction, MenuRegistry, SubmenuItemAction } from './actions.js';
+import { isIMenuItem, MenuItemAction, MenuRegistry, SubmenuItemAction } from './actions.js';
 import { ICommandService } from '../../commands/common/commands.js';
 import { IContextKeyService } from '../../contextkey/common/contextkey.js';
-let MenuService = class MenuService {
-    constructor(_commandService) {
+var MenuService = /** @class */ (function () {
+    function MenuService(_commandService) {
         this._commandService = _commandService;
         //
     }
-    createMenu(id, contextKeyService) {
-        return new Menu(id, this._commandService, contextKeyService, this);
-    }
-};
-MenuService = __decorate([
-    __param(0, ICommandService)
-], MenuService);
+    MenuService.prototype.createMenu = function (id, contextKeyService) {
+        return new Menu(id, this._commandService, contextKeyService);
+    };
+    MenuService = __decorate([
+        __param(0, ICommandService)
+    ], MenuService);
+    return MenuService;
+}());
 export { MenuService };
-let Menu = class Menu {
-    constructor(_id, _commandService, _contextKeyService, _menuService) {
+var Menu = /** @class */ (function () {
+    function Menu(_id, _commandService, _contextKeyService) {
+        var _this = this;
         this._id = _id;
         this._commandService = _commandService;
         this._contextKeyService = _contextKeyService;
-        this._menuService = _menuService;
         this._onDidChange = new Emitter();
         this._dispoables = new DisposableStore();
         this._menuGroups = [];
@@ -42,25 +43,26 @@ let Menu = class Menu {
         this._build();
         // rebuild this menu whenever the menu registry reports an
         // event for this MenuId
-        this._dispoables.add(Event.debounce(Event.filter(MenuRegistry.onDidChangeMenu, set => set.has(this._id)), () => { }, 50)(this._build, this));
+        this._dispoables.add(Event.debounce(Event.filter(MenuRegistry.onDidChangeMenu, function (menuId) { return menuId === _this._id; }), function () { }, 50)(this._build, this));
         // when context keys change we need to check if the menu also
         // has changed
-        this._dispoables.add(Event.debounce(this._contextKeyService.onDidChangeContext, (last, event) => last || event.affectsSome(this._contextKeys), 50)(e => e && this._onDidChange.fire(undefined), this));
+        this._dispoables.add(Event.debounce(this._contextKeyService.onDidChangeContext, function (last, event) { return last || event.affectsSome(_this._contextKeys); }, 50)(function (e) { return e && _this._onDidChange.fire(undefined); }, this));
     }
-    dispose() {
+    Menu.prototype.dispose = function () {
         this._dispoables.dispose();
         this._onDidChange.dispose();
-    }
-    _build() {
+    };
+    Menu.prototype._build = function () {
         // reset
         this._menuGroups.length = 0;
         this._contextKeys.clear();
-        const menuItems = MenuRegistry.getMenuItems(this._id);
-        let group;
+        var menuItems = MenuRegistry.getMenuItems(this._id);
+        var group;
         menuItems.sort(Menu._compareMenuItems);
-        for (let item of menuItems) {
+        for (var _i = 0, menuItems_1 = menuItems; _i < menuItems_1.length; _i++) {
+            var item = menuItems_1[_i];
             // group by groupId
-            const groupName = item.group || '';
+            var groupName = item.group || '';
             if (!group || group[0] !== groupName) {
                 group = [groupName, []];
                 this._menuGroups.push(group);
@@ -74,25 +76,23 @@ let Menu = class Menu {
             }
             // keep toggled keys for event if applicable
             if (isIMenuItem(item) && item.command.toggled) {
-                const toggledExpression = item.command.toggled.condition || item.command.toggled;
-                Menu._fillInKbExprKeys(toggledExpression, this._contextKeys);
+                Menu._fillInKbExprKeys(item.command.toggled, this._contextKeys);
             }
         }
         this._onDidChange.fire(this);
-    }
-    get onDidChange() {
-        return this._onDidChange.event;
-    }
-    getActions(options) {
-        const result = [];
-        for (let group of this._menuGroups) {
-            const [id, items] = group;
-            const activeActions = [];
-            for (const item of items) {
+    };
+    Menu.prototype.getActions = function (options) {
+        var result = [];
+        for (var _i = 0, _a = this._menuGroups; _i < _a.length; _i++) {
+            var group = _a[_i];
+            var id = group[0], items = group[1];
+            var activeActions = [];
+            for (var _b = 0, items_1 = items; _b < items_1.length; _b++) {
+                var item = items_1[_b];
                 if (this._contextKeyService.contextMatchesRules(item.when)) {
-                    const action = isIMenuItem(item)
+                    var action = isIMenuItem(item)
                         ? new MenuItemAction(item.command, item.alt, options, this._contextKeyService, this._commandService)
-                        : new SubmenuItemAction(item, this._menuService, this._contextKeyService, options);
+                        : new SubmenuItemAction(item);
                     activeActions.push(action);
                 }
             }
@@ -101,17 +101,18 @@ let Menu = class Menu {
             }
         }
         return result;
-    }
-    static _fillInKbExprKeys(exp, set) {
+    };
+    Menu._fillInKbExprKeys = function (exp, set) {
         if (exp) {
-            for (let key of exp.keys()) {
+            for (var _i = 0, _a = exp.keys(); _i < _a.length; _i++) {
+                var key = _a[_i];
                 set.add(key);
             }
         }
-    }
-    static _compareMenuItems(a, b) {
-        let aGroup = a.group;
-        let bGroup = b.group;
+    };
+    Menu._compareMenuItems = function (a, b) {
+        var aGroup = a.group;
+        var bGroup = b.group;
         if (aGroup !== bGroup) {
             // Falsy groups come last
             if (!aGroup) {
@@ -128,14 +129,14 @@ let Menu = class Menu {
                 return 1;
             }
             // lexical sort for groups
-            let value = aGroup.localeCompare(bGroup);
+            var value = aGroup.localeCompare(bGroup);
             if (value !== 0) {
                 return value;
             }
         }
         // sort on priority - default is 0
-        let aPrio = a.order || 0;
-        let bPrio = b.order || 0;
+        var aPrio = a.order || 0;
+        var bPrio = b.order || 0;
         if (aPrio < bPrio) {
             return -1;
         }
@@ -144,15 +145,15 @@ let Menu = class Menu {
         }
         // sort on titles
         return Menu._compareTitles(isIMenuItem(a) ? a.command.title : a.title, isIMenuItem(b) ? b.command.title : b.title);
-    }
-    static _compareTitles(a, b) {
-        const aStr = typeof a === 'string' ? a : a.value;
-        const bStr = typeof b === 'string' ? b : b.value;
+    };
+    Menu._compareTitles = function (a, b) {
+        var aStr = typeof a === 'string' ? a : a.value;
+        var bStr = typeof b === 'string' ? b : b.value;
         return aStr.localeCompare(bStr);
-    }
-};
-Menu = __decorate([
-    __param(1, ICommandService),
-    __param(2, IContextKeyService),
-    __param(3, IMenuService)
-], Menu);
+    };
+    Menu = __decorate([
+        __param(1, ICommandService),
+        __param(2, IContextKeyService)
+    ], Menu);
+    return Menu;
+}());

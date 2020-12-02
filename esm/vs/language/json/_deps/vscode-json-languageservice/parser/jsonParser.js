@@ -15,10 +15,10 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-import * as Json from '../../jsonc-parser/main.js';
+import * as Json from './../../jsonc-parser/main.js';
 import { isNumber, equals, isBoolean, isString, isDefined } from '../utils/objects.js';
 import { ErrorCode, Diagnostic, DiagnosticSeverity, Range } from '../jsonLanguageTypes.js';
-import * as nls from '../../../fillers/vscode-nls.js';
+import * as nls from './../../../fillers/vscode-nls.js';
 var localize = nls.loadMessageBundle();
 var formats = {
     'color-hex': { errorMessage: localize('colorHexFormatWarning', 'Invalid color format. Use #RGB, #RGBA, #RRGGBB or #RRGGBBAA.'), pattern: /^#([0-9A-Fa-f]{3,4}|([0-9A-Fa-f]{2}){3,4})$/ },
@@ -29,7 +29,6 @@ var formats = {
 };
 var ASTNodeImpl = /** @class */ (function () {
     function ASTNodeImpl(parent, offset, length) {
-        if (length === void 0) { length = 0; }
         this.offset = offset;
         this.length = length;
         this.parent = parent;
@@ -38,7 +37,7 @@ var ASTNodeImpl = /** @class */ (function () {
         get: function () {
             return [];
         },
-        enumerable: false,
+        enumerable: true,
         configurable: true
     });
     ASTNodeImpl.prototype.toString = function () {
@@ -81,7 +80,7 @@ var ArrayASTNodeImpl = /** @class */ (function (_super) {
         get: function () {
             return this.items;
         },
-        enumerable: false,
+        enumerable: true,
         configurable: true
     });
     return ArrayASTNodeImpl;
@@ -112,18 +111,17 @@ var StringASTNodeImpl = /** @class */ (function (_super) {
 export { StringASTNodeImpl };
 var PropertyASTNodeImpl = /** @class */ (function (_super) {
     __extends(PropertyASTNodeImpl, _super);
-    function PropertyASTNodeImpl(parent, offset, keyNode) {
+    function PropertyASTNodeImpl(parent, offset) {
         var _this = _super.call(this, parent, offset) || this;
         _this.type = 'property';
         _this.colonOffset = -1;
-        _this.keyNode = keyNode;
         return _this;
     }
     Object.defineProperty(PropertyASTNodeImpl.prototype, "children", {
         get: function () {
             return this.valueNode ? [this.keyNode, this.valueNode] : [this.keyNode];
         },
-        enumerable: false,
+        enumerable: true,
         configurable: true
     });
     return PropertyASTNodeImpl;
@@ -141,7 +139,7 @@ var ObjectASTNodeImpl = /** @class */ (function (_super) {
         get: function () {
             return this.properties;
         },
-        enumerable: false,
+        enumerable: true,
         configurable: true
     });
     return ObjectASTNodeImpl;
@@ -161,6 +159,7 @@ export var EnumMatch;
 var SchemaCollector = /** @class */ (function () {
     function SchemaCollector(focusOffset, exclude) {
         if (focusOffset === void 0) { focusOffset = -1; }
+        if (exclude === void 0) { exclude = null; }
         this.focusOffset = focusOffset;
         this.exclude = exclude;
         this.schemas = [];
@@ -169,7 +168,8 @@ var SchemaCollector = /** @class */ (function () {
         this.schemas.push(schema);
     };
     SchemaCollector.prototype.merge = function (other) {
-        Array.prototype.push.apply(this.schemas, other.schemas);
+        var _a;
+        (_a = this.schemas).push.apply(_a, other.schemas);
     };
     SchemaCollector.prototype.include = function (node) {
         return (this.focusOffset === -1 || contains(node, this.focusOffset)) && (node !== this.exclude);
@@ -184,7 +184,7 @@ var NoOpSchemaCollector = /** @class */ (function () {
     }
     Object.defineProperty(NoOpSchemaCollector.prototype, "schemas", {
         get: function () { return []; },
-        enumerable: false,
+        enumerable: true,
         configurable: true
     });
     NoOpSchemaCollector.prototype.add = function (schema) { };
@@ -201,7 +201,7 @@ var ValidationResult = /** @class */ (function () {
         this.propertiesValueMatches = 0;
         this.primaryValueMatches = 0;
         this.enumValueMatch = false;
-        this.enumValues = undefined;
+        this.enumValues = null;
     }
     ValidationResult.prototype.hasProblems = function () {
         return !!this.problems.length;
@@ -282,7 +282,7 @@ var JSONDocument = /** @class */ (function () {
         if (this.root) {
             return Json.findNodeAtOffset(this.root, offset, includeRightBound);
         }
-        return undefined;
+        return void 0;
     };
     JSONDocument.prototype.visit = function (visitor) {
         if (this.root) {
@@ -308,10 +308,11 @@ var JSONDocument = /** @class */ (function () {
                 return Diagnostic.create(range, p.message, p.severity, p.code);
             });
         }
-        return undefined;
+        return null;
     };
     JSONDocument.prototype.getMatchingSchemas = function (schema, focusOffset, exclude) {
         if (focusOffset === void 0) { focusOffset = -1; }
+        if (exclude === void 0) { exclude = null; }
         var matchingSchemas = new SchemaCollector(focusOffset, exclude);
         if (this.root && schema) {
             validate(this.root, schema, new ValidationResult(), matchingSchemas);
@@ -321,11 +322,10 @@ var JSONDocument = /** @class */ (function () {
     return JSONDocument;
 }());
 export { JSONDocument };
-function validate(n, schema, validationResult, matchingSchemas) {
-    if (!n || !matchingSchemas.include(n)) {
+function validate(node, schema, validationResult, matchingSchemas) {
+    if (!node || !matchingSchemas.include(node)) {
         return;
     }
-    var node = n;
     switch (node.type) {
         case 'object':
             _validateObjectNode(node, schema, validationResult, matchingSchemas);
@@ -393,7 +393,7 @@ function validate(n, schema, validationResult, matchingSchemas) {
         var testAlternatives = function (alternatives, maxOneMatch) {
             var matches = [];
             // remember the best match that is used for error messages
-            var bestMatch = undefined;
+            var bestMatch = null;
             for (var _i = 0, alternatives_1 = alternatives; _i < alternatives_1.length; _i++) {
                 var subSchemaRef = alternatives_1[_i];
                 var subSchema = asSchema(subSchemaRef);
@@ -434,7 +434,7 @@ function validate(n, schema, validationResult, matchingSchemas) {
                     message: localize('oneOfWarning', "Matches multiple schemas when only one must validate.")
                 });
             }
-            if (bestMatch) {
+            if (bestMatch !== null) {
                 validationResult.merge(bestMatch.validationResult);
                 validationResult.propertiesMatches += bestMatch.validationResult.propertiesMatches;
                 validationResult.propertiesValueMatches += bestMatch.validationResult.propertiesValueMatches;
@@ -523,35 +523,8 @@ function validate(n, schema, validationResult, matchingSchemas) {
     }
     function _validateNumberNode(node, schema, validationResult, matchingSchemas) {
         var val = node.value;
-        function normalizeFloats(float) {
-            var _a;
-            var parts = /^(-?\d+)(?:\.(\d+))?(?:e([-+]\d+))?$/.exec(float.toString());
-            return parts && {
-                value: Number(parts[1] + (parts[2] || '')),
-                multiplier: (((_a = parts[2]) === null || _a === void 0 ? void 0 : _a.length) || 0) - (parseInt(parts[3]) || 0)
-            };
-        }
-        ;
         if (isNumber(schema.multipleOf)) {
-            var remainder = -1;
-            if (Number.isInteger(schema.multipleOf)) {
-                remainder = val % schema.multipleOf;
-            }
-            else {
-                var normMultipleOf = normalizeFloats(schema.multipleOf);
-                var normValue = normalizeFloats(val);
-                if (normMultipleOf && normValue) {
-                    var multiplier = Math.pow(10, Math.abs(normValue.multiplier - normMultipleOf.multiplier));
-                    if (normValue.multiplier < normMultipleOf.multiplier) {
-                        normValue.value *= multiplier;
-                    }
-                    else {
-                        normMultipleOf.value *= multiplier;
-                    }
-                    remainder = normValue.value % normMultipleOf.value;
-                }
-            }
-            if (remainder !== 0) {
+            if (val % schema.multipleOf !== 0) {
                 validationResult.problems.push({
                     location: { offset: node.offset, length: node.length },
                     severity: DiagnosticSeverity.Warning,
@@ -566,13 +539,13 @@ function validate(n, schema, validationResult, matchingSchemas) {
             if (isBoolean(exclusive) && exclusive) {
                 return limit;
             }
-            return undefined;
+            return void 0;
         }
         function getLimit(limit, exclusive) {
             if (!isBoolean(exclusive) || !exclusive) {
                 return limit;
             }
-            return undefined;
+            return void 0;
         }
         var exclusiveMinimum = getExclusiveLimit(schema.minimum, schema.exclusiveMinimum);
         if (isNumber(exclusiveMinimum) && val <= exclusiveMinimum) {
@@ -951,7 +924,7 @@ export function parse(textDocument, config) {
     var lastProblemOffset = -1;
     var text = textDocument.getText();
     var scanner = Json.createScanner(text, false);
-    var commentRanges = config && config.collectComments ? [] : undefined;
+    var commentRanges = config && config.collectComments ? [] : void 0;
     function _scanNext() {
         while (true) {
             var token_1 = scanner.scan();
@@ -987,7 +960,7 @@ export function parse(textDocument, config) {
         }
     }
     function _error(message, code, node, skipUntilAfter, skipUntil) {
-        if (node === void 0) { node = undefined; }
+        if (node === void 0) { node = null; }
         if (skipUntilAfter === void 0) { skipUntilAfter = []; }
         if (skipUntil === void 0) { skipUntil = []; }
         var start = scanner.getTokenOffset();
@@ -1050,7 +1023,7 @@ export function parse(textDocument, config) {
     }
     function _parseArray(parent) {
         if (scanner.getToken() !== 3 /* OpenBracketToken */) {
-            return undefined;
+            return null;
         }
         var node = new ArrayASTNodeImpl(parent, scanner.getTokenOffset());
         _scanNext(); // consume OpenBracketToken
@@ -1073,9 +1046,9 @@ export function parse(textDocument, config) {
             else if (needsComma) {
                 _error(localize('ExpectedComma', 'Expected comma'), ErrorCode.CommaExpected);
             }
-            var item = _parseValue(node);
+            var item = _parseValue(node, count++);
             if (!item) {
-                _error(localize('PropertyExpected', 'Value expected'), ErrorCode.ValueExpected, undefined, [], [4 /* CloseBracketToken */, 5 /* CommaToken */]);
+                _error(localize('PropertyExpected', 'Value expected'), ErrorCode.ValueExpected, null, [], [4 /* CloseBracketToken */, 5 /* CommaToken */]);
             }
             else {
                 node.items.push(item);
@@ -1087,9 +1060,8 @@ export function parse(textDocument, config) {
         }
         return _finalize(node, true);
     }
-    var keyPlaceholder = new StringASTNodeImpl(undefined, 0, 0);
     function _parseProperty(parent, keysSeen) {
-        var node = new PropertyASTNodeImpl(parent, scanner.getTokenOffset(), keyPlaceholder);
+        var node = new PropertyASTNodeImpl(parent, scanner.getTokenOffset());
         var key = _parseString(node);
         if (!key) {
             if (scanner.getToken() === 16 /* Unknown */) {
@@ -1101,7 +1073,7 @@ export function parse(textDocument, config) {
                 _scanNext(); // consume Unknown
             }
             else {
-                return undefined;
+                return null;
             }
         }
         node.keyNode = key;
@@ -1127,7 +1099,7 @@ export function parse(textDocument, config) {
                 return node;
             }
         }
-        var value = _parseValue(node);
+        var value = _parseValue(node, key.value);
         if (!value) {
             return _error(localize('ValueExpected', 'Value expected'), ErrorCode.ValueExpected, node, [], [2 /* CloseBraceToken */, 5 /* CommaToken */]);
         }
@@ -1137,7 +1109,7 @@ export function parse(textDocument, config) {
     }
     function _parseObject(parent) {
         if (scanner.getToken() !== 1 /* OpenBraceToken */) {
-            return undefined;
+            return null;
         }
         var node = new ObjectASTNodeImpl(parent, scanner.getTokenOffset());
         var keysSeen = Object.create(null);
@@ -1162,7 +1134,7 @@ export function parse(textDocument, config) {
             }
             var property = _parseProperty(node, keysSeen);
             if (!property) {
-                _error(localize('PropertyExpected', 'Property expected'), ErrorCode.PropertyExpected, undefined, [], [2 /* CloseBraceToken */, 5 /* CommaToken */]);
+                _error(localize('PropertyExpected', 'Property expected'), ErrorCode.PropertyExpected, null, [], [2 /* CloseBraceToken */, 5 /* CommaToken */]);
             }
             else {
                 node.properties.push(property);
@@ -1176,7 +1148,7 @@ export function parse(textDocument, config) {
     }
     function _parseString(parent) {
         if (scanner.getToken() !== 10 /* StringLiteral */) {
-            return undefined;
+            return null;
         }
         var node = new StringASTNodeImpl(parent, scanner.getTokenOffset());
         node.value = scanner.getTokenValue();
@@ -1184,7 +1156,7 @@ export function parse(textDocument, config) {
     }
     function _parseNumber(parent) {
         if (scanner.getToken() !== 11 /* NumericLiteral */) {
-            return undefined;
+            return null;
         }
         var node = new NumberASTNodeImpl(parent, scanner.getTokenOffset());
         if (scanner.getTokenError() === 0 /* None */) {
@@ -1213,16 +1185,16 @@ export function parse(textDocument, config) {
             case 9 /* FalseKeyword */:
                 return _finalize(new BooleanASTNodeImpl(parent, false, scanner.getTokenOffset()), true);
             default:
-                return undefined;
+                return null;
         }
     }
-    function _parseValue(parent) {
+    function _parseValue(parent, name) {
         return _parseArray(parent) || _parseObject(parent) || _parseString(parent) || _parseNumber(parent) || _parseLiteral(parent);
     }
-    var _root = undefined;
+    var _root = null;
     var token = _scanNext();
     if (token !== 17 /* EOF */) {
-        _root = _parseValue(_root);
+        _root = _parseValue(null, null);
         if (!_root) {
             _error(localize('Invalid symbol', 'Expected a JSON object, array or literal.'), ErrorCode.Undefined);
         }

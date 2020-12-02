@@ -2,21 +2,36 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 import { onUnexpectedError } from './errors.js';
-import { Disposable, combinedDisposable, DisposableStore } from './lifecycle.js';
+import { once as onceFn } from './functional.js';
+import { Disposable, toDisposable, combinedDisposable, DisposableStore } from './lifecycle.js';
 import { LinkedList } from './linkedList.js';
 export var Event;
 (function (Event) {
-    Event.None = () => Disposable.None;
+    Event.None = function () { return Disposable.None; };
     /**
      * Given an event, returns another event which only fires once.
      */
     function once(event) {
-        return (listener, thisArgs = null, disposables) => {
+        return function (listener, thisArgs, disposables) {
+            if (thisArgs === void 0) { thisArgs = null; }
             // we need this, in case the event fires during the listener call
-            let didFire = false;
-            let result;
-            result = event(e => {
+            var didFire = false;
+            var result;
+            result = event(function (e) {
                 if (didFire) {
                     return;
                 }
@@ -40,7 +55,10 @@ export var Event;
      * through the mapping function.
      */
     function map(event, map) {
-        return snapshot((listener, thisArgs = null, disposables) => event(i => listener.call(thisArgs, map(i)), null, disposables));
+        return snapshot(function (listener, thisArgs, disposables) {
+            if (thisArgs === void 0) { thisArgs = null; }
+            return event(function (i) { return listener.call(thisArgs, map(i)); }, null, disposables);
+        });
     }
     Event.map = map;
     /**
@@ -48,11 +66,17 @@ export var Event;
      * the `each` function per each element.
      */
     function forEach(event, each) {
-        return snapshot((listener, thisArgs = null, disposables) => event(i => { each(i); listener.call(thisArgs, i); }, null, disposables));
+        return snapshot(function (listener, thisArgs, disposables) {
+            if (thisArgs === void 0) { thisArgs = null; }
+            return event(function (i) { each(i); listener.call(thisArgs, i); }, null, disposables);
+        });
     }
     Event.forEach = forEach;
     function filter(event, filter) {
-        return snapshot((listener, thisArgs = null, disposables) => event(e => filter(e) && listener.call(thisArgs, e), null, disposables));
+        return snapshot(function (listener, thisArgs, disposables) {
+            if (thisArgs === void 0) { thisArgs = null; }
+            return event(function (e) { return filter(e) && listener.call(thisArgs, e); }, null, disposables);
+        });
     }
     Event.filter = filter;
     /**
@@ -62,8 +86,19 @@ export var Event;
         return event;
     }
     Event.signal = signal;
-    function any(...events) {
-        return (listener, thisArgs = null, disposables) => combinedDisposable(...events.map(event => event(e => listener.call(thisArgs, e), null, disposables)));
+    /**
+     * Given a collection of events, returns a single event which emits
+     * whenever any of the provided events emit.
+     */
+    function any() {
+        var events = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            events[_i] = arguments[_i];
+        }
+        return function (listener, thisArgs, disposables) {
+            if (thisArgs === void 0) { thisArgs = null; }
+            return combinedDisposable.apply(void 0, events.map(function (event) { return event(function (e) { return listener.call(thisArgs, e); }, null, disposables); }));
+        };
     }
     Event.any = any;
     /**
@@ -71,8 +106,8 @@ export var Event;
      * and the cumulative result through the `merge` function. Similar to `map`, but with memory.
      */
     function reduce(event, merge, initial) {
-        let output = initial;
-        return map(event, e => {
+        var output = initial;
+        return map(event, function (e) {
             output = merge(output, e);
             return output;
         });
@@ -84,27 +119,29 @@ export var Event;
      * chain allows each function to be invoked just once per event.
      */
     function snapshot(event) {
-        let listener;
-        const emitter = new Emitter({
-            onFirstListenerAdd() {
+        var listener;
+        var emitter = new Emitter({
+            onFirstListenerAdd: function () {
                 listener = event(emitter.fire, emitter);
             },
-            onLastListenerRemove() {
+            onLastListenerRemove: function () {
                 listener.dispose();
             }
         });
         return emitter.event;
     }
     Event.snapshot = snapshot;
-    function debounce(event, merge, delay = 100, leading = false, leakWarningThreshold) {
-        let subscription;
-        let output = undefined;
-        let handle = undefined;
-        let numDebouncedCalls = 0;
-        const emitter = new Emitter({
-            leakWarningThreshold,
-            onFirstListenerAdd() {
-                subscription = event(cur => {
+    function debounce(event, merge, delay, leading, leakWarningThreshold) {
+        if (delay === void 0) { delay = 100; }
+        if (leading === void 0) { leading = false; }
+        var subscription;
+        var output = undefined;
+        var handle = undefined;
+        var numDebouncedCalls = 0;
+        var emitter = new Emitter({
+            leakWarningThreshold: leakWarningThreshold,
+            onFirstListenerAdd: function () {
+                subscription = event(function (cur) {
                     numDebouncedCalls++;
                     output = merge(output, cur);
                     if (leading && !handle) {
@@ -112,8 +149,8 @@ export var Event;
                         output = undefined;
                     }
                     clearTimeout(handle);
-                    handle = setTimeout(() => {
-                        const _output = output;
+                    handle = setTimeout(function () {
+                        var _output = output;
                         output = undefined;
                         handle = undefined;
                         if (!leading || numDebouncedCalls > 1) {
@@ -123,7 +160,7 @@ export var Event;
                     }, delay);
                 });
             },
-            onLastListenerRemove() {
+            onLastListenerRemove: function () {
                 subscription.dispose();
             }
         });
@@ -136,8 +173,8 @@ export var Event;
      * event to fire.
      */
     function stopwatch(event) {
-        const start = new Date().getTime();
-        return map(once(event), _ => new Date().getTime() - start);
+        var start = new Date().getTime();
+        return map(once(event), function (_) { return new Date().getTime() - start; });
     }
     Event.stopwatch = stopwatch;
     /**
@@ -145,10 +182,10 @@ export var Event;
      * element changes.
      */
     function latch(event) {
-        let firstCall = true;
-        let cache;
-        return filter(event, value => {
-            const shouldEmit = firstCall || value !== cache;
+        var firstCall = true;
+        var cache;
+        return filter(event, function (value) {
+            var shouldEmit = firstCall || value !== cache;
             firstCall = false;
             cache = value;
             return shouldEmit;
@@ -177,9 +214,11 @@ export var Event;
      * // 4
      * ```
      */
-    function buffer(event, nextTick = false, _buffer = []) {
-        let buffer = _buffer.slice();
-        let listener = event(e => {
+    function buffer(event, nextTick, _buffer) {
+        if (nextTick === void 0) { nextTick = false; }
+        if (_buffer === void 0) { _buffer = []; }
+        var buffer = _buffer.slice();
+        var listener = event(function (e) {
             if (buffer) {
                 buffer.push(e);
             }
@@ -187,19 +226,19 @@ export var Event;
                 emitter.fire(e);
             }
         });
-        const flush = () => {
+        var flush = function () {
             if (buffer) {
-                buffer.forEach(e => emitter.fire(e));
+                buffer.forEach(function (e) { return emitter.fire(e); });
             }
             buffer = null;
         };
-        const emitter = new Emitter({
-            onFirstListenerAdd() {
+        var emitter = new Emitter({
+            onFirstListenerAdd: function () {
                 if (!listener) {
-                    listener = event(e => emitter.fire(e));
+                    listener = event(function (e) { return emitter.fire(e); });
                 }
             },
-            onFirstListenerDidAdd() {
+            onFirstListenerDidAdd: function () {
                 if (buffer) {
                     if (nextTick) {
                         setTimeout(flush);
@@ -209,7 +248,7 @@ export var Event;
                     }
                 }
             },
-            onLastListenerRemove() {
+            onLastListenerRemove: function () {
                 if (listener) {
                     listener.dispose();
                 }
@@ -219,63 +258,80 @@ export var Event;
         return emitter.event;
     }
     Event.buffer = buffer;
-    class ChainableEvent {
-        constructor(event) {
+    var ChainableEvent = /** @class */ (function () {
+        function ChainableEvent(event) {
             this.event = event;
         }
-        map(fn) {
+        ChainableEvent.prototype.map = function (fn) {
             return new ChainableEvent(map(this.event, fn));
-        }
-        forEach(fn) {
+        };
+        ChainableEvent.prototype.forEach = function (fn) {
             return new ChainableEvent(forEach(this.event, fn));
-        }
-        filter(fn) {
+        };
+        ChainableEvent.prototype.filter = function (fn) {
             return new ChainableEvent(filter(this.event, fn));
-        }
-        reduce(merge, initial) {
+        };
+        ChainableEvent.prototype.reduce = function (merge, initial) {
             return new ChainableEvent(reduce(this.event, merge, initial));
-        }
-        latch() {
+        };
+        ChainableEvent.prototype.latch = function () {
             return new ChainableEvent(latch(this.event));
-        }
-        debounce(merge, delay = 100, leading = false, leakWarningThreshold) {
+        };
+        ChainableEvent.prototype.debounce = function (merge, delay, leading, leakWarningThreshold) {
+            if (delay === void 0) { delay = 100; }
+            if (leading === void 0) { leading = false; }
             return new ChainableEvent(debounce(this.event, merge, delay, leading, leakWarningThreshold));
-        }
-        on(listener, thisArgs, disposables) {
+        };
+        ChainableEvent.prototype.on = function (listener, thisArgs, disposables) {
             return this.event(listener, thisArgs, disposables);
-        }
-        once(listener, thisArgs, disposables) {
+        };
+        ChainableEvent.prototype.once = function (listener, thisArgs, disposables) {
             return once(this.event)(listener, thisArgs, disposables);
-        }
-    }
+        };
+        return ChainableEvent;
+    }());
     function chain(event) {
         return new ChainableEvent(event);
     }
     Event.chain = chain;
-    function fromNodeEventEmitter(emitter, eventName, map = id => id) {
-        const fn = (...args) => result.fire(map(...args));
-        const onFirstListenerAdd = () => emitter.on(eventName, fn);
-        const onLastListenerRemove = () => emitter.removeListener(eventName, fn);
-        const result = new Emitter({ onFirstListenerAdd, onLastListenerRemove });
+    function fromNodeEventEmitter(emitter, eventName, map) {
+        if (map === void 0) { map = function (id) { return id; }; }
+        var fn = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            return result.fire(map.apply(void 0, args));
+        };
+        var onFirstListenerAdd = function () { return emitter.on(eventName, fn); };
+        var onLastListenerRemove = function () { return emitter.removeListener(eventName, fn); };
+        var result = new Emitter({ onFirstListenerAdd: onFirstListenerAdd, onLastListenerRemove: onLastListenerRemove });
         return result.event;
     }
     Event.fromNodeEventEmitter = fromNodeEventEmitter;
-    function fromDOMEventEmitter(emitter, eventName, map = id => id) {
-        const fn = (...args) => result.fire(map(...args));
-        const onFirstListenerAdd = () => emitter.addEventListener(eventName, fn);
-        const onLastListenerRemove = () => emitter.removeEventListener(eventName, fn);
-        const result = new Emitter({ onFirstListenerAdd, onLastListenerRemove });
+    function fromDOMEventEmitter(emitter, eventName, map) {
+        if (map === void 0) { map = function (id) { return id; }; }
+        var fn = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            return result.fire(map.apply(void 0, args));
+        };
+        var onFirstListenerAdd = function () { return emitter.addEventListener(eventName, fn); };
+        var onLastListenerRemove = function () { return emitter.removeEventListener(eventName, fn); };
+        var result = new Emitter({ onFirstListenerAdd: onFirstListenerAdd, onLastListenerRemove: onLastListenerRemove });
         return result.event;
     }
     Event.fromDOMEventEmitter = fromDOMEventEmitter;
     function fromPromise(promise) {
-        const emitter = new Emitter();
-        let shouldEmit = false;
+        var emitter = new Emitter();
+        var shouldEmit = false;
         promise
-            .then(undefined, () => null)
-            .then(() => {
+            .then(undefined, function () { return null; })
+            .then(function () {
             if (!shouldEmit) {
-                setTimeout(() => emitter.fire(undefined), 0);
+                setTimeout(function () { return emitter.fire(undefined); }, 0);
             }
             else {
                 emitter.fire(undefined);
@@ -286,24 +342,26 @@ export var Event;
     }
     Event.fromPromise = fromPromise;
     function toPromise(event) {
-        return new Promise(c => once(event)(c));
+        return new Promise(function (c) { return once(event)(c); });
     }
     Event.toPromise = toPromise;
 })(Event || (Event = {}));
-let _globalLeakWarningThreshold = -1;
-class LeakageMonitor {
-    constructor(customThreshold, name = Math.random().toString(18).slice(2, 5)) {
+var _globalLeakWarningThreshold = -1;
+var LeakageMonitor = /** @class */ (function () {
+    function LeakageMonitor(customThreshold, name) {
+        if (name === void 0) { name = Math.random().toString(18).slice(2, 5); }
         this.customThreshold = customThreshold;
         this.name = name;
         this._warnCountdown = 0;
     }
-    dispose() {
+    LeakageMonitor.prototype.dispose = function () {
         if (this._stacks) {
             this._stacks.clear();
         }
-    }
-    check(listenerCount) {
-        let threshold = _globalLeakWarningThreshold;
+    };
+    LeakageMonitor.prototype.check = function (listenerCount) {
+        var _this = this;
+        var threshold = _globalLeakWarningThreshold;
         if (typeof this.customThreshold === 'number') {
             threshold = this.customThreshold;
         }
@@ -313,8 +371,8 @@ class LeakageMonitor {
         if (!this._stacks) {
             this._stacks = new Map();
         }
-        const stack = new Error().stack.split('\n').slice(3).join('\n');
-        const count = (this._stacks.get(stack) || 0);
+        var stack = new Error().stack.split('\n').slice(3).join('\n');
+        var count = (this._stacks.get(stack) || 0);
         this._stacks.set(stack, count + 1);
         this._warnCountdown -= 1;
         if (this._warnCountdown <= 0) {
@@ -322,23 +380,24 @@ class LeakageMonitor {
             // is exceeded by 50% again
             this._warnCountdown = threshold * 0.5;
             // find most frequent listener and print warning
-            let topStack;
-            let topCount = 0;
-            for (const [stack, count] of this._stacks) {
-                if (!topStack || topCount < count) {
-                    topStack = stack;
-                    topCount = count;
+            var topStack_1;
+            var topCount_1 = 0;
+            this._stacks.forEach(function (count, stack) {
+                if (!topStack_1 || topCount_1 < count) {
+                    topStack_1 = stack;
+                    topCount_1 = count;
                 }
-            }
-            console.warn(`[${this.name}] potential listener LEAK detected, having ${listenerCount} listeners already. MOST frequent listener (${topCount}):`);
-            console.warn(topStack);
+            });
+            console.warn("[" + this.name + "] potential listener LEAK detected, having " + listenerCount + " listeners already. MOST frequent listener (" + topCount_1 + "):");
+            console.warn(topStack_1);
         }
-        return () => {
-            const count = (this._stacks.get(stack) || 0);
-            this._stacks.set(stack, count - 1);
+        return function () {
+            var count = (_this._stacks.get(stack) || 0);
+            _this._stacks.set(stack, count - 1);
         };
-    }
-}
+    };
+    return LeakageMonitor;
+}());
 /**
  * The Emitter can be used to expose an Event to the public
  * to fire it from the insides.
@@ -360,74 +419,79 @@ class LeakageMonitor {
         }
     }
  */
-export class Emitter {
-    constructor(options) {
+var Emitter = /** @class */ (function () {
+    function Emitter(options) {
         this._disposed = false;
         this._options = options;
         this._leakageMon = _globalLeakWarningThreshold > 0
             ? new LeakageMonitor(this._options && this._options.leakWarningThreshold)
             : undefined;
     }
-    /**
-     * For the public to allow to subscribe
-     * to events from this Emitter
-     */
-    get event() {
-        if (!this._event) {
-            this._event = (listener, thisArgs, disposables) => {
-                if (!this._listeners) {
-                    this._listeners = new LinkedList();
-                }
-                const firstListener = this._listeners.isEmpty();
-                if (firstListener && this._options && this._options.onFirstListenerAdd) {
-                    this._options.onFirstListenerAdd(this);
-                }
-                const remove = this._listeners.push(!thisArgs ? listener : [listener, thisArgs]);
-                if (firstListener && this._options && this._options.onFirstListenerDidAdd) {
-                    this._options.onFirstListenerDidAdd(this);
-                }
-                if (this._options && this._options.onListenerDidAdd) {
-                    this._options.onListenerDidAdd(this, listener, thisArgs);
-                }
-                // check and record this emitter for potential leakage
-                let removeMonitor;
-                if (this._leakageMon) {
-                    removeMonitor = this._leakageMon.check(this._listeners.size);
-                }
-                let result;
-                result = {
-                    dispose: () => {
-                        if (removeMonitor) {
-                            removeMonitor();
-                        }
-                        result.dispose = Emitter._noop;
-                        if (!this._disposed) {
-                            remove();
-                            if (this._options && this._options.onLastListenerRemove) {
-                                const hasListeners = (this._listeners && !this._listeners.isEmpty());
-                                if (!hasListeners) {
-                                    this._options.onLastListenerRemove(this);
+    Object.defineProperty(Emitter.prototype, "event", {
+        /**
+         * For the public to allow to subscribe
+         * to events from this Emitter
+         */
+        get: function () {
+            var _this = this;
+            if (!this._event) {
+                this._event = function (listener, thisArgs, disposables) {
+                    if (!_this._listeners) {
+                        _this._listeners = new LinkedList();
+                    }
+                    var firstListener = _this._listeners.isEmpty();
+                    if (firstListener && _this._options && _this._options.onFirstListenerAdd) {
+                        _this._options.onFirstListenerAdd(_this);
+                    }
+                    var remove = _this._listeners.push(!thisArgs ? listener : [listener, thisArgs]);
+                    if (firstListener && _this._options && _this._options.onFirstListenerDidAdd) {
+                        _this._options.onFirstListenerDidAdd(_this);
+                    }
+                    if (_this._options && _this._options.onListenerDidAdd) {
+                        _this._options.onListenerDidAdd(_this, listener, thisArgs);
+                    }
+                    // check and record this emitter for potential leakage
+                    var removeMonitor;
+                    if (_this._leakageMon) {
+                        removeMonitor = _this._leakageMon.check(_this._listeners.size);
+                    }
+                    var result;
+                    result = {
+                        dispose: function () {
+                            if (removeMonitor) {
+                                removeMonitor();
+                            }
+                            result.dispose = Emitter._noop;
+                            if (!_this._disposed) {
+                                remove();
+                                if (_this._options && _this._options.onLastListenerRemove) {
+                                    var hasListeners = (_this._listeners && !_this._listeners.isEmpty());
+                                    if (!hasListeners) {
+                                        _this._options.onLastListenerRemove(_this);
+                                    }
                                 }
                             }
                         }
+                    };
+                    if (disposables instanceof DisposableStore) {
+                        disposables.add(result);
                     }
+                    else if (Array.isArray(disposables)) {
+                        disposables.push(result);
+                    }
+                    return result;
                 };
-                if (disposables instanceof DisposableStore) {
-                    disposables.add(result);
-                }
-                else if (Array.isArray(disposables)) {
-                    disposables.push(result);
-                }
-                return result;
-            };
-        }
-        return this._event;
-    }
+            }
+            return this._event;
+        },
+        enumerable: true,
+        configurable: true
+    });
     /**
      * To be kept private to fire an event to
      * subscribers
      */
-    fire(event) {
+    Emitter.prototype.fire = function (event) {
         if (this._listeners) {
             // put all [listener,event]-pairs into delivery queue
             // then emit all event. an inner/nested event might be
@@ -435,17 +499,17 @@ export class Emitter {
             if (!this._deliveryQueue) {
                 this._deliveryQueue = new LinkedList();
             }
-            for (let listener of this._listeners) {
-                this._deliveryQueue.push([listener, event]);
+            for (var iter = this._listeners.iterator(), e = iter.next(); !e.done; e = iter.next()) {
+                this._deliveryQueue.push([e.value, event]);
             }
             while (this._deliveryQueue.size > 0) {
-                const [listener, event] = this._deliveryQueue.shift();
+                var _a = this._deliveryQueue.shift(), listener = _a[0], event_1 = _a[1];
                 try {
                     if (typeof listener === 'function') {
-                        listener.call(undefined, event);
+                        listener.call(undefined, event_1);
                     }
                     else {
-                        listener[0].call(listener[1], event);
+                        listener[0].call(listener[1], event_1);
                     }
                 }
                 catch (e) {
@@ -453,8 +517,8 @@ export class Emitter {
                 }
             }
         }
-    }
-    dispose() {
+    };
+    Emitter.prototype.dispose = function () {
         if (this._listeners) {
             this._listeners.clear();
         }
@@ -465,48 +529,113 @@ export class Emitter {
             this._leakageMon.dispose();
         }
         this._disposed = true;
+    };
+    Emitter._noop = function () { };
+    return Emitter;
+}());
+export { Emitter };
+var PauseableEmitter = /** @class */ (function (_super) {
+    __extends(PauseableEmitter, _super);
+    function PauseableEmitter(options) {
+        var _this = _super.call(this, options) || this;
+        _this._isPaused = 0;
+        _this._eventQueue = new LinkedList();
+        _this._mergeFn = options && options.merge;
+        return _this;
     }
-}
-Emitter._noop = function () { };
-export class PauseableEmitter extends Emitter {
-    constructor(options) {
-        super(options);
-        this._isPaused = 0;
-        this._eventQueue = new LinkedList();
-        this._mergeFn = options && options.merge;
-    }
-    pause() {
+    PauseableEmitter.prototype.pause = function () {
         this._isPaused++;
-    }
-    resume() {
+    };
+    PauseableEmitter.prototype.resume = function () {
         if (this._isPaused !== 0 && --this._isPaused === 0) {
             if (this._mergeFn) {
                 // use the merge function to create a single composite
                 // event. make a copy in case firing pauses this emitter
-                const events = this._eventQueue.toArray();
+                var events = this._eventQueue.toArray();
                 this._eventQueue.clear();
-                super.fire(this._mergeFn(events));
+                _super.prototype.fire.call(this, this._mergeFn(events));
             }
             else {
                 // no merging, fire each event individually and test
                 // that this emitter isn't paused halfway through
                 while (!this._isPaused && this._eventQueue.size !== 0) {
-                    super.fire(this._eventQueue.shift());
+                    _super.prototype.fire.call(this, this._eventQueue.shift());
                 }
             }
         }
-    }
-    fire(event) {
+    };
+    PauseableEmitter.prototype.fire = function (event) {
         if (this._listeners) {
             if (this._isPaused !== 0) {
                 this._eventQueue.push(event);
             }
             else {
-                super.fire(event);
+                _super.prototype.fire.call(this, event);
             }
         }
+    };
+    return PauseableEmitter;
+}(Emitter));
+export { PauseableEmitter };
+var EventMultiplexer = /** @class */ (function () {
+    function EventMultiplexer() {
+        var _this = this;
+        this.hasListeners = false;
+        this.events = [];
+        this.emitter = new Emitter({
+            onFirstListenerAdd: function () { return _this.onFirstListenerAdd(); },
+            onLastListenerRemove: function () { return _this.onLastListenerRemove(); }
+        });
     }
-}
+    Object.defineProperty(EventMultiplexer.prototype, "event", {
+        get: function () {
+            return this.emitter.event;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    EventMultiplexer.prototype.add = function (event) {
+        var _this = this;
+        var e = { event: event, listener: null };
+        this.events.push(e);
+        if (this.hasListeners) {
+            this.hook(e);
+        }
+        var dispose = function () {
+            if (_this.hasListeners) {
+                _this.unhook(e);
+            }
+            var idx = _this.events.indexOf(e);
+            _this.events.splice(idx, 1);
+        };
+        return toDisposable(onceFn(dispose));
+    };
+    EventMultiplexer.prototype.onFirstListenerAdd = function () {
+        var _this = this;
+        this.hasListeners = true;
+        this.events.forEach(function (e) { return _this.hook(e); });
+    };
+    EventMultiplexer.prototype.onLastListenerRemove = function () {
+        var _this = this;
+        this.hasListeners = false;
+        this.events.forEach(function (e) { return _this.unhook(e); });
+    };
+    EventMultiplexer.prototype.hook = function (e) {
+        var _this = this;
+        e.listener = e.event(function (r) { return _this.emitter.fire(r); });
+    };
+    EventMultiplexer.prototype.unhook = function (e) {
+        if (e.listener) {
+            e.listener.dispose();
+        }
+        e.listener = null;
+    };
+    EventMultiplexer.prototype.dispose = function () {
+        this.emitter.dispose();
+    };
+    return EventMultiplexer;
+}());
+export { EventMultiplexer };
 /**
  * The EventBufferer is useful in situations in which you want
  * to delay firing your events during some code.
@@ -527,64 +656,74 @@ export class PauseableEmitter extends Emitter {
  * // event will only be fired at this point
  * ```
  */
-export class EventBufferer {
-    constructor() {
+var EventBufferer = /** @class */ (function () {
+    function EventBufferer() {
         this.buffers = [];
     }
-    wrapEvent(event) {
-        return (listener, thisArgs, disposables) => {
-            return event(i => {
-                const buffer = this.buffers[this.buffers.length - 1];
+    EventBufferer.prototype.wrapEvent = function (event) {
+        var _this = this;
+        return function (listener, thisArgs, disposables) {
+            return event(function (i) {
+                var buffer = _this.buffers[_this.buffers.length - 1];
                 if (buffer) {
-                    buffer.push(() => listener.call(thisArgs, i));
+                    buffer.push(function () { return listener.call(thisArgs, i); });
                 }
                 else {
                     listener.call(thisArgs, i);
                 }
             }, undefined, disposables);
         };
-    }
-    bufferEvents(fn) {
-        const buffer = [];
+    };
+    EventBufferer.prototype.bufferEvents = function (fn) {
+        var buffer = [];
         this.buffers.push(buffer);
-        const r = fn();
+        var r = fn();
         this.buffers.pop();
-        buffer.forEach(flush => flush());
+        buffer.forEach(function (flush) { return flush(); });
         return r;
-    }
-}
+    };
+    return EventBufferer;
+}());
+export { EventBufferer };
 /**
  * A Relay is an event forwarder which functions as a replugabble event pipe.
  * Once created, you can connect an input event to it and it will simply forward
  * events from that input event through its own `event` property. The `input`
  * can be changed at any point in time.
  */
-export class Relay {
-    constructor() {
+var Relay = /** @class */ (function () {
+    function Relay() {
+        var _this = this;
         this.listening = false;
         this.inputEvent = Event.None;
         this.inputEventListener = Disposable.None;
         this.emitter = new Emitter({
-            onFirstListenerDidAdd: () => {
-                this.listening = true;
-                this.inputEventListener = this.inputEvent(this.emitter.fire, this.emitter);
+            onFirstListenerDidAdd: function () {
+                _this.listening = true;
+                _this.inputEventListener = _this.inputEvent(_this.emitter.fire, _this.emitter);
             },
-            onLastListenerRemove: () => {
-                this.listening = false;
-                this.inputEventListener.dispose();
+            onLastListenerRemove: function () {
+                _this.listening = false;
+                _this.inputEventListener.dispose();
             }
         });
         this.event = this.emitter.event;
     }
-    set input(event) {
-        this.inputEvent = event;
-        if (this.listening) {
-            this.inputEventListener.dispose();
-            this.inputEventListener = event(this.emitter.fire, this.emitter);
-        }
-    }
-    dispose() {
+    Object.defineProperty(Relay.prototype, "input", {
+        set: function (event) {
+            this.inputEvent = event;
+            if (this.listening) {
+                this.inputEventListener.dispose();
+                this.inputEventListener = event(this.emitter.fire, this.emitter);
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Relay.prototype.dispose = function () {
         this.inputEventListener.dispose();
         this.emitter.dispose();
-    }
-}
+    };
+    return Relay;
+}());
+export { Relay };

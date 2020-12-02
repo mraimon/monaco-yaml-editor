@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-export class IndentRulesSupport {
-    constructor(indentationRules) {
+var IndentRulesSupport = /** @class */ (function () {
+    function IndentRulesSupport(indentationRules) {
         this._indentationRules = indentationRules;
     }
-    shouldIncrease(text) {
+    IndentRulesSupport.prototype.shouldIncrease = function (text) {
         if (this._indentationRules) {
             if (this._indentationRules.increaseIndentPattern && this._indentationRules.increaseIndentPattern.test(text)) {
                 return true;
@@ -16,28 +16,28 @@ export class IndentRulesSupport {
             // }
         }
         return false;
-    }
-    shouldDecrease(text) {
+    };
+    IndentRulesSupport.prototype.shouldDecrease = function (text) {
         if (this._indentationRules && this._indentationRules.decreaseIndentPattern && this._indentationRules.decreaseIndentPattern.test(text)) {
             return true;
         }
         return false;
-    }
-    shouldIndentNextLine(text) {
+    };
+    IndentRulesSupport.prototype.shouldIndentNextLine = function (text) {
         if (this._indentationRules && this._indentationRules.indentNextLinePattern && this._indentationRules.indentNextLinePattern.test(text)) {
             return true;
         }
         return false;
-    }
-    shouldIgnore(text) {
+    };
+    IndentRulesSupport.prototype.shouldIgnore = function (text) {
         // the text matches `unIndentedLinePattern`
         if (this._indentationRules && this._indentationRules.unIndentedLinePattern && this._indentationRules.unIndentedLinePattern.test(text)) {
             return true;
         }
         return false;
-    }
-    getIndentMetadata(text) {
-        let ret = 0;
+    };
+    IndentRulesSupport.prototype.getIndentMetadata = function (text) {
+        var ret = 0;
         if (this.shouldIncrease(text)) {
             ret += 1 /* INCREASE_MASK */;
         }
@@ -51,5 +51,7 @@ export class IndentRulesSupport {
             ret += 8 /* UNINDENT_MASK */;
         }
         return ret;
-    }
-}
+    };
+    return IndentRulesSupport;
+}());
+export { IndentRulesSupport };

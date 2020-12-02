@@ -5,8 +5,8 @@
 import * as objects from '../../../common/objects.js';
 import { renderCodicons } from '../../../common/codicons.js';
 import { escape } from '../../../common/strings.js';
-export class HighlightedLabel {
-    constructor(container, supportCodicons) {
+var HighlightedLabel = /** @class */ (function () {
+    function HighlightedLabel(container, supportCodicons) {
         this.supportCodicons = supportCodicons;
         this.text = '';
         this.title = '';
@@ -16,10 +16,16 @@ export class HighlightedLabel {
         this.domNode.className = 'monaco-highlighted-label';
         container.appendChild(this.domNode);
     }
-    get element() {
-        return this.domNode;
-    }
-    set(text, highlights = [], title = '', escapeNewLines) {
+    Object.defineProperty(HighlightedLabel.prototype, "element", {
+        get: function () {
+            return this.domNode;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    HighlightedLabel.prototype.set = function (text, highlights, title, escapeNewLines) {
+        if (highlights === void 0) { highlights = []; }
+        if (title === void 0) { title = ''; }
         if (!text) {
             text = '';
         }
@@ -37,35 +43,36 @@ export class HighlightedLabel {
         this.title = title;
         this.highlights = highlights;
         this.render();
-    }
-    render() {
-        let htmlContent = '';
-        let pos = 0;
-        for (const highlight of this.highlights) {
+    };
+    HighlightedLabel.prototype.render = function () {
+        var htmlContent = '';
+        var pos = 0;
+        for (var _i = 0, _a = this.highlights; _i < _a.length; _i++) {
+            var highlight = _a[_i];
             if (highlight.end === highlight.start) {
                 continue;
             }
             if (pos < highlight.start) {
                 htmlContent += '<span>';
-                const substring = this.text.substring(pos, highlight.start);
-                htmlContent += this.supportCodicons ? renderCodicons(escape(substring)) : escape(substring);
+                var substring_1 = this.text.substring(pos, highlight.start);
+                htmlContent += this.supportCodicons ? renderCodicons(escape(substring_1)) : escape(substring_1);
                 htmlContent += '</span>';
                 pos = highlight.end;
             }
             if (highlight.extraClasses) {
-                htmlContent += `<span class="highlight ${highlight.extraClasses}">`;
+                htmlContent += "<span class=\"highlight " + highlight.extraClasses + "\">";
             }
             else {
-                htmlContent += `<span class="highlight">`;
+                htmlContent += "<span class=\"highlight\">";
             }
-            const substring = this.text.substring(highlight.start, highlight.end);
+            var substring = this.text.substring(highlight.start, highlight.end);
             htmlContent += this.supportCodicons ? renderCodicons(escape(substring)) : escape(substring);
             htmlContent += '</span>';
             pos = highlight.end;
         }
         if (pos < this.text.length) {
             htmlContent += '<span>';
-            const substring = this.text.substring(pos);
+            var substring = this.text.substring(pos);
             htmlContent += this.supportCodicons ? renderCodicons(escape(substring)) : escape(substring);
             htmlContent += '</span>';
         }
@@ -77,14 +84,15 @@ export class HighlightedLabel {
             this.domNode.removeAttribute('title');
         }
         this.didEverRender = true;
-    }
-    static escapeNewLines(text, highlights) {
-        let total = 0;
-        let extra = 0;
-        return text.replace(/\r\n|\r|\n/g, (match, offset) => {
+    };
+    HighlightedLabel.escapeNewLines = function (text, highlights) {
+        var total = 0;
+        var extra = 0;
+        return text.replace(/\r\n|\r|\n/g, function (match, offset) {
             extra = match === '\r\n' ? -1 : 0;
             offset += total;
-            for (const highlight of highlights) {
+            for (var _i = 0, highlights_1 = highlights; _i < highlights_1.length; _i++) {
+                var highlight = highlights_1[_i];
                 if (highlight.end <= offset) {
                     continue;
                 }
@@ -98,5 +106,7 @@ export class HighlightedLabel {
             total += extra;
             return '\u23CE';
         });
-    }
-}
+    };
+    return HighlightedLabel;
+}());
+export { HighlightedLabel };

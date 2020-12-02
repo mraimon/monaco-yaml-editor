@@ -314,22 +314,6 @@ export var DiagnosticTag;
     DiagnosticTag.Deprecated = 2;
 })(DiagnosticTag || (DiagnosticTag = {}));
 /**
- * The DiagnosticCode namespace provides functions to deal with complex diagnostic codes.
- *
- * @since 3.16.0 - Proposed state
- */
-export var DiagnosticCode;
-(function (DiagnosticCode) {
-    /**
-     * Checks whether the given liternal conforms to the [DiagnosticCode](#DiagnosticCode) interface.
-     */
-    function is(value) {
-        var candidate = value;
-        return candidate !== undefined && candidate !== null && (Is.number(candidate.value) || Is.string(candidate.value)) && Is.string(candidate.target);
-    }
-    DiagnosticCode.is = is;
-})(DiagnosticCode || (DiagnosticCode = {}));
-/**
  * The Diagnostic namespace provides helper functions to work with
  * [Diagnostic](#Diagnostic) literals.
  */
@@ -597,9 +581,6 @@ var WorkspaceChange = /** @class */ (function () {
          * use to be returned from a workspace edit operation like rename.
          */
         get: function () {
-            if (this._workspaceEdit === undefined) {
-                return { documentChanges: [] };
-            }
             return this._workspaceEdit;
         },
         enumerable: true,
@@ -829,7 +810,7 @@ export var InsertTextFormat;
      * the end of the snippet. Placeholders with equal identifiers are linked,
      * that is typing in one will update others too.
      *
-     * See also: https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
+     * See also: https://github.com/Microsoft/vscode/blob/master/src/vs/editor/contrib/snippet/common/snippet.md
      */
     InsertTextFormat.Snippet = 2;
 })(InsertTextFormat || (InsertTextFormat = {}));
@@ -846,29 +827,6 @@ export var CompletionItemTag;
      */
     CompletionItemTag.Deprecated = 1;
 })(CompletionItemTag || (CompletionItemTag = {}));
-/**
- * The InsertReplaceEdit namespace provides functions to deal with insert / replace edits.
- *
- * @since 3.16.0 - Proposed state
- */
-export var InsertReplaceEdit;
-(function (InsertReplaceEdit) {
-    /**
-     * Creates a new insert / replace edit
-     */
-    function create(newText, insert, replace) {
-        return { newText: newText, insert: insert, replace: replace };
-    }
-    InsertReplaceEdit.create = create;
-    /**
-     * Checks whether the given liternal conforms to the [InsertReplaceEdit](#InsertReplaceEdit) interface.
-     */
-    function is(value) {
-        var candidate = value;
-        return candidate && Is.string(candidate.newText) && Range.is(candidate.insert) && Range.is(candidate.replace);
-    }
-    InsertReplaceEdit.is = is;
-})(InsertReplaceEdit || (InsertReplaceEdit = {}));
 /**
  * The CompletionItem namespace provides functions to deal with
  * completion items.
@@ -1116,8 +1074,7 @@ export var DocumentSymbol;
             Range.is(candidate.range) && Range.is(candidate.selectionRange) &&
             (candidate.detail === void 0 || Is.string(candidate.detail)) &&
             (candidate.deprecated === void 0 || Is.boolean(candidate.deprecated)) &&
-            (candidate.children === void 0 || Array.isArray(candidate.children)) &&
-            (candidate.tags === void 0 || Array.isArray(candidate.tags));
+            (candidate.children === void 0 || Array.isArray(candidate.children));
     }
     DocumentSymbol.is = is;
 })(DocumentSymbol || (DocumentSymbol = {}));

@@ -2,67 +2,94 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-export class RestrictedRenderingContext {
-    constructor(viewLayout, viewportData) {
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var RestrictedRenderingContext = /** @class */ (function () {
+    function RestrictedRenderingContext(viewLayout, viewportData) {
         this._viewLayout = viewLayout;
         this.viewportData = viewportData;
         this.scrollWidth = this._viewLayout.getScrollWidth();
         this.scrollHeight = this._viewLayout.getScrollHeight();
         this.visibleRange = this.viewportData.visibleRange;
         this.bigNumbersDelta = this.viewportData.bigNumbersDelta;
-        const vInfo = this._viewLayout.getCurrentViewport();
+        var vInfo = this._viewLayout.getCurrentViewport();
         this.scrollTop = vInfo.top;
         this.scrollLeft = vInfo.left;
         this.viewportWidth = vInfo.width;
         this.viewportHeight = vInfo.height;
     }
-    getScrolledTopFromAbsoluteTop(absoluteTop) {
+    RestrictedRenderingContext.prototype.getScrolledTopFromAbsoluteTop = function (absoluteTop) {
         return absoluteTop - this.scrollTop;
-    }
-    getVerticalOffsetForLineNumber(lineNumber) {
+    };
+    RestrictedRenderingContext.prototype.getVerticalOffsetForLineNumber = function (lineNumber) {
         return this._viewLayout.getVerticalOffsetForLineNumber(lineNumber);
-    }
-    getDecorationsInViewport() {
+    };
+    RestrictedRenderingContext.prototype.getDecorationsInViewport = function () {
         return this.viewportData.getDecorationsInViewport();
+    };
+    return RestrictedRenderingContext;
+}());
+export { RestrictedRenderingContext };
+var RenderingContext = /** @class */ (function (_super) {
+    __extends(RenderingContext, _super);
+    function RenderingContext(viewLayout, viewportData, viewLines) {
+        var _this = _super.call(this, viewLayout, viewportData) || this;
+        _this._viewLines = viewLines;
+        return _this;
     }
-}
-export class RenderingContext extends RestrictedRenderingContext {
-    constructor(viewLayout, viewportData, viewLines) {
-        super(viewLayout, viewportData);
-        this._viewLines = viewLines;
-    }
-    linesVisibleRangesForRange(range, includeNewLines) {
+    RenderingContext.prototype.linesVisibleRangesForRange = function (range, includeNewLines) {
         return this._viewLines.linesVisibleRangesForRange(range, includeNewLines);
-    }
-    visibleRangeForPosition(position) {
+    };
+    RenderingContext.prototype.visibleRangeForPosition = function (position) {
         return this._viewLines.visibleRangeForPosition(position);
-    }
-}
-export class LineVisibleRanges {
-    constructor(outsideRenderedLine, lineNumber, ranges) {
+    };
+    return RenderingContext;
+}(RestrictedRenderingContext));
+export { RenderingContext };
+var LineVisibleRanges = /** @class */ (function () {
+    function LineVisibleRanges(outsideRenderedLine, lineNumber, ranges) {
         this.outsideRenderedLine = outsideRenderedLine;
         this.lineNumber = lineNumber;
         this.ranges = ranges;
     }
-}
-export class HorizontalRange {
-    constructor(left, width) {
+    return LineVisibleRanges;
+}());
+export { LineVisibleRanges };
+var HorizontalRange = /** @class */ (function () {
+    function HorizontalRange(left, width) {
         this.left = Math.round(left);
         this.width = Math.round(width);
     }
-    toString() {
-        return `[${this.left},${this.width}]`;
-    }
-}
-export class HorizontalPosition {
-    constructor(outsideRenderedLine, left) {
+    HorizontalRange.prototype.toString = function () {
+        return "[" + this.left + "," + this.width + "]";
+    };
+    return HorizontalRange;
+}());
+export { HorizontalRange };
+var HorizontalPosition = /** @class */ (function () {
+    function HorizontalPosition(outsideRenderedLine, left) {
         this.outsideRenderedLine = outsideRenderedLine;
         this.left = Math.round(left);
     }
-}
-export class VisibleRanges {
-    constructor(outsideRenderedLine, ranges) {
+    return HorizontalPosition;
+}());
+export { HorizontalPosition };
+var VisibleRanges = /** @class */ (function () {
+    function VisibleRanges(outsideRenderedLine, ranges) {
         this.outsideRenderedLine = outsideRenderedLine;
         this.ranges = ranges;
     }
-}
+    return VisibleRanges;
+}());
+export { VisibleRanges };

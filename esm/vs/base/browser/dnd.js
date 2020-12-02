@@ -1,5 +1,5 @@
 // Common data transfers
-export const DataTransfers = {
+export var DataTransfers = {
     /**
      * Application specific resource transfer type
      */
@@ -17,17 +17,19 @@ export const DataTransfers = {
      */
     TEXT: 'text/plain'
 };
-export class DragAndDropData {
-    constructor(data) {
+var DragAndDropData = /** @class */ (function () {
+    function DragAndDropData(data) {
         this.data = data;
     }
-    update() {
+    DragAndDropData.prototype.update = function () {
         // noop
-    }
-    getData() {
+    };
+    DragAndDropData.prototype.getData = function () {
         return this.data;
-    }
-}
-export const StaticDND = {
+    };
+    return DragAndDropData;
+}());
+export { DragAndDropData };
+export var StaticDND = {
     CurrentDragAndDropData: undefined
 };

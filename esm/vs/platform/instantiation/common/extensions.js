@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { SyncDescriptor } from './descriptors.js';
-const _registry = [];
+var _registry = [];
 export function registerSingleton(id, ctor, supportsDelayedInstantiation) {
     _registry.push([id, new SyncDescriptor(ctor, [], supportsDelayedInstantiation)]);
 }

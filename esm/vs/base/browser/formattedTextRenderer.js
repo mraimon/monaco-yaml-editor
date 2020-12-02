@@ -3,46 +3,49 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as DOM from './dom.js';
-export function renderText(text, options = {}) {
-    const element = createElement(options);
+export function renderText(text, options) {
+    if (options === void 0) { options = {}; }
+    var element = createElement(options);
     element.textContent = text;
     return element;
 }
-export function renderFormattedText(formattedText, options = {}) {
-    const element = createElement(options);
+export function renderFormattedText(formattedText, options) {
+    if (options === void 0) { options = {}; }
+    var element = createElement(options);
     _renderFormattedText(element, parseFormattedText(formattedText), options.actionHandler);
     return element;
 }
 export function createElement(options) {
-    const tagName = options.inline ? 'span' : 'div';
-    const element = document.createElement(tagName);
+    var tagName = options.inline ? 'span' : 'div';
+    var element = document.createElement(tagName);
     if (options.className) {
         element.className = options.className;
     }
     return element;
 }
-class StringStream {
-    constructor(source) {
+var StringStream = /** @class */ (function () {
+    function StringStream(source) {
         this.source = source;
         this.index = 0;
     }
-    eos() {
+    StringStream.prototype.eos = function () {
         return this.index >= this.source.length;
-    }
-    next() {
-        const next = this.peek();
+    };
+    StringStream.prototype.next = function () {
+        var next = this.peek();
         this.advance();
         return next;
-    }
-    peek() {
+    };
+    StringStream.prototype.peek = function () {
         return this.source[this.index];
-    }
-    advance() {
+    };
+    StringStream.prototype.advance = function () {
         this.index++;
-    }
-}
+    };
+    return StringStream;
+}());
 function _renderFormattedText(element, treeNode, actionHandler) {
-    let child;
+    var child;
     if (treeNode.type === 2 /* Text */) {
         child = document.createTextNode(treeNode.content || '');
     }
@@ -53,9 +56,9 @@ function _renderFormattedText(element, treeNode, actionHandler) {
         child = document.createElement('i');
     }
     else if (treeNode.type === 5 /* Action */ && actionHandler) {
-        const a = document.createElement('a');
+        var a = document.createElement('a');
         a.href = '#';
-        actionHandler.disposeables.add(DOM.addStandardDisposableListener(a, 'click', (event) => {
+        actionHandler.disposeables.add(DOM.addStandardDisposableListener(a, 'click', function (event) {
             actionHandler.callback(String(treeNode.index), event);
         }));
         child = a;
@@ -70,23 +73,23 @@ function _renderFormattedText(element, treeNode, actionHandler) {
         element.appendChild(child);
     }
     if (child && Array.isArray(treeNode.children)) {
-        treeNode.children.forEach((nodeChild) => {
+        treeNode.children.forEach(function (nodeChild) {
             _renderFormattedText(child, nodeChild, actionHandler);
         });
     }
 }
 function parseFormattedText(content) {
-    const root = {
+    var root = {
         type: 1 /* Root */,
         children: []
     };
-    let actionViewItemIndex = 0;
-    let current = root;
-    const stack = [];
-    const stream = new StringStream(content);
+    var actionViewItemIndex = 0;
+    var current = root;
+    var stack = [];
+    var stream = new StringStream(content);
     while (!stream.eos()) {
-        let next = stream.next();
-        const isEscapedFormatType = (next === '\\' && formatTagType(stream.peek()) !== 0 /* Invalid */);
+        var next = stream.next();
+        var isEscapedFormatType = (next === '\\' && formatTagType(stream.peek()) !== 0 /* Invalid */);
         if (isEscapedFormatType) {
             next = stream.next(); // unread the backslash if it escapes a format tag type
         }
@@ -95,12 +98,12 @@ function parseFormattedText(content) {
             if (current.type === 2 /* Text */) {
                 current = stack.pop();
             }
-            const type = formatTagType(next);
+            var type = formatTagType(next);
             if (current.type === type || (current.type === 5 /* Action */ && type === 6 /* ActionClose */)) {
                 current = stack.pop();
             }
             else {
-                const newCurrent = {
+                var newCurrent = {
                     type: type,
                     children: []
                 };
@@ -123,7 +126,7 @@ function parseFormattedText(content) {
         }
         else {
             if (current.type !== 2 /* Text */) {
-                const textCurrent = {
+                var textCurrent = {
                     type: 2 /* Text */,
                     content: next
                 };

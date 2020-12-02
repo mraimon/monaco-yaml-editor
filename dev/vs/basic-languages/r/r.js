@@ -2,10 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-define('vs/basic-languages/r/r',["require", "exports"], function (require, exports) {
-    "use strict";
+define(["require", "exports"], function (require, exports) {
+    'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.language = exports.conf = void 0;
     exports.conf = {
         comments: {
             lineComment: '#'
@@ -19,13 +18,13 @@ define('vs/basic-languages/r/r',["require", "exports"], function (require, expor
             { open: '{', close: '}' },
             { open: '[', close: ']' },
             { open: '(', close: ')' },
-            { open: '"', close: '"' }
+            { open: '"', close: '"' },
         ],
         surroundingPairs: [
             { open: '{', close: '}' },
             { open: '[', close: ']' },
             { open: '(', close: ')' },
-            { open: '"', close: '"' }
+            { open: '"', close: '"' },
         ]
     };
     exports.language = {
@@ -121,7 +120,18 @@ define('vs/basic-languages/r/r',["require", "exports"], function (require, expor
             'detach',
             'source'
         ],
-        special: ['\\n', '\\r', '\\t', '\\b', '\\a', '\\f', '\\v', "\\'", '\\"', '\\\\'],
+        special: [
+            '\\n',
+            '\\r',
+            '\\t',
+            '\\b',
+            '\\a',
+            '\\f',
+            '\\v',
+            '\\\'',
+            '\\"',
+            '\\\\'
+        ],
         brackets: [
             { open: '{', close: '}', token: 'delimiter.curly' },
             { open: '[', close: ']', token: 'delimiter.bracket' },
@@ -138,38 +148,29 @@ define('vs/basic-languages/r/r',["require", "exports"], function (require, expor
                 [/\s+/, 'white'],
                 [/[,:;]/, 'delimiter'],
                 [/@[a-zA-Z]\w*/, 'tag'],
-                [
-                    /[a-zA-Z]\w*/,
-                    {
+                [/[a-zA-Z]\w*/, {
                         cases: {
                             '@keywords': 'keyword',
                             '@constants': 'constant',
                             '@default': 'identifier'
                         }
-                    }
-                ]
+                    }]
             ],
             // Recognize Roxygen comments
             roxygen: [
-                [
-                    /@\w+/,
-                    {
+                [/@\w+/, {
                         cases: {
                             '@roxygen': 'tag',
                             '@eos': { token: 'comment.doc', next: '@pop' },
                             '@default': 'comment.doc'
                         }
-                    }
-                ],
-                [
-                    /\s+/,
-                    {
+                    }],
+                [/\s+/, {
                         cases: {
                             '@eos': { token: 'comment.doc', next: '@pop' },
                             '@default': 'comment.doc'
                         }
-                    }
-                ],
+                    }],
                 [/.*/, { token: 'comment.doc', next: '@pop' }]
             ],
             // Recognize positives, negatives, decimals, imaginaries, and scientific notation
@@ -196,32 +197,25 @@ define('vs/basic-languages/r/r',["require", "exports"], function (require, expor
                 [/"/, 'string.escape', '@dblStringBody']
             ],
             stringBody: [
-                [
-                    /\\./,
-                    {
+                [/\\./, {
                         cases: {
                             '@special': 'string',
                             '@default': 'error-token'
                         }
-                    }
-                ],
+                    }],
                 [/'/, 'string.escape', '@popall'],
-                [/./, 'string']
+                [/./, 'string'],
             ],
             dblStringBody: [
-                [
-                    /\\./,
-                    {
+                [/\\./, {
                         cases: {
                             '@special': 'string',
                             '@default': 'error-token'
                         }
-                    }
-                ],
+                    }],
                 [/"/, 'string.escape', '@popall'],
-                [/./, 'string']
+                [/./, 'string'],
             ]
         }
     };
 });
-

@@ -8,7 +8,7 @@ import { Rules, Settings } from './lintRules.js';
 import * as nodes from '../parser/cssNodes.js';
 import calculateBoxModel, { Element } from './lintUtil.js';
 import { union } from '../utils/arrays.js';
-import * as nls from '../../../fillers/vscode-nls.js';
+import * as nls from './../../../fillers/vscode-nls.js';
 var localize = nls.loadMessageBundle();
 var NodesByRootMap = /** @class */ (function () {
     function NodesByRootMap() {
@@ -28,9 +28,8 @@ var NodesByRootMap = /** @class */ (function () {
     return NodesByRootMap;
 }());
 var LintVisitor = /** @class */ (function () {
-    function LintVisitor(document, settings, cssDataManager) {
+    function LintVisitor(document, settings) {
         var _this = this;
-        this.cssDataManager = cssDataManager;
         this.warnings = [];
         this.settings = settings;
         this.documentText = document.getText();
@@ -48,8 +47,8 @@ var LintVisitor = /** @class */ (function () {
             });
         }
     }
-    LintVisitor.entries = function (node, document, settings, cssDataManager, entryFilter) {
-        var visitor = new LintVisitor(document, settings, cssDataManager);
+    LintVisitor.entries = function (node, document, settings, entryFilter) {
+        var visitor = new LintVisitor(document, settings);
         node.acceptVisitor(visitor);
         visitor.completeValidations();
         return visitor.getEntries(entryFilter);
@@ -156,7 +155,7 @@ var LintVisitor = /** @class */ (function () {
         if (!atRuleName) {
             return false;
         }
-        var atDirective = this.cssDataManager.getAtDirective(atRuleName.getText());
+        var atDirective = languageFacts.cssDataManager.getAtDirective(atRuleName.getText());
         if (atDirective) {
             return false;
         }
@@ -365,7 +364,7 @@ var LintVisitor = /** @class */ (function () {
                     var firstChar = name.charAt(0);
                     if (firstChar === '-') {
                         if (name.charAt(1) !== '-') { // avoid css variables
-                            if (!this.cssDataManager.isKnownProperty(name) && !this.validProperties[name]) {
+                            if (!languageFacts.cssDataManager.isKnownProperty(name) && !this.validProperties[name]) {
                                 this.addEntry(decl.getProperty(), Rules.UnknownVendorSpecificProperty);
                             }
                             var nonPrefixedName = decl.getNonPrefixedPropertyName();
@@ -379,9 +378,9 @@ var LintVisitor = /** @class */ (function () {
                             name = name.substr(1);
                         }
                         // _property and *property might be contributed via custom data
-                        if (!this.cssDataManager.isKnownProperty(fullName) && !this.cssDataManager.isKnownProperty(name)) {
+                        if (!languageFacts.cssDataManager.isKnownProperty(fullName) && !languageFacts.cssDataManager.isKnownProperty(name)) {
                             if (!this.validProperties[name]) {
-                                this.addEntry(decl.getProperty(), Rules.UnknownProperty, localize('property.unknownproperty.detailed', "Unknown property: '{0}'", decl.getFullPropertyName()));
+                                this.addEntry(decl.getProperty(), Rules.UnknownProperty, localize('property.unknownproperty.detailed', "Unknown property: '{0}'", name));
                             }
                         }
                         propertiesBySuffix.add(name, name, null); // don't pass the node as we don't show errors on the standard
@@ -395,14 +394,14 @@ var LintVisitor = /** @class */ (function () {
                 for (var suffix in propertiesBySuffix.data) {
                     var entry = propertiesBySuffix.data[suffix];
                     var actual = entry.names;
-                    var needsStandard = this.cssDataManager.isStandardProperty(suffix) && (actual.indexOf(suffix) === -1);
+                    var needsStandard = languageFacts.cssDataManager.isStandardProperty(suffix) && (actual.indexOf(suffix) === -1);
                     if (!needsStandard && actual.length === 1) {
                         continue; // only the non-vendor specific rule is used, that's fine, no warning
                     }
                     var expected = [];
                     for (var i = 0, len = LintVisitor.prefixes.length; i < len; i++) {
                         var prefix = LintVisitor.prefixes[i];
-                        if (this.cssDataManager.isStandardProperty(prefix + suffix)) {
+                        if (languageFacts.cssDataManager.isStandardProperty(prefix + suffix)) {
                             expected.push(prefix + suffix);
                         }
                     }

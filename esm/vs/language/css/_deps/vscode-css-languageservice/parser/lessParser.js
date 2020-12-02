@@ -230,11 +230,18 @@ var LESSParser = /** @class */ (function (_super) {
         }
         return node;
     };
-    LESSParser.prototype._parseTermExpression = function () {
-        return this._parseVariable() ||
-            this._parseEscaped() ||
-            _super.prototype._parseTermExpression.call(this) || // preference for colors before mixin references
-            this._tryParseMixinReference(false);
+    LESSParser.prototype._parseTerm = function () {
+        var term = _super.prototype._parseTerm.call(this);
+        if (term) {
+            return term;
+        }
+        term = this.create(nodes.Term);
+        if (term.setExpression(this._parseVariable()) ||
+            term.setExpression(this._parseEscaped()) ||
+            term.setExpression(this._tryParseMixinReference(false))) {
+            return this.finish(term);
+        }
+        return null;
     };
     LESSParser.prototype._parseEscaped = function () {
         if (this.peek(TokenType.EscapedJavaScript) ||
@@ -293,7 +300,7 @@ var LESSParser = /** @class */ (function (_super) {
                 || this._parseSupports(true) // @supports
                 || this._parseDetachedRuleSetMixin() // less detached ruleset mixin
                 || this._parseVariableDeclaration() // Variable declarations
-                || _super.prototype._parseRuleSetDeclarationAtStatement.call(this);
+                || this._parseUnknownAtRule();
         }
         return this._tryParseMixinDeclaration()
             || this._tryParseRuleset(true) // nested ruleset
@@ -574,7 +581,7 @@ var LESSParser = /** @class */ (function (_super) {
             return null;
         }
         var hasArguments = false;
-        if (this.accept(TokenType.ParenthesisL)) {
+        if (!this.hasWhitespace() && this.accept(TokenType.ParenthesisL)) {
             hasArguments = true;
             if (node.getArguments().addChild(this._parseMixinArgument())) {
                 while (this.accept(TokenType.Comma) || this.accept(TokenType.SemiColon)) {

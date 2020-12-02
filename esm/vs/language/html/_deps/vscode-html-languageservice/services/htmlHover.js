@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { createScanner } from '../parser/htmlScanner.js';
-import { MarkupKind } from '../_deps/vscode-languageserver-types/main.js';
+import { MarkupKind } from './../_deps/vscode-languageserver-types/main.js';
 import { TokenType } from '../htmlLanguageTypes.js';
+import { getAllDataProviders } from '../languageFacts/builtinDataProviders.js';
 import { isDefined } from '../utils/object.js';
 import { generateDocumentation } from '../languageFacts/dataProvider.js';
 var HTMLHover = /** @class */ (function () {
-    function HTMLHover(lsOptions, dataManager) {
-        this.lsOptions = lsOptions;
-        this.dataManager = dataManager;
+    function HTMLHover(clientCapabilities) {
+        this.clientCapabilities = clientCapabilities;
     }
     HTMLHover.prototype.doHover = function (document, position, htmlDocument) {
         var convertContents = this.convertContents.bind(this);
@@ -20,19 +20,16 @@ var HTMLHover = /** @class */ (function () {
         if (!node || !node.tag) {
             return null;
         }
-        var dataProviders = this.dataManager.getDataProviders().filter(function (p) { return p.isApplicable(document.languageId); });
+        var dataProviders = getAllDataProviders().filter(function (p) { return p.isApplicable(document.languageId); });
         function getTagHover(currTag, range, open) {
+            currTag = currTag.toLowerCase();
             var _loop_1 = function (provider) {
                 var hover = null;
                 provider.provideTags().forEach(function (tag) {
                     if (tag.name.toLowerCase() === currTag.toLowerCase()) {
+                        var tagLabel = open ? '<' + currTag + '>' : '</' + currTag + '>';
                         var markupContent = generateDocumentation(tag, doesSupportMarkdown);
-                        if (!markupContent) {
-                            markupContent = {
-                                kind: doesSupportMarkdown ? 'markdown' : 'plaintext',
-                                value: ''
-                            };
-                        }
+                        markupContent.value = '```html\n' + tagLabel + '\n```\n' + markupContent.value;
                         hover = { contents: markupContent, range: range };
                     }
                 });
@@ -50,17 +47,12 @@ var HTMLHover = /** @class */ (function () {
             return null;
         }
         function getAttrHover(currTag, currAttr, range) {
+            currTag = currTag.toLowerCase();
             var _loop_2 = function (provider) {
                 var hover = null;
                 provider.provideAttributes(currTag).forEach(function (attr) {
                     if (currAttr === attr.name && attr.description) {
-                        var contentsDoc = generateDocumentation(attr, doesSupportMarkdown);
-                        if (contentsDoc) {
-                            hover = { contents: contentsDoc, range: range };
-                        }
-                        else {
-                            hover = null;
-                        }
+                        hover = { contents: generateDocumentation(attr, doesSupportMarkdown), range: range };
                     }
                 });
                 if (hover) {
@@ -77,17 +69,12 @@ var HTMLHover = /** @class */ (function () {
             return null;
         }
         function getAttrValueHover(currTag, currAttr, currAttrValue, range) {
+            currTag = currTag.toLowerCase();
             var _loop_3 = function (provider) {
                 var hover = null;
                 provider.provideValues(currTag, currAttr).forEach(function (attrValue) {
                     if (currAttrValue === attrValue.name && attrValue.description) {
-                        var contentsDoc = generateDocumentation(attrValue, doesSupportMarkdown);
-                        if (contentsDoc) {
-                            hover = { contents: contentsDoc, range: range };
-                        }
-                        else {
-                            hover = null;
-                        }
+                        hover = { contents: generateDocumentation(attrValue, doesSupportMarkdown), range: range };
                     }
                 });
                 if (hover) {
@@ -180,14 +167,13 @@ var HTMLHover = /** @class */ (function () {
         return contents;
     };
     HTMLHover.prototype.doesSupportMarkdown = function () {
-        var _a, _b, _c;
         if (!isDefined(this.supportsMarkdown)) {
-            if (!isDefined(this.lsOptions.clientCapabilities)) {
+            if (!isDefined(this.clientCapabilities)) {
                 this.supportsMarkdown = true;
                 return this.supportsMarkdown;
             }
-            var contentFormat = (_c = (_b = (_a = this.lsOptions.clientCapabilities) === null || _a === void 0 ? void 0 : _a.textDocument) === null || _b === void 0 ? void 0 : _b.hover) === null || _c === void 0 ? void 0 : _c.contentFormat;
-            this.supportsMarkdown = Array.isArray(contentFormat) && contentFormat.indexOf(MarkupKind.Markdown) !== -1;
+            var hover = this.clientCapabilities && this.clientCapabilities.textDocument && this.clientCapabilities.textDocument.hover;
+            this.supportsMarkdown = hover && hover.contentFormat && Array.isArray(hover.contentFormat) && hover.contentFormat.indexOf(MarkupKind.Markdown) !== -1;
         }
         return this.supportsMarkdown;
     };

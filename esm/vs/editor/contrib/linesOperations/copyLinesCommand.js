@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 import { Range } from '../../common/core/range.js';
 import { Selection } from '../../common/core/selection.js';
-export class CopyLinesCommand {
-    constructor(selection, isCopyingDown) {
+var CopyLinesCommand = /** @class */ (function () {
+    function CopyLinesCommand(selection, isCopyingDown) {
         this._selection = selection;
         this._isCopyingDown = isCopyingDown;
         this._selectionDirection = 0 /* LTR */;
@@ -13,19 +13,19 @@ export class CopyLinesCommand {
         this._startLineNumberDelta = 0;
         this._endLineNumberDelta = 0;
     }
-    getEditOperations(model, builder) {
-        let s = this._selection;
+    CopyLinesCommand.prototype.getEditOperations = function (model, builder) {
+        var s = this._selection;
         this._startLineNumberDelta = 0;
         this._endLineNumberDelta = 0;
         if (s.startLineNumber < s.endLineNumber && s.endColumn === 1) {
             this._endLineNumberDelta = 1;
             s = s.setEndPosition(s.endLineNumber - 1, model.getLineMaxColumn(s.endLineNumber - 1));
         }
-        let sourceLines = [];
-        for (let i = s.startLineNumber; i <= s.endLineNumber; i++) {
+        var sourceLines = [];
+        for (var i = s.startLineNumber; i <= s.endLineNumber; i++) {
             sourceLines.push(model.getLineContent(i));
         }
-        const sourceText = sourceLines.join('\n');
+        var sourceText = sourceLines.join('\n');
         if (sourceText === '') {
             // Duplicating empty line
             if (this._isCopyingDown) {
@@ -41,14 +41,14 @@ export class CopyLinesCommand {
         }
         this._selectionId = builder.trackSelection(s);
         this._selectionDirection = this._selection.getDirection();
-    }
-    computeCursorState(model, helper) {
-        let result = helper.getTrackedSelection(this._selectionId);
+    };
+    CopyLinesCommand.prototype.computeCursorState = function (model, helper) {
+        var result = helper.getTrackedSelection(this._selectionId);
         if (this._startLineNumberDelta !== 0 || this._endLineNumberDelta !== 0) {
-            let startLineNumber = result.startLineNumber;
-            let startColumn = result.startColumn;
-            let endLineNumber = result.endLineNumber;
-            let endColumn = result.endColumn;
+            var startLineNumber = result.startLineNumber;
+            var startColumn = result.startColumn;
+            var endLineNumber = result.endLineNumber;
+            var endColumn = result.endColumn;
             if (this._startLineNumberDelta !== 0) {
                 startLineNumber = startLineNumber + this._startLineNumberDelta;
                 startColumn = 1;
@@ -60,5 +60,7 @@ export class CopyLinesCommand {
             result = Selection.createWithDirection(startLineNumber, startColumn, endLineNumber, endColumn, this._selectionDirection);
         }
         return result;
-    }
-}
+    };
+    return CopyLinesCommand;
+}());
+export { CopyLinesCommand };

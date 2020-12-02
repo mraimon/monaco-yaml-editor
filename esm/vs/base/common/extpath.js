@@ -8,7 +8,8 @@ import { sep, posix } from './path.js';
 export function toSlashes(osPath) {
     return osPath.replace(/[\\/]/g, posix.sep);
 }
-export function isEqualOrParent(path, candidate, ignoreCase, separator = sep) {
+export function isEqualOrParent(path, candidate, ignoreCase, separator) {
+    if (separator === void 0) { separator = sep; }
     if (path === candidate) {
         return true;
     }
@@ -19,14 +20,14 @@ export function isEqualOrParent(path, candidate, ignoreCase, separator = sep) {
         return false;
     }
     if (ignoreCase) {
-        const beginsWith = startsWithIgnoreCase(path, candidate);
+        var beginsWith = startsWithIgnoreCase(path, candidate);
         if (!beginsWith) {
             return false;
         }
         if (candidate.length === path.length) {
             return true; // same path, different casing
         }
-        let sepOffset = candidate.length;
+        var sepOffset = candidate.length;
         if (candidate.charAt(candidate.length - 1) === separator) {
             sepOffset--; // adjust the expected sep offset in case our candidate already ends in separator character
         }
@@ -36,4 +37,7 @@ export function isEqualOrParent(path, candidate, ignoreCase, separator = sep) {
         candidate += separator;
     }
     return path.indexOf(candidate) === 0;
+}
+export function isWindowsDriveLetter(char0) {
+    return char0 >= 65 /* A */ && char0 <= 90 /* Z */ || char0 >= 97 /* a */ && char0 <= 122 /* z */;
 }
