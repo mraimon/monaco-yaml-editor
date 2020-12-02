@@ -6,7 +6,7 @@
 'use strict';
 import * as nls from '../../../../../../fillers/vscode-nls.js';
 const localize = nls.loadMessageBundle();
-import * as Yaml from '../../../../../../../../../yaml-ast-parser-custom-tags.js';
+import * as Yaml from './../../../../../../../../../yaml-ast-parser-custom-tags.js';
 import { JSONDocument } from './jsonParser07.js';
 import { formatErrors, formatWarnings, customTagsToAdditionalOptions } from '../utils/parseUtils.js';
 import recursivelyBuildAst from './recursivelyBuildAst.js';

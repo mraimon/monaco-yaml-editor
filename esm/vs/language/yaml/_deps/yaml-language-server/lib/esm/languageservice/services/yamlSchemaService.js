@@ -18,7 +18,7 @@ import { URI } from '../../../../../vscode-uri/index.js';
 import * as nls from '../../../../../../fillers/vscode-nls.js';
 import { convertSimple2RegExpPattern } from '../utils/strings.js';
 import { SingleYAMLDocument } from '../parser/yamlParser07.js';
-import * as yaml from '../../../../../../../../../js-yaml.js';
+import * as yaml from './../../../../../../../../../js-yaml.js';
 const localize = nls.loadMessageBundle();
 export var MODIFICATION_ACTIONS;
 (function (MODIFICATION_ACTIONS) {
